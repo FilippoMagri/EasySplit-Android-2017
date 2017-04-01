@@ -7,9 +7,7 @@ import org.junit.Test;
 import java.util.List;
 
 import it.polito.mad.easysplit.models.PersonModel;
-import it.polito.mad.easysplit.models.TransactionModel;
-
-import static org.junit.Assert.*;
+import it.polito.mad.easysplit.models.ExpenseModel;
 
 public class DummyPersonModelTest {
 
@@ -24,10 +22,10 @@ public class DummyPersonModelTest {
     public void getTransactions() throws Exception {
         DummyGroupModel group = new DummyGroupModel();
         for (PersonModel person : group.getMembers()) {
-            List<TransactionModel> personTxs = person.getTransactions();
+            List<ExpenseModel> personTxs = person.getExpenses();
 
             int found = 0;
-            for (TransactionModel tx : group.getTransactionList()) {
+            for (ExpenseModel tx : group.getExpenses()) {
                 if (tx.getPayer() != person)
                     continue;
 

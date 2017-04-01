@@ -1,7 +1,5 @@
 package it.polito.mad.easysplit.models.dummy;
 
-import android.database.DataSetObserver;
-
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Currency;
@@ -10,13 +8,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
-import java.util.Timer;
 
 import it.polito.mad.easysplit.models.GroupModel;
 import it.polito.mad.easysplit.models.Money;
 import it.polito.mad.easysplit.models.ObservableBase;
 import it.polito.mad.easysplit.models.PersonModel;
-import it.polito.mad.easysplit.models.TransactionModel;
+import it.polito.mad.easysplit.models.ExpenseModel;
 
 public class DummyGroupModel extends ObservableBase implements GroupModel  {
     private static String NAMES[] = {
@@ -34,11 +31,11 @@ public class DummyGroupModel extends ObservableBase implements GroupModel  {
     }
 
     private HashSet<PersonModel> members;
-    private ArrayList<TransactionModel> transactions;
+    private ArrayList<ExpenseModel> expenses;
 
     public DummyGroupModel() {
         members = new HashSet<>();
-        transactions = new ArrayList<>();
+        expenses = new ArrayList<>();
 
         Random rand = new Random();
         rand.setSeed(System.currentTimeMillis());
@@ -50,8 +47,8 @@ public class DummyGroupModel extends ObservableBase implements GroupModel  {
             members.add(people[i]);
         }
 
-        int numTxs = rand.nextInt(100);
-        for (int i=0; i < numTxs; i++) {
+        int numExps = rand.nextInt(100);
+        for (int i=0; i < numExps; i++) {
             Calendar time = new GregorianCalendar();
             Currency currency = Currency.getInstance("EUR");
 
@@ -59,12 +56,12 @@ public class DummyGroupModel extends ObservableBase implements GroupModel  {
                 int personIndex = Math.abs(rand.nextInt(members.size()));
 
                 time.add(Calendar.DAY_OF_MONTH, Math.abs(rand.nextInt(10)));
-                DummyTransactionModel tx = new DummyTransactionModel(
+                DummyExpenseModel exp = new DummyExpenseModel(
                         (Calendar) time.clone(),
                         new Money(currency, (long) rand.nextInt(10000)),
                         people[personIndex],
                         this);
-                transactions.add(tx);
+                expenses.add(exp);
             }
         }
     }
@@ -80,7 +77,7 @@ public class DummyGroupModel extends ObservableBase implements GroupModel  {
     }
 
     @Override
-    public List<TransactionModel> getTransactionList() {
-        return transactions;
+    public List<ExpenseModel> getExpenses() {
+        return expenses;
     }
 }

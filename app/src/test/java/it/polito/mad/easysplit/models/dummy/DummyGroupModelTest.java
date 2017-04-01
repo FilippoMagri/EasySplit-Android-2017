@@ -5,9 +5,7 @@ import junit.framework.Assert;
 import org.junit.Test;
 
 import it.polito.mad.easysplit.models.PersonModel;
-import it.polito.mad.easysplit.models.TransactionModel;
-
-import static org.junit.Assert.*;
+import it.polito.mad.easysplit.models.ExpenseModel;
 
 public class DummyGroupModelTest {
     @Test
@@ -20,7 +18,7 @@ public class DummyGroupModelTest {
     @Test
     public void getTransactionList() throws Exception {
         DummyGroupModel group = new DummyGroupModel();
-        for (TransactionModel tx : group.getTransactionList())
+        for (ExpenseModel tx : group.getExpenses())
             Assert.assertEquals(tx.getGroup(), group);
     }
 }

@@ -1,19 +1,14 @@
 package it.polito.mad.easysplit.models.dummy;
 
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Currency;
-import java.util.GregorianCalendar;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Random;
 import java.util.Set;
 
 import it.polito.mad.easysplit.models.GroupModel;
-import it.polito.mad.easysplit.models.Money;
 import it.polito.mad.easysplit.models.ObservableBase;
 import it.polito.mad.easysplit.models.PersonModel;
-import it.polito.mad.easysplit.models.TransactionModel;
+import it.polito.mad.easysplit.models.ExpenseModel;
 
 public class DummyPersonModel extends ObservableBase implements PersonModel {
     private String name;
@@ -37,9 +32,9 @@ public class DummyPersonModel extends ObservableBase implements PersonModel {
     }
 
     @Override
-    public List<TransactionModel> getTransactions() {
-        ArrayList<TransactionModel> filtered = new ArrayList<>();
-        for (TransactionModel tx : group.getTransactionList()) {
+    public List<ExpenseModel> getExpenses() {
+        ArrayList<ExpenseModel> filtered = new ArrayList<>();
+        for (ExpenseModel tx : group.getExpenses()) {
             if (tx.getPayer() == this)
                 filtered.add(tx);
         }
