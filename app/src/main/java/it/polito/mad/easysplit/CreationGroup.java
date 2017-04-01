@@ -12,15 +12,5 @@ public class CreationGroup extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_creation_group);
-
-       ImageButton valid = (ImageButton) findViewById(R.id.valid);
-        valid.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(CreationGroup.this, Group.class);
-                startActivity(intent);
-
-            }
-        });
     }
 }
