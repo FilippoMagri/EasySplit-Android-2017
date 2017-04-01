@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="it.polito.mad.easysplit.CreationGroup">
+    <ImageButton
+        android:id="@+id/valid"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical|center_horizontal"
+
+        tools:layout_editor_absoluteX="299dp"
+        android:layout_marginBottom="-68dp"
+        app:layout_constraintBottom_toTopOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginTop="8dp"
+        app:layout_constraintVertical_bias="0.0" />
+
+<TextView
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text="Choose a Group Name"
+    tools:layout_editor_absoluteY="61dp"
+    tools:layout_editor_absoluteX="65dp" />
+
+
+<EditText
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text="Flat, Trip.."
+    tools:layout_editor_absoluteY="78dp"
+    tools:layout_editor_absoluteX="65dp" />
+
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Add Participant"
+        tools:layout_editor_absoluteY="181dp"
+        tools:layout_editor_absoluteX="65dp" />
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Maria"
+        tools:layout_editor_absoluteY="205dp"
+        tools:layout_editor_absoluteX="65dp" />
+
+
+
+
+
+
+</android.support.constraint.ConstraintLayout>
