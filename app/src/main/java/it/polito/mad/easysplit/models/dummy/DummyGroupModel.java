@@ -40,29 +40,27 @@ public class DummyGroupModel extends ObservableBase implements GroupModel  {
         Random rand = new Random();
         rand.setSeed(System.currentTimeMillis());
 
-        int numMembers = rand.nextInt(10);
+        int numMembers = 1 + rand.nextInt(10);
         DummyPersonModel[] people = new DummyPersonModel[numMembers];
-        for (int i=0; i < numMembers; i++) {
+        for (int i = 0; i < numMembers; i++) {
             people[i] = new DummyPersonModel(randomName(rand), this);
             members.add(people[i]);
         }
 
-        int numExps = rand.nextInt(100);
-        for (int i=0; i < numExps; i++) {
-            Calendar time = new GregorianCalendar();
-            Currency currency = Currency.getInstance("EUR");
+        Calendar time = new GregorianCalendar();
+        Currency currency = Currency.getInstance("EUR");
 
-            for(int j=0; j < 10; j++) {
-                int personIndex = Math.abs(rand.nextInt(members.size()));
+        int numExps = 5 + rand.nextInt(10);
+        for (int i = 0; i < numExps; i++) {
+            int personIndex = Math.abs(rand.nextInt(members.size()));
 
-                time.add(Calendar.DAY_OF_MONTH, Math.abs(rand.nextInt(10)));
-                DummyExpenseModel exp = new DummyExpenseModel(
-                        (Calendar) time.clone(),
-                        new Money(currency, (long) rand.nextInt(10000)),
-                        people[personIndex],
-                        this);
-                expenses.add(exp);
-            }
+            time.add(Calendar.DAY_OF_MONTH, Math.abs(rand.nextInt(10)));
+            DummyExpenseModel exp = new DummyExpenseModel(
+                    (Calendar) time.clone(),
+                    new Money(currency, (long) rand.nextInt(10000)),
+                    people[personIndex],
+                    this);
+            expenses.add(exp);
         }
     }
 
