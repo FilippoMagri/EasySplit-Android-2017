@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 
+import it.polito.mad.easysplit.models.ConstraintException;
 import it.polito.mad.easysplit.models.GroupModel;
 import it.polito.mad.easysplit.models.Money;
 import it.polito.mad.easysplit.models.ObservableBase;
@@ -30,11 +31,20 @@ public class DummyGroupModel extends ObservableBase implements GroupModel  {
         return NAMES[nameIndex] + " " + SURNAMES[surnameIndex];
     }
 
-    private HashSet<PersonModel> members;
+    private static DummyGroupModel sInstance = null;
+    public static DummyGroupModel getInstance() {
+        if (sInstance == null)
+            sInstance = new DummyGroupModel();
+        return sInstance;
+    }
+
+    private String name;
+    private ArrayList<PersonModel> members;
     private ArrayList<ExpenseModel> expenses;
 
     public DummyGroupModel() {
-        members = new HashSet<>();
+        name = "Gruppo MAD";
+        members = new ArrayList<>();
         expenses = new ArrayList<>();
 
         Random rand = new Random();
@@ -58,7 +68,6 @@ public class DummyGroupModel extends ObservableBase implements GroupModel  {
     void addSomeExpenses(Random rand, int numExps) {
         Calendar time = new GregorianCalendar();
         Currency currency = Currency.getInstance("EUR");
-        Object people[] = members.toArray();
 
         for (int i = 0; i < numExps; i++) {
             int personIndex = Math.abs(rand.nextInt(members.size()));
@@ -67,7 +76,7 @@ public class DummyGroupModel extends ObservableBase implements GroupModel  {
             DummyExpenseModel exp = new DummyExpenseModel(
                     (Calendar) time.clone(),
                     new Money(currency, (long) rand.nextInt(10000)),
-                    (PersonModel) people[personIndex],
+                    (PersonModel) members.get(personIndex),
                     this);
             expenses.add(exp);
         }
@@ -77,16 +86,50 @@ public class DummyGroupModel extends ObservableBase implements GroupModel  {
 
     @Override
     public String getName() {
-        return "Gruppo MAD";
+        return name;
     }
 
     @Override
-    public Set<PersonModel> getMembers() {
+    public void setName(String name) throws ConstraintException {
+        this.name = name;
+        notifyChanged();
+    }
+
+    @Override
+    public List<PersonModel> getMembers() {
         return members;
+    }
+
+    @Override
+    public void addMember(PersonModel person) throws ConstraintException {
+        if (members.contains(person))
+            return;
+        members.add(person);
+        notifyChanged();
+    }
+
+    @Override
+    public void removeMember(PersonModel person) throws ConstraintException {
+        if (members.remove(person))
+            notifyChanged();
     }
 
     @Override
     public List<ExpenseModel> getExpenses() {
         return expenses;
+    }
+
+    @Override
+    public void addExpense(ExpenseModel expense) throws ConstraintException {
+        if (expenses.contains(expense))
+            return;
+        expenses.add(expense);
+        notifyChanged();
+    }
+
+    @Override
+    public void removeExpense(ExpenseModel expense) throws ConstraintException {
+        if (expenses.remove(expense))
+            notifyChanged();
     }
 }
