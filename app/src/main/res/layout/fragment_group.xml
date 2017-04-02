@@ -7,17 +7,29 @@
     tools:context="it.polito.mad.easysplit.GroupFragment"
     tools:showIn="@layout/activity_group">
 
+
+
+    <TextView
+        android:layout_width="221dp"
+        android:layout_height="65dp"
+        android:text="Welcome!"
+        android:textAlignment="center"
+        android:gravity="center"
+        android:textSize="80px"
+        android:textStyle="bold"
+
+        />
+
     <TextView
         android:layout_width="465dp"
         android:layout_height="200dp"
-        android:text="Welcome! Press the button and start to create groupe to share cost"
+        android:text=" Press the button and start to create groupe to share cost"
         android:elegantTextHeight="true"
 
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:layout_editor_absoluteY="333dp"
-        app:layout_constraintHorizontal_bias="0.497" />
+        app:layout_constraintHorizontal_bias="0.0"
+        android:layout_marginBottom="115dp" />
 
 </android.support.constraint.ConstraintLayout>
