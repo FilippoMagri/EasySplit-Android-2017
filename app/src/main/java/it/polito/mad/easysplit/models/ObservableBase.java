@@ -5,7 +5,7 @@ import android.database.DataSetObserver;
 import java.util.HashSet;
 
 public class ObservableBase implements Observable {
-    private HashSet<DataSetObserver> observers;
+    private HashSet<DataSetObserver> observers = new HashSet<>();
 
     @Override
     public void registerDataSetObserver(DataSetObserver observer) {

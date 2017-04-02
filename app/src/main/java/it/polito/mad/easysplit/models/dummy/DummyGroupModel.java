@@ -41,16 +41,25 @@ public class DummyGroupModel extends ObservableBase implements GroupModel  {
         rand.setSeed(System.currentTimeMillis());
 
         int numMembers = 1 + rand.nextInt(10);
-        DummyPersonModel[] people = new DummyPersonModel[numMembers];
         for (int i = 0; i < numMembers; i++) {
-            people[i] = new DummyPersonModel(randomName(rand), this);
-            members.add(people[i]);
+            members.add(new DummyPersonModel(randomName(rand), this));
         }
 
+        int numExps = 5 + rand.nextInt(10);
+        addSomeExpenses(rand, numExps);
+    }
+
+    public void addSomeExpenses(int numExps) {
+        Random rand = new Random();
+        rand.setSeed(System.currentTimeMillis());
+        addSomeExpenses(rand, numExps);
+    }
+
+    void addSomeExpenses(Random rand, int numExps) {
         Calendar time = new GregorianCalendar();
         Currency currency = Currency.getInstance("EUR");
+        Object people[] = members.toArray();
 
-        int numExps = 5 + rand.nextInt(10);
         for (int i = 0; i < numExps; i++) {
             int personIndex = Math.abs(rand.nextInt(members.size()));
 
@@ -58,10 +67,12 @@ public class DummyGroupModel extends ObservableBase implements GroupModel  {
             DummyExpenseModel exp = new DummyExpenseModel(
                     (Calendar) time.clone(),
                     new Money(currency, (long) rand.nextInt(10000)),
-                    people[personIndex],
+                    (PersonModel) people[personIndex],
                     this);
             expenses.add(exp);
         }
+
+        notifyChanged();
     }
 
     @Override
