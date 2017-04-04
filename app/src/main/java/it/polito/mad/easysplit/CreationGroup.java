@@ -38,7 +38,7 @@ private EditText nameGroup = null;
         mFile = new File(Environment.getExternalStorageDirectory().getPath() + "/Android/data/ " + getPackageName() + "/files/" + ListGroup);
 
 
-
+//return back with the icon back
        ImageButton back = (ImageButton) findViewById(R.id.back);
         back.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -48,7 +48,7 @@ private EditText nameGroup = null;
 
 
 
-
+/*
         valid = (ImageButton) findViewById(R.id.valid);
         valid.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -87,7 +87,7 @@ private EditText nameGroup = null;
                     e.printStackTrace();
                 }
             }
-        });
+        });*/
     }});}}
 
    /* mRead = (Button) findViewById(R.id.read);
