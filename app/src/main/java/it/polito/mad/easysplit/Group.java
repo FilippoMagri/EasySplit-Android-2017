@@ -38,9 +38,9 @@ public class Group extends AppCompatActivity {
               /*  Snackbar.make(view,"CreationGroup", Snackbar.LENGTH_LONG)
                         .setAction("CreationGroup", null).show();
             */
-            }
-        });
-    }
+            }});}
+
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

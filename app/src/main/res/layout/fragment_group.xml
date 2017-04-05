@@ -1,26 +1,63 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context="it.polito.mad.easysplit.GroupFragment"
-  >
+    android:layout_width="360dp"
+    android:layout_height="90dp"
+    tools:layout_editor_absoluteY="8dp"
+    tools:layout_editor_absoluteX="8dp"
+    tools:context="it.polito.mad.easysplit.GroupFragment">
 
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/fab"
+
+    <TextView
+        android:id="@+id/label"
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:text="@+id/label"
+        android:textSize="20dp"
+        android:gravity="center_vertical|center_horizontal"
+
+
+        android:layout_marginTop="10dp"
+
+        tools:layout_editor_absoluteY="8dp"
+        tools:layout_editor_absoluteX="16dp"
+        android:background="@color/colorAccent">
+
+    </TextView>
+    <ImageView
+        android:id="@+id/group"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:src="@drawable/ic_group"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="20dp"
+        android:gravity="center_vertical"
+
+        android:layout_alignParentTop="true"
+        android:layout_alignParentLeft="true"
+
+        >
+
+    </ImageView>
+    <ImageView
+        android:id="@+id/icon"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_vertical|center_horizontal"
-        android:layout_margin="@dimen/fab_margin"
-        app:layout_anchor="@+id/include"
-        app:layout_anchorGravity="center_vertical|right"
-        app:srcCompat="@android:drawable/ic_input_add"
-        tools:layout_editor_absoluteY="374dp"
-        tools:layout_editor_absoluteX="291dp" />
+        android:layout_height="495dp"
+        android:src="@drawable/ic_next"
+        android:layout_alignRight="@id/label"
+        android:layout_marginTop="20dp"
+        android:gravity="center_vertical"
+
+        android:layout_alignParentTop="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        >
+
+    </ImageView>
+
+
+</RelativeLayout>
 
 
 
-
-
-</android.support.constraint.ConstraintLayout>
