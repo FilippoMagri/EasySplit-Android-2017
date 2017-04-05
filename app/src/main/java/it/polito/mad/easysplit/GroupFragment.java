@@ -13,6 +13,8 @@ import android.widget.Toast;
 
 import java.util.List;
 
+import it.polito.mad.easysplit.models.dummy.DummyGroupModel;
+
 import static it.polito.mad.easysplit.R.layout.fragment_group;
 
 /**
@@ -27,7 +29,8 @@ public class GroupFragment extends ListFragment {
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-        String[] values = new String[] { "Flat", "Trip in France", "Clara's birthday",
+        DummyGroupModel GroupModel = new DummyGroupModel();
+                String[] values =new String[] { "Flat", "Trip in France", "Clara's birthday",
                 "Festival Budapest" };
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(getActivity(),
                R.layout.fragment_group, R.id.label, values);

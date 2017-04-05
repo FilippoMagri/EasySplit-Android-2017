@@ -11,20 +11,37 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ListView;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 
 
 public class Group extends AppCompatActivity {
 
+   private String groupName = null;
 
+    final String EXTRA_GROUP=null;
+    static CreationGroup CreationGroup;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_group);
 
+       // Bundle extras = getIntent().getExtras();
+        Intent intent = getIntent();
+        TextView loginDisplay = (TextView) findViewById(R.id.essai);
+
+        if (intent != null) {
+            loginDisplay.setText(intent.getStringExtra(EXTRA_GROUP));
+
+        }
+
+
+        //tu peux donc utiliser la variable double "d"
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -38,7 +55,10 @@ public class Group extends AppCompatActivity {
               /*  Snackbar.make(view,"CreationGroup", Snackbar.LENGTH_LONG)
                         .setAction("CreationGroup", null).show();
             */
-            }});}
+            }
+        });
+
+    }
 
 
 

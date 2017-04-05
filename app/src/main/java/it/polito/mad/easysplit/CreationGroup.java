@@ -1,11 +1,13 @@
 package it.polito.mad.easysplit;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.provider.ContactsContract;
+import android.provider.Telephony;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -21,16 +23,20 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
+import static android.R.attr.data;
 import static it.polito.mad.easysplit.R.id.Participant;
 
 public class CreationGroup extends AppCompatActivity {
-private String ListGroup ="listgroup.txt";
 
-    private File mFile =null;
-private EditText nameGroup = null;
-    private ImageButton valid = null;
-    private String finalName = null;
-    private Button mread = null;
+
+
+//private String ListGroup ="listgroup.txt";
+
+
+final String EXTRA_GROUP= null;
+    Button valid;
+
+    static CreationGroup CreationGroup;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -39,46 +45,70 @@ private EditText nameGroup = null;
 
         setContentView(R.layout.activity_creation_group);
         // On crée un fichier qui correspond à l'emplacement extérieur
-        mFile = new File(Environment.getExternalStorageDirectory().getPath() + "/Android/data/ " + getPackageName() + "/files/" + ListGroup);
+       //
+        // le = new File(Environment.getExternalStorageDirectory().getPath() + "/Android/data/ " + getPackageName() + "/files/" + ListGroup);
 
 
 //return back with the icon back
-        ImageButton back = (ImageButton) findViewById(R.id.back);
+       /* ImageButton back = (ImageButton) findViewById(R.id.back);
         back.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(CreationGroup.this, Group.class);
                 startActivity(intent);
             }
-        });
+        });*/
 
 
-        ImageButton valid = (ImageButton) findViewById(R.id.valid);
-        valid.setOnClickListener(new View.OnClickListener() {
+
+
+
+        final ImageButton valid = (ImageButton) findViewById(R.id.valid);
+
+        valid.setOnClickListener(new View.OnClickListener()
+        {final EditText nameGroup = (EditText) findViewById(R.id.nameGroup);
+
             @Override
-            public void onClick(View view) {
+            public void onClick(View v) {
+                // TODO Auto-generated method stub
+                String valStr = nameGroup.getText().toString();
                 Intent intent = new Intent(CreationGroup.this, Group.class);
+                intent.putExtra(EXTRA_GROUP, valStr);
                 startActivity(intent);
+                Toast.makeText(getApplicationContext(), "Group Created", Toast.LENGTH_SHORT).show();
+
 
             }
+
         });
 
-        ImageButton Addparticipant = (ImageButton) findViewById(R.id.Addparticipant);
-        valid.setOnClickListener(new View.OnClickListener() {
-                                     @Override
-                                     public void onClick(View view) {
-                                        // EditText Participant = (EditText) findViewById (R.id.Participant);
 
-                                         Intent intent = new Intent(CreationGroup.this, Group.class);
-                                         startActivity(intent);
-           // String chaine = Participant.getText().toString();
-             //   Toast.makeText(getApplicationContext(),"Start 2", Toast.LENGTH_SHORT).show();
+       // final ImageButton Addparticipant = (ImageButton) findViewById(R.id.Addparticipant);
+        //valid.setOnClickListener(new View.OnClickListener() {
+          //                           @Override
+            //                         public void onClick(View view) {
+
+                                        /* Intent i1 = new Intent( CreationGroup.this, NamePerson.class );
+                                         EditText Participant = (EditText) findViewById(R.id.Participant);
+                                         i1.putExtra(EXTRA_MESSAGE, Participant.getText().toString());
+                                         startActivityForResult(i1, 0);*/
+
+
+                                        //EditText Participant = (EditText) findViewById (R.id.Participant);
+
+              //                           Intent intent = new Intent(CreationGroup.this, Group.class);
+                //                         startActivity(intent);
+           //String chaine = Participant.getText().toString();
+            //  Toast.makeText(getApplicationContext(),"Start 2", Toast.LENGTH_SHORT).show();
 
 
 
-    }});
+   // }});
 
-        }}
+        }
+
+
+}
 
 
 /*        valid = (ImageButton) findViewById(R.id.valid);

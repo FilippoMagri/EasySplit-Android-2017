@@ -38,6 +38,12 @@ public class DummyGroupModel extends ObservableBase implements GroupModel  {
         return sInstance;
     }
 
+    public DummyGroupModel(String groupName){
+        name = groupName;
+        members = new ArrayList<>();
+        expenses = new ArrayList<>();
+    }
+
     private String name;
     private ArrayList<PersonModel> members;
     private ArrayList<ExpenseModel> expenses;

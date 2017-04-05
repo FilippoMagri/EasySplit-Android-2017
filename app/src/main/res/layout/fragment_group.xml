@@ -22,7 +22,7 @@
 
         tools:layout_editor_absoluteY="8dp"
         tools:layout_editor_absoluteX="16dp"
-        android:background="@color/colorAccent">
+        android:background="@color/colorClair">
 
     </TextView>
     <ImageView
