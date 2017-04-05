@@ -117,7 +117,12 @@ tools:context=".CreationGroup">
             android:layout_toRightOf="@id/ListParticipant"
             android:layout_marginLeft="150dp"/>
 
-
+<TextView
+    android:layout_width="wrap_content"
+    android:layout_height="match_parent"
+        android:id="@+id/newparticipant"
+    android:layout_below="@+id/Participant"
+    />
     </RelativeLayout>
 
 
