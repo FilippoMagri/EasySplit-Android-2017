@@ -15,4 +15,6 @@ public interface GroupModel extends Observable {
     List<ExpenseModel> getExpenses();
     void addExpense(ExpenseModel expense) throws ConstraintException;
     void removeExpense(ExpenseModel expense) throws ConstraintException;
+
+    String toJSON();
 }

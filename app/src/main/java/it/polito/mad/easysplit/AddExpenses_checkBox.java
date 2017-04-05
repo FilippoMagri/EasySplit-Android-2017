@@ -20,6 +20,7 @@ import android.widget.LinearLayout;
 import android.widget.TableRow;
 
 import java.sql.ParameterMetaData;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,6 +28,7 @@ import java.util.Map;
 import it.polito.mad.easysplit.models.GroupModel;
 import it.polito.mad.easysplit.models.PersonModel;
 import it.polito.mad.easysplit.models.dummy.DummyGroupModel;
+import it.polito.mad.easysplit.models.dummy.DummyPersonModel;
 
 public class AddExpenses_checkBox extends AppCompatActivity {
 
@@ -34,19 +36,35 @@ public class AddExpenses_checkBox extends AppCompatActivity {
     GroupModel gm;
     private List<PersonModel> list_pm;
     private Map<String ,Boolean> map_results_check_box = new HashMap<String ,Boolean>();
-
+    private ArrayList<String> payerGroup;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setTitle("Select partecipants");
+        //setTitle("Select partecipants");
         setContentView(R.layout.activity_add_expenses_check_box);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        populateWithInformationReceived();
+        addActionToButtonTopBar();
+    }
 
-        //add checkboxes Dinamically
-        gm = new DummyGroupModel();
-        list_pm = gm.getMembers();
+    public void populateWithInformationReceived() {
+        Intent received_intent = getIntent();
+        if (received_intent.getExtras() == null ){
+            //If is null it means take random elements
+            gm = DummyGroupModel.getInstance();
+            list_pm = gm.getMembers();
+            setTitle(gm.getName());
+        } else {
+            //Otherwise: take the bundle, take elements sent by AddExpenses (managing JsonFormat)
+            Bundle b = received_intent.getExtras();
+            String info_received_json_format= (String) b.get("group_info");
+            gm = DummyGroupModel.fromJSONstatic(info_received_json_format);
+            list_pm = gm.getMembers();
+            setTitle(gm.getName());
+        }
+        //add checkboxes Dynamically To The Screen
         LinearLayout ll = (LinearLayout)findViewById(R.id.linearLayoutCheckBox);
         for(int i = 0; i < list_pm.size(); i++) {
             if (i<list_pm.size()) {
@@ -71,28 +89,30 @@ public class AddExpenses_checkBox extends AppCompatActivity {
                 ll.addView(cb, checkParams);
             }
         }
+    }
 
-        //Add Listener to button
+    public void addActionToButtonTopBar (){
         checkImgView = (ImageView) findViewById(R.id.img_confirm_checkbox);
-        //Setting the Listener On the Check Image View On Top Right
         checkImgView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(getApplicationContext(),AddExpenses.class);
                 Bundle b = new Bundle();
-
+                //Add to the bundle all information about witch people are engaged into the cost
+                payerGroup = new ArrayList<String>();
                 for (int i=0;i<list_pm.size();i++) {
                     CheckBox cb = (CheckBox) findViewById(i);
-                    map_results_check_box.put(list_pm.get(i).getIdentifier(),Boolean.valueOf(cb.isChecked()));
-                    b.putBoolean(list_pm.get(i).getIdentifier(),Boolean.valueOf(cb.isChecked()));
+                    if (cb.isChecked()) {
+                        payerGroup.add(list_pm.get(i).getIdentifier());
+                    }
                 }
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-
+                b.putSerializable("payerGroup",payerGroup);
+                //Custom Message if we want
+                //Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG).setAction("Action", null).show();
                 intent.putExtras(b);
+                intent.putExtra("Uniqid","From_Activity_AddExpenses_checkBox");
                 startActivity(intent);
             }
         });
-
     }
 }

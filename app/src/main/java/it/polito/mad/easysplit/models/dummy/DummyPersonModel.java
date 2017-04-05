@@ -1,5 +1,10 @@
 package it.polito.mad.easysplit.models.dummy;
 
+import android.database.DataSetObserver;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -39,5 +44,23 @@ public class DummyPersonModel extends ObservableBase implements PersonModel {
                 filtered.add(tx);
         }
         return filtered;
+    }
+    @Override
+    public String toJSON () {
+        JSONObject jsonObject= new JSONObject();
+        try {
+                jsonObject.put("name", name);
+                jsonObject.put("group", group.getName());
+            return jsonObject.toString();
+        } catch (JSONException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            return "";
+        }
+    }
+    @Override
+    public DummyPersonModel fromJSON() {
+        DummyPersonModel dpm = new DummyPersonModel("name", new DummyGroupModel());
+        return dpm;
     }
 }
