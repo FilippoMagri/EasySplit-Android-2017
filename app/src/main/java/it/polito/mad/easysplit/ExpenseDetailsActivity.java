@@ -1,22 +1,13 @@
 package it.polito.mad.easysplit;
 
-import android.content.Context;
-import android.content.Intent;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
-import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -39,7 +30,6 @@ public class ExpenseDetailsActivity extends AppCompatActivity {
 
         MyApplication app = (MyApplication) getApplicationContext();
         ExpenseModel expense = app.getCurrentExpense();
-        //Log.e("Current expense" , expense.getName());
 
         TextView name = (TextView) findViewById(R.id.expenseName);
         TextView creation = (TextView) findViewById(R.id.expenseCreationDate);
@@ -85,7 +75,7 @@ public class ExpenseDetailsActivity extends AppCompatActivity {
                 participants.add(new Participant(person, owed));
             }
         }
-        ItemAdapter<Participant> adapter = new ItemAdapter<>(this, R.layout.expense_item, participants);
+        ItemAdapter<Participant> adapter = new ItemAdapter<>(this, R.layout.participant_item, participants);
         ListView lv = (ListView) findViewById(R.id.participantsList);
         lv.setAdapter(adapter);
 
