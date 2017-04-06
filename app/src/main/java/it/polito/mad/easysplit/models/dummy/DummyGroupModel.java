@@ -14,17 +14,16 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Currency;
 import java.util.GregorianCalendar;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
-import java.util.Set;
 
 import it.polito.mad.easysplit.models.ConstraintException;
+import it.polito.mad.easysplit.models.ExpenseModel;
+import it.polito.mad.easysplit.models.GroupBalanceModel;
 import it.polito.mad.easysplit.models.GroupModel;
 import it.polito.mad.easysplit.models.Money;
 import it.polito.mad.easysplit.models.ObservableBase;
 import it.polito.mad.easysplit.models.PersonModel;
-import it.polito.mad.easysplit.models.ExpenseModel;
 
 public class DummyGroupModel extends ObservableBase implements GroupModel  {
     private static String NAMES[] = {
@@ -50,6 +49,7 @@ public class DummyGroupModel extends ObservableBase implements GroupModel  {
     private String name;
     private ArrayList<PersonModel> members;
     private ArrayList<ExpenseModel> expenses;
+    private GroupBalanceModel balance;
 
     public DummyGroupModel (String groupName) {
         name = groupName;
@@ -72,6 +72,8 @@ public class DummyGroupModel extends ObservableBase implements GroupModel  {
 
         int numExps = 5 + rand.nextInt(10);
         addSomeExpenses(rand, numExps);
+
+        balance = new GroupBalanceModel(this);
     }
 
     public void addSomeExpenses(int numExps) {
@@ -203,5 +205,9 @@ public class DummyGroupModel extends ObservableBase implements GroupModel  {
             e.printStackTrace();
         }
         return dgm;
+    }
+
+    public GroupBalanceModel getBalance() {
+        return balance;
     }
 }

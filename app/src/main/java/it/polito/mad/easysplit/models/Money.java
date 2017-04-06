@@ -1,6 +1,7 @@
 package it.polito.mad.easysplit.models;
 
 import java.util.Currency;
+import java.util.Locale;
 
 public class Money {
     private Currency currency;
@@ -67,6 +68,6 @@ public class Money {
         long integ = cents / fractionalDenom;
         // `integ` already has the right sign
         long frac = Math.abs(cents % fractionalDenom);
-        return "" + integ + "." + frac + " " + currency.getSymbol();
+        return String.format(Locale.getDefault(), "%+d.%02d %s", integ, frac, currency.getSymbol());
     }
 }

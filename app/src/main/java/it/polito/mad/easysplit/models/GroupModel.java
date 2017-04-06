@@ -11,11 +11,13 @@ public interface GroupModel extends Observable {
     List<PersonModel> getMembers();
     void addMember(PersonModel person) throws ConstraintException;
     void removeMember(PersonModel person) throws ConstraintException;
+    PersonModel getMember (String id);
 
     List<ExpenseModel> getExpenses();
     void addExpense(ExpenseModel expense) throws ConstraintException;
     void removeExpense(ExpenseModel expense) throws ConstraintException;
+
     String toJSON();
 
-    PersonModel getMember (String id);
+    GroupBalanceModel getBalance();
 }

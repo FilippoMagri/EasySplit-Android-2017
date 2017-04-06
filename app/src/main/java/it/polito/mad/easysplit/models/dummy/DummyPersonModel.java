@@ -1,9 +1,9 @@
 package it.polito.mad.easysplit.models.dummy;
 
-import android.database.DataSetObserver;
-
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import android.graphics.drawable.Drawable;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -27,6 +27,12 @@ public class DummyPersonModel extends ObservableBase implements PersonModel {
     @Override
     public String getIdentifier() {
         return name;
+    }
+
+    @Override
+    public Drawable getProfilePicture() {
+        /// TODO
+        return null;
     }
 
     @Override

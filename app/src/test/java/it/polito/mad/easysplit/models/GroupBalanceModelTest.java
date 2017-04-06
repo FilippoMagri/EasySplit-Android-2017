@@ -1,14 +1,10 @@
 package it.polito.mad.easysplit.models;
 
-import android.database.DataSetObserver;
-
 import org.junit.Assert;
 import org.junit.Test;
 
 import it.polito.mad.easysplit.BuildConfig;
 import it.polito.mad.easysplit.models.dummy.DummyGroupModel;
-
-import static org.junit.Assert.*;
 
 public class GroupBalanceModelTest {
     @Test
@@ -42,7 +38,7 @@ public class GroupBalanceModelTest {
         Assert.assertTrue(total.getCents() == 0);
     }
 
-    public class TestObserver extends DataSetObserver {
+    public class TestObserver implements Observer {
         public boolean changed = false;
         public boolean invalidated = false;
 
@@ -68,7 +64,7 @@ public class GroupBalanceModelTest {
         GroupBalanceModel balanceModel = new GroupBalanceModel(group);
 
         TestObserver observer = new TestObserver();
-        balanceModel.registerDataSetObserver(observer);
+        balanceModel.registerObserver(observer);
 
         group.addSomeExpenses(5);
         Assert.assertTrue(observer.changed);

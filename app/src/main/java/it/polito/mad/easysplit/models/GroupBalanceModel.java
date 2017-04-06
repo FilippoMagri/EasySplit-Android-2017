@@ -1,6 +1,6 @@
 package it.polito.mad.easysplit.models;
 
-import android.database.DataSetObserver;
+import android.support.annotation.Nullable;
 
 import java.util.HashMap;
 
@@ -27,15 +27,15 @@ public class GroupBalanceModel extends ObservableBase {
         }
     }
 
-    private HashMap<PersonModel, Balance> balance = new HashMap<>();
+    private HashMap<PersonModel, Balance> balances = new HashMap<>();
 
     public GroupBalanceModel(GroupModel group) {
         this.group = group;
-        this.group.registerDataSetObserver(new Observer());
+        this.group.registerObserver(new ChangeObserver());
         recompute();
     }
 
-    private class Observer extends DataSetObserver {
+    private class ChangeObserver implements Observer {
         @Override
         public void onChanged() {
             recompute();
@@ -53,7 +53,7 @@ public class GroupBalanceModel extends ObservableBase {
             return;
 
         for (PersonModel person : this.group.getMembers())
-            balance.put(person, new Balance());
+            balances.put(person, new Balance());
 
         if (numPeople == 1)
             return;
@@ -64,25 +64,37 @@ public class GroupBalanceModel extends ObservableBase {
 
             for (PersonModel person : this.group.getMembers()) {
                 if (person == creditor)
-                    balance.get(person).add(quota.mul(numPeople - 1));
+                    balances.get(person).add(quota.mul(numPeople - 1));
                 else
-                    balance.get(person).add(quota.neg());
+                    balances.get(person).add(quota.neg());
             }
         }
 
         notifyChanged();
     }
 
+    @Nullable
     public Money getCreditFor(PersonModel person) {
-        return balance.get(person).credit;
+        Balance balance = balances.get(person);
+        if (balance == null)
+            return null;
+        return balance.credit;
     }
 
+    @Nullable
     public Money getDebitFor(PersonModel person) {
-        return balance.get(person).debit;
+        Balance balance = balances.get(person);
+        if (balance == null)
+            return null;
+        return balance.debit;
     }
 
+    @Nullable
     public Money getResidueFor(PersonModel person) {
-        return balance.get(person).getResidue();
+        Balance balance = balances.get(person);
+        if (balance == null)
+            return null;
+        return balance.getResidue();
     }
 
 }
