@@ -2,12 +2,23 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="layout.BackButton">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:context="layout.BackGroup">
 
     <!-- TODO: Update blank fragment layout -->
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="@string/hello_blank_fragment" />
 
+
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/back"
+        android:layout_width="234dp"
+        android:layout_height="wrap_content"
+
+        android:layout_margin="@dimen/fab_margin"
+
+
+        app:srcCompat="@drawable/ic_back"
+
+
+        />
 </FrameLayout>

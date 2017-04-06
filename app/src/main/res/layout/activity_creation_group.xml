@@ -6,47 +6,35 @@
     android:layout_width="380dp"
     android:layout_height="437dp"
 
-    tools:layout_editor_absoluteY="8dp"
-    tools:layout_editor_absoluteX="8dp"
+    tools:layout_editor_absoluteY="0dp"
+    tools:layout_editor_absoluteX="0dp"
 
 tools:context=".CreationGroup">
 
 
+                <include
+                    android:id="@+id/include"
+                    layout="@layout/fragment_back_group">
+
+                </include>
+
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/valid"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical|center_horizontal"
+
+        app:layout_anchor="@+id/include"
+        app:layout_anchorGravity="center_vertical|right"
+        app:srcCompat="@drawable/ic_valid"
+        android:layout_marginTop="@dimen/fab_margin"
+        android:layout_marginLeft="300dp"
 
 
 
 
-
-        <android.support.design.widget.FloatingActionButton
-            android:id="@+id/back"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical|center_horizontal"
-            android:layout_margin="@dimen/fab_margin"
-            app:layout_anchor="@+id/include"
-            app:layout_anchorGravity="center_vertical|right"
-            app:srcCompat="@drawable/ic_back"
-
-
-            />
-        <android.support.design.widget.FloatingActionButton
-            android:id="@+id/valid"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical|center_horizontal"
-
-            app:layout_anchor="@+id/include"
-            app:layout_anchorGravity="center_vertical|right"
-            app:srcCompat="@drawable/ic_valid"
-            android:layout_marginTop="@dimen/fab_margin"
-            android:layout_marginLeft="300dp"
-
-
-
-
-            />
-
-
+        />
 
 
         <TextView
@@ -57,7 +45,7 @@ tools:context=".CreationGroup">
 
             android:layout_below="@id/valid"
 
-            android:layout_marginTop="40dp"
+            android:layout_marginTop="60dp"
             android:text="Choose a Group Name"
             android:textSize="40px"
             tools:layout_editor_absoluteX="50dp"
@@ -74,7 +62,7 @@ tools:context=".CreationGroup">
             android:drawableRight="@drawable/ic_write"
             android:textSize="35px"
             tools:layout_editor_absoluteX="65dp"
-            tools:layout_editor_absoluteY="78dp"
+            tools:layout_editor_absoluteY="150dp"
             android:layout_marginLeft="20px"/>
 
 
@@ -102,6 +90,30 @@ tools:context=".CreationGroup">
             tools:layout_editor_absoluteY="201dp"
             android:layout_marginLeft="20px"
             />
+    <EditText
+        android:id="@+id/Participant2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/Participant"
+        android:hint="Maria        "
+        android:drawableRight="@drawable/ic_write"
+        android:textSize="35px"
+        tools:layout_editor_absoluteX="65dp"
+        tools:layout_editor_absoluteY="201dp"
+        android:layout_marginLeft="20px"
+        />
+    <EditText
+        android:id="@+id/Participant3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/Participant2"
+        android:hint="Maria        "
+        android:drawableRight="@drawable/ic_write"
+        android:textSize="35px"
+        tools:layout_editor_absoluteX="65dp"
+        tools:layout_editor_absoluteY="201dp"
+        android:layout_marginLeft="20px"
+        />
 
         <android.support.design.widget.FloatingActionButton
             android:id="@+id/Addparticipant"
@@ -113,9 +125,9 @@ tools:context=".CreationGroup">
             app:layout_anchor="@+id/include"
             app:layout_anchorGravity="center_vertical|right"
             app:srcCompat="@android:drawable/ic_input_add"
-            android:layout_below="@id/nameGroup"
-            android:layout_toRightOf="@id/ListParticipant"
-            android:layout_marginLeft="150dp"/>
+            android:layout_below="@id/Participant2"
+            android:layout_toRightOf="@id/Participant3"
+            android:layout_marginLeft="50dp"/>
 
 <TextView
     android:layout_width="wrap_content"
@@ -123,7 +135,7 @@ tools:context=".CreationGroup">
         android:id="@+id/newparticipant"
     android:layout_below="@+id/Participant"
     />
-    </RelativeLayout>
 
+</RelativeLayout>
 
 

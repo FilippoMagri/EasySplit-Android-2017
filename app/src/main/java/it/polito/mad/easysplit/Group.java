@@ -12,6 +12,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -21,7 +22,10 @@ import java.util.ArrayList;
 
 
 public class Group extends AppCompatActivity {
+    final String EXTRA_NAME= null;
 
+    Button valid;
+    Button AddParticipant;
    private String groupName = null;
 
     final String EXTRA_GROUP=null;
@@ -39,6 +43,24 @@ public class Group extends AppCompatActivity {
             loginDisplay.setText(intent.getStringExtra(EXTRA_GROUP));
 
         }
+
+
+        /*final TextView label = (TextView) findViewById(R.id.label);
+
+        valid.setOnClickListener(new View.OnClickListener()
+        {final TextView label = (TextView)  findViewById(R.id.label);
+
+            @Override
+            public void onClick(View v) {
+                // TODO Auto-generated method stub
+                String name = label.getText().toString();
+                Intent intent = new Intent(Group.this, CreationGroup.class);
+                intent.putExtra(EXTRA_NAME, name);
+                startActivity(intent);
+                Toast.makeText(getApplicationContext(), "Go in Group", Toast.LENGTH_SHORT).show();
+
+
+            }});*/
 
 
         //tu peux donc utiliser la variable double "d"

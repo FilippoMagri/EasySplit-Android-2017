@@ -12,6 +12,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -34,7 +35,9 @@ public class CreationGroup extends AppCompatActivity {
 
 
 final String EXTRA_GROUP= null;
+    final String EXTRA_PARTICIPANT = null;
     Button valid;
+    Button AddParticipant;
 
     static CreationGroup CreationGroup;
 
@@ -50,14 +53,14 @@ final String EXTRA_GROUP= null;
 
 
 //return back with the icon back
-       /* ImageButton back = (ImageButton) findViewById(R.id.back);
+        ImageButton back = (ImageButton) findViewById(R.id.back);
         back.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(CreationGroup.this, Group.class);
                 startActivity(intent);
             }
-        });*/
+        });
 
 
 
@@ -83,15 +86,18 @@ final String EXTRA_GROUP= null;
         });
 
 
-       // final ImageButton Addparticipant = (ImageButton) findViewById(R.id.Addparticipant);
-        //valid.setOnClickListener(new View.OnClickListener() {
-          //                           @Override
-            //                         public void onClick(View view) {
+        final ImageButton Addparticipant = (ImageButton) findViewById(R.id.Addparticipant);
+        Addparticipant.setOnClickListener(new View.OnClickListener() {
+            final EditText Participant = (EditText) findViewById(R.id.Participant);
 
-                                        /* Intent i1 = new Intent( CreationGroup.this, NamePerson.class );
-                                         EditText Participant = (EditText) findViewById(R.id.Participant);
-                                         i1.putExtra(EXTRA_MESSAGE, Participant.getText().toString());
-                                         startActivityForResult(i1, 0);*/
+                                    @Override
+                                     public void onClick(View view) {
+                                        String part = Participant.getText().toString();
+                                        Intent i1 = new Intent( CreationGroup.this, AddParticipant.class );
+
+                                        i1.putExtra(EXTRA_GROUP, part);
+                                        startActivity(i1);
+                                        Toast.makeText(getApplicationContext(), "Added", Toast.LENGTH_SHORT).show();
 
 
                                         //EditText Participant = (EditText) findViewById (R.id.Participant);
@@ -108,7 +114,13 @@ final String EXTRA_GROUP= null;
         }
 
 
-}
+
+});}
+
+    }
+
+
+
 
 
 /*        valid = (ImageButton) findViewById(R.id.valid);
