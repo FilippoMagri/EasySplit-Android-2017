@@ -3,6 +3,7 @@
     package="it.polito.mad.easysplit">
 
     <application
+        android:name=".MyApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -10,33 +11,27 @@
         android:theme="@style/AppTheme">
         <activity
             android:name=".Group"
-            android:label="MY GROUPS"
+            android:label="@string/app_name"
+            android:theme="@style/AppTheme.NoActionBar">
+            <!--<intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>-->
+        </activity>
+        <activity android:name=".CreationGroup" />
+        <activity android:name=".ExpenseDetailsActivity" />
+
+        <activity android:name=".ExpensesListActivity"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>
-        <activity
-            android:name=".CreationGroup"
-            android:label="New Group">
-        </activity>
-
-        <activity android:name=".Listview" />
-        <activity
-            android:name=".ListGroup"
-            android:label="@string/title_activity_list_group"
-            android:theme="@style/AppTheme.NoActionBar">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-        <activity android:name=".NamePerson">
 
         </activity>
+
     </application>
 
 </manifest>

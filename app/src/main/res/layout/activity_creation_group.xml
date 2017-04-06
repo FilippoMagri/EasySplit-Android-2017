@@ -1,52 +1,45 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
+<android.support.constraint.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="380dp"
-    android:layout_height="437dp"
-
-    tools:layout_editor_absoluteY="8dp"
-    tools:layout_editor_absoluteX="8dp"
-
-tools:context=".CreationGroup">
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    tools:context="it.polito.mad.easysplit.CreationGroup">
 
 
 
+    <RelativeLayout
+        android:layout_width="0dp"
+        android:layout_height="495dp"
+        tools:layout_editor_absoluteX="91dp"
+        tools:layout_editor_absoluteY="58dp"
+        android:layout_marginLeft="20px">
 
+        <ImageButton
 
-
-
-        <android.support.design.widget.FloatingActionButton
             android:id="@+id/back"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical|center_horizontal"
-            android:layout_margin="@dimen/fab_margin"
-            app:layout_anchor="@+id/include"
-            app:layout_anchorGravity="center_vertical|right"
-            app:srcCompat="@drawable/ic_back"
+            android:layout_width="match_parent"
+            android:layout_height="67dp"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentTop="true"
 
 
-            />
-        <android.support.design.widget.FloatingActionButton
+            android:src="@drawable/ic_back"
+            tools:layout_editor_absoluteX="8dp"
+            tools:layout_editor_absoluteY="-116dp" />
+        <ImageButton
+
             android:id="@+id/valid"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical|center_horizontal"
+            android:layout_width="54dp"
+            android:layout_height="67dp"
+            android:layout_alignRight="@id/back"
+            android:src="@drawable/ic_valid"
+            tools:layout_editor_absoluteX="330dp"
+            tools:layout_editor_absoluteY="0dp"
 
-            app:layout_anchor="@+id/include"
-            app:layout_anchorGravity="center_vertical|right"
-            app:srcCompat="@drawable/ic_valid"
-            android:layout_marginTop="@dimen/fab_margin"
-            android:layout_marginLeft="300dp"
-
-
-
-
-            />
-
-
+        />
 
 
         <TextView
@@ -55,9 +48,7 @@ tools:context=".CreationGroup">
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
 
-            android:layout_below="@id/valid"
-
-            android:layout_marginTop="40dp"
+            android:layout_below="@id/back"
             android:text="Choose a Group Name"
             android:textSize="40px"
             tools:layout_editor_absoluteX="50dp"
@@ -85,7 +76,7 @@ tools:context=".CreationGroup">
             android:layout_below="@id/nameGroup"
             android:hint="Add Participant"
             android:textSize="40px"
-            android:layout_marginTop="60px"
+            android:layout_marginTop="40px"
             tools:layout_editor_absoluteX="65dp"
             tools:layout_editor_absoluteY="167dp"
             android:layout_marginLeft="20px"/>
@@ -100,30 +91,21 @@ tools:context=".CreationGroup">
             android:textSize="35px"
             tools:layout_editor_absoluteX="65dp"
             tools:layout_editor_absoluteY="201dp"
-            android:layout_marginLeft="20px"
-            />
+            android:layout_marginLeft="30px"/>
 
         <android.support.design.widget.FloatingActionButton
-            android:id="@+id/Addparticipant"
+            android:id="@+id/fab2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical|center_horizontal"
-            android:background="@drawable/round"
-
+            android:layout_margin="@dimen/fab_margin"
             app:layout_anchor="@+id/include"
             app:layout_anchorGravity="center_vertical|right"
             app:srcCompat="@android:drawable/ic_input_add"
-            android:layout_below="@id/nameGroup"
-            android:layout_toRightOf="@id/ListParticipant"
-            android:layout_marginLeft="150dp"/>
+            android:layout_alignRight="@id/ListParticipant"
+            android:layout_marginLeft="50px"
+            android:layout_below="@id/ListParticipant"/>
 
-<TextView
-    android:layout_width="wrap_content"
-    android:layout_height="match_parent"
-        android:id="@+id/newparticipant"
-    android:layout_below="@+id/Participant"
-    />
+
     </RelativeLayout>
-
-
-
+</android.support.constraint.ConstraintLayout>

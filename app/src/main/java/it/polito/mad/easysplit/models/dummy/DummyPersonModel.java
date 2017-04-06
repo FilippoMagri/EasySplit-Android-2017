@@ -40,4 +40,17 @@ public class DummyPersonModel extends ObservableBase implements PersonModel {
         }
         return filtered;
     }
+
+    @Override
+    public boolean equals(Object other) {
+        if (other == null) {
+            return false;
+        }
+
+        if (!(other instanceof DummyPersonModel)) {
+            return false;
+        }
+
+        return getIdentifier().equals(((DummyPersonModel)other).getIdentifier()) && this.group.equals(((DummyPersonModel)other).group);
+    }
 }

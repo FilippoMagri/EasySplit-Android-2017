@@ -4,10 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="it.polito.mad.easysplit.Group"
-    >
-
-
+    tools:context="it.polito.mad.easysplit.Group">
 
     <android.support.design.widget.AppBarLayout
         android:layout_width="match_parent"
@@ -19,37 +16,22 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:background="?attr/colorPrimary"
-            app:popupTheme="@style/AppTheme.PopupOverlay"
-            />
+            app:popupTheme="@style/AppTheme.PopupOverlay" />
 
     </android.support.design.widget.AppBarLayout>
-
-
-    <include
-        android:id="@+id/include"
-        layout="@layout/content_group"
-        android:layout_height="569dp" />
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/essai"
-        android:layout_marginTop="500dp"
-       />
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/fab"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/nameGroup"
-
-        android:layout_gravity="bottom|center_horizontal"
-        android:layout_marginLeft="250dp"
-        android:layout_marginTop="450dp"
-        android:layout_toRightOf="@id/ListParticipant"
-        android:background="@drawable/round"
+        android:layout_gravity="center_vertical|center_horizontal"
+        android:layout_margin="@dimen/fab_margin"
         app:layout_anchor="@+id/include"
-
+        app:layout_anchorGravity="center_vertical|right"
         app:srcCompat="@android:drawable/ic_input_add" />
 
+    <include
+        android:id="@+id/include"
+        layout="@layout/content_group" />
 
 </android.support.design.widget.CoordinatorLayout>

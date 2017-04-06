@@ -13,8 +13,10 @@ public class DummyExpenseModel extends ObservableBase implements ExpenseModel {
     private Money amount;
     private PersonModel payer;
     private GroupModel group;
+    private String name;
 
-    public DummyExpenseModel(Calendar timestamp, Money amount, PersonModel payer, GroupModel group) {
+    public DummyExpenseModel(String name, Calendar timestamp, Money amount, PersonModel payer, GroupModel group) {
+        this.name = name;
         this.timestamp = timestamp;
         this.amount = amount;
         this.payer = payer;
@@ -40,4 +42,8 @@ public class DummyExpenseModel extends ObservableBase implements ExpenseModel {
     public GroupModel getGroup() {
         return group;
     }
+
+    @Override
+    public String getName() { return name; }
+
 }

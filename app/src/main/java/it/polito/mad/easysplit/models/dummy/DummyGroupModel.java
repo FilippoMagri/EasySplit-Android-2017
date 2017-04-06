@@ -38,12 +38,6 @@ public class DummyGroupModel extends ObservableBase implements GroupModel  {
         return sInstance;
     }
 
-    public DummyGroupModel(String groupName){
-        name = groupName;
-        members = new ArrayList<>();
-        expenses = new ArrayList<>();
-    }
-
     private String name;
     private ArrayList<PersonModel> members;
     private ArrayList<ExpenseModel> expenses;
@@ -75,11 +69,15 @@ public class DummyGroupModel extends ObservableBase implements GroupModel  {
         Calendar time = new GregorianCalendar();
         Currency currency = Currency.getInstance("EUR");
 
+        String[] namePool = { "Groceries", "Utilities", "Birthday present", "Opera tickets", "Uber ride" };
+
         for (int i = 0; i < numExps; i++) {
             int personIndex = Math.abs(rand.nextInt(members.size()));
+            int nameIndex = rand.nextInt(namePool.length);
 
             time.add(Calendar.DAY_OF_MONTH, Math.abs(rand.nextInt(10)));
             DummyExpenseModel exp = new DummyExpenseModel(
+                    namePool[nameIndex],
                     (Calendar) time.clone(),
                     new Money(currency, (long) rand.nextInt(10000)),
                     (PersonModel) members.get(personIndex),
