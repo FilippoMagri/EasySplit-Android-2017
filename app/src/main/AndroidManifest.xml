@@ -4,14 +4,13 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <application
+        android:name=".MyApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity
-            android:name=".AddExpenses"
-            android:label="@string/title_activity_add_expenses"
+        <activity android:name=".ExpensesListActivity"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -19,6 +18,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".ExpenseDetailsActivity" />
+        <activity
+            android:name=".AddExpenses"
+            android:label="@string/title_activity_add_expenses"
+            android:theme="@style/AppTheme.NoActionBar"/>
+        <activity android:name=".CreationGroup" />
         <activity
             android:name=".Group"
             android:label="@string/app_name"
@@ -27,10 +32,6 @@
         <activity
             android:name=".AddExpenses_checkBox"
             android:theme="@style/AppTheme.NoActionBar"/>
-        <!--<activity
-            android:name=".AddExpenses_checkBox"
-            android:label="@string/title_activity_add_expenses_check_box"
-            android:theme="@style/AppTheme.NoActionBar"></activity>-->
     </application>
 
 </manifest>
