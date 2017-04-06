@@ -24,33 +24,14 @@
 
     </android.support.design.widget.AppBarLayout>
 
-
-    <include
-        android:id="@+id/include"
-        layout="@layout/content_group"
-        android:layout_height="569dp" />
-
-    <TextView
+    <android.support.design.widget.CollapsingToolbarLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:id="@+id/essai"
-        android:layout_marginTop="500dp"
-        />
-
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/fab"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/nameGroup"
-
-        android:layout_gravity="bottom|center_horizontal"
-        android:layout_marginLeft="250dp"
-        android:layout_marginTop="450dp"
-        android:layout_toRightOf="@id/ListParticipant"
-        android:background="@drawable/round"
-        app:layout_anchor="@+id/include"
-
-        app:srcCompat="@android:drawable/ic_input_add" />
-
-
+        android:layout_marginTop="?attr/actionBarSize">
+        <ListView
+            android:id="@+id/listViewDemo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+        </ListView>
+    </android.support.design.widget.CollapsingToolbarLayout>
 </android.support.design.widget.CoordinatorLayout>

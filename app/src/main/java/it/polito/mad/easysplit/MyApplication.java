@@ -2,6 +2,9 @@ package it.polito.mad.easysplit;
 
 import android.app.Application;
 
+import java.util.ArrayList;
+
+import it.polito.mad.easysplit.models.ConstraintException;
 import it.polito.mad.easysplit.models.ExpenseModel;
 import it.polito.mad.easysplit.models.GroupModel;
 

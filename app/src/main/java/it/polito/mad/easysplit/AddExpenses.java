@@ -40,9 +40,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 
-import it.polito.mad.easysplit.R;
 import it.polito.mad.easysplit.models.ConstraintException;
-import it.polito.mad.easysplit.models.ExpenseModel;
 import it.polito.mad.easysplit.models.GroupModel;
 import it.polito.mad.easysplit.models.Money;
 import it.polito.mad.easysplit.models.PersonModel;
@@ -60,9 +58,10 @@ public class AddExpenses extends AppCompatActivity {
     private SimpleDateFormat dateFormatter;
     private Spinner spinner1;
     private String payer;
-    GroupModel gm;
+    DummyGroupModel gm;
     List<PersonModel> lpm;
     ArrayList<String> payerGroup;
+    ArrayList<PersonModel> payersEngaged = new ArrayList<PersonModel>();;
     int size_group;
 
     @Override
@@ -180,16 +179,14 @@ public class AddExpenses extends AppCompatActivity {
                 }
                 MyApplication app = (MyApplication) getApplicationContext();
                 app.setGroupModel(gm);
+                /*
+                for (int i=0;i<payerGroup.size();i++) {
+                    payersEngaged.add(new DummyPersonModel(payerGroup.get(i),gm));
+                }
+                //Something like app.setpayersEngaged
+                */
                 Intent i = new Intent(getApplicationContext(),ExpensesListActivity.class);
                 startActivity(i);
-            }
-        });
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
             }
         });
     }

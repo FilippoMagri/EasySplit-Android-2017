@@ -5,8 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     tools:layout_editor_absoluteY="8dp"
-    tools:layout_editor_absoluteX="8dp"
-    tools:context="it.polito.mad.easysplit.GroupFragment">
+    tools:layout_editor_absoluteX="8dp">
     <TextView
         android:id="@+id/label"
         android:layout_width="match_parent"
@@ -35,14 +34,12 @@
         android:layout_alignBottom="@+id/label">
     </ImageView>
     <ImageButton
-        android:id="@+id/icon"
+        android:id="@+id/icon_row_group"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:src="@drawable/ic_next"
         android:gravity="center_vertical"
         android:background="@color/colorClair"
-        android:clickable="true"
-        android:onClick="onClick"
         android:layout_alignBottom="@+id/label"
         android:layout_alignTop="@+id/label"
         android:layout_alignParentRight="true"

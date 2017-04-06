@@ -7,6 +7,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.AdapterView;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.view.View;
 
@@ -30,7 +31,10 @@ public class ExpensesListActivity extends AppCompatActivity {
 
         MyApplication app = (MyApplication) getApplicationContext();
         GroupModel dm = app.getGroupModel(); //new DummyGroupModel();
-
+        if (dm==null) {
+            dm = new DummyGroupModel();
+            app.setGroupModel(dm);
+        }
         List<ExpenseModel> expenses = dm.getExpenses();
         ItemAdapter<ExpenseModel> adapter = new ItemAdapter<>(this, R.layout.expense_item, expenses);
         ListView lv = (ListView) findViewById(R.id.expensesList);
@@ -43,12 +47,21 @@ public class ExpensesListActivity extends AppCompatActivity {
                 ExpenseModel expense = ((ItemAdapter<ExpenseModel>)parent.getAdapter()).getItem(position);
                 MyApplication app = (MyApplication) getApplicationContext();
                 app.setCurrentExpense(expense);
-
                 Intent showExpense = new Intent(view.getContext(), ExpenseDetailsActivity.class);
                 startActivity(showExpense);
             }
         });
-
+        setTitle(dm.getName());
+        if(getTitle().equals("Gruppo MAD")) {
+            ImageView imgView = (ImageView) findViewById(R.id.add_button_expense);
+            imgView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Intent i = new Intent(getApplicationContext(), AddExpenses.class);
+                    startActivity(i);
+                }
+            });
+        }
     }
 
     @Override
