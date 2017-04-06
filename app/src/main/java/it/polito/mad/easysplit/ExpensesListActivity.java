@@ -35,7 +35,8 @@ public class ExpensesListActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        GroupModel dm = new DummyGroupModel();
+        MyApplication app = (MyApplication) getApplicationContext();
+        GroupModel dm = app.getGroupModel(); //new DummyGroupModel();
 
         List<ExpenseModel> expenses = dm.getExpenses();
         ItemAdapter<ExpenseModel> adapter = new ItemAdapter<>(this, R.layout.expense_item, expenses);

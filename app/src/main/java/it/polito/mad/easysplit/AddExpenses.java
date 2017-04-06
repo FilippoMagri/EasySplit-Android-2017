@@ -10,8 +10,10 @@ import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.InputType;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.DatePicker;
 import android.widget.EditText;
@@ -29,17 +31,22 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 
 import it.polito.mad.easysplit.R;
+import it.polito.mad.easysplit.models.ConstraintException;
 import it.polito.mad.easysplit.models.ExpenseModel;
 import it.polito.mad.easysplit.models.GroupModel;
+import it.polito.mad.easysplit.models.Money;
 import it.polito.mad.easysplit.models.PersonModel;
+import it.polito.mad.easysplit.models.dummy.DummyExpenseModel;
 import it.polito.mad.easysplit.models.dummy.DummyGroupModel;
 import it.polito.mad.easysplit.models.dummy.DummyPersonModel;
 
@@ -52,6 +59,7 @@ public class AddExpenses extends AppCompatActivity {
     private DatePickerDialog datePickerDialog;
     private SimpleDateFormat dateFormatter;
     private Spinner spinner1;
+    private String payer;
     GroupModel gm;
     List<PersonModel> lpm;
     ArrayList<String> payerGroup;
@@ -125,6 +133,7 @@ public class AddExpenses extends AppCompatActivity {
     }
 
     public void setActionButtons() {
+
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         checkImgView = (ImageView) findViewById(R.id.img_confirm_add_expenses);
 
@@ -143,6 +152,34 @@ public class AddExpenses extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 //Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG).setAction("Action", null).show();
+                EditText dateEditText1 = (EditText) findViewById(R.id.dateEditText);
+                String date = dateEditText1.getText().toString();
+
+                String dateStr = date;
+                SimpleDateFormat curFormater = new SimpleDateFormat("dd-MM-yyyy");
+                Date dateObj=null;
+                try {
+                    dateObj = curFormater.parse(dateStr);
+                } catch(ParseException e) { e.printStackTrace();}
+                Calendar calendar = Calendar.getInstance();
+                calendar.setTime(dateObj);
+                EditText dateEditText2 = (EditText) findViewById(R.id.dateEditText3);
+                String title = dateEditText2.getText().toString();
+                EditText dateEditText3 = (EditText) findViewById(R.id.dateEditText4);
+                String amount = dateEditText3.getText().toString();
+                Log.e("AAAAAAAAAAAA!!!!!!!", amount);
+                Money money = new Money(Money.getDefaultCurrency(),(long)(Float.parseFloat(amount)*100));
+
+                String payer_selected = payer;
+                DummyPersonModel dummyPersonModel_ofpayer  = new DummyPersonModel(payer,gm);
+                DummyExpenseModel expenseModel = new DummyExpenseModel(title,calendar,money,dummyPersonModel_ofpayer,gm);
+                try {
+                    gm.addExpense(expenseModel);
+                } catch (ConstraintException e) {
+                    e.printStackTrace();
+                }
+                MyApplication app = (MyApplication) getApplicationContext();
+                app.setGroupModel(gm);
                 Intent i = new Intent(getApplicationContext(),ExpensesListActivity.class);
                 startActivity(i);
             }
@@ -167,6 +204,17 @@ public class AddExpenses extends AppCompatActivity {
         ArrayAdapter<String> dataAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, list);
         dataAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner1.setAdapter(dataAdapter);
+
+        spinner1.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                payer = adapterView.getItemAtPosition(i).toString();
+            }
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+
+            }
+        });
     }
 
     public void setEditText_n5 () {
