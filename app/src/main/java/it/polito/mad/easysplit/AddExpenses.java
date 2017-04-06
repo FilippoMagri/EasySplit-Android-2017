@@ -1,5 +1,6 @@
 package it.polito.mad.easysplit;
 
+import android.app.Application;
 import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
@@ -142,7 +143,8 @@ public class AddExpenses extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 //Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG).setAction("Action", null).show();
-
+                Intent i = new Intent(getApplicationContext(),ExpensesListActivity.class);
+                startActivity(i);
             }
         });
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
