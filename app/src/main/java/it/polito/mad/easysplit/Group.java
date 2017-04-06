@@ -28,36 +28,54 @@ public class Group extends AppCompatActivity {
     Button AddParticipant;
    private String groupName = null;
 
+
+    TextView label;
+
     final String EXTRA_GROUP=null;
-    static CreationGroup CreationGroup;
+    static Group Group;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_group);
 
        // Bundle extras = getIntent().getExtras();
-        Intent intent = getIntent();
+       /* Intent intent = getIntent();
         TextView loginDisplay = (TextView) findViewById(R.id.essai);
 
         if (intent != null) {
             loginDisplay.setText(intent.getStringExtra(EXTRA_GROUP));
 
-        }
+        }*/
+
+      /* ImageButton icon = (ImageButton) findViewById(R.id.icon);
+      icon.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent i5 = new Intent(Group.this, ListGroup.class);
+                startActivity(i5);
+            }
+        });*/
 
 
-        /*final TextView label = (TextView) findViewById(R.id.label);
 
-        valid.setOnClickListener(new View.OnClickListener()
-        {final TextView label = (TextView)  findViewById(R.id.label);
+
+      /* ImageButton icon = (ImageButton)  findViewById(R.id.icon);
+        label.setOnClickListener(new View.OnClickListener()
+        {
+
+
+            //final TextView label = (TextView)  findViewById(R.id.label);
+
 
             @Override
             public void onClick(View v) {
                 // TODO Auto-generated method stub
-                String name = label.getText().toString();
-                Intent intent = new Intent(Group.this, CreationGroup.class);
-                intent.putExtra(EXTRA_NAME, name);
-                startActivity(intent);
-                Toast.makeText(getApplicationContext(), "Go in Group", Toast.LENGTH_SHORT).show();
+                // String name = label.getText().toString();
+                Intent i3 = new Intent(Group.this, CreationGroup.class);
+                //  i3.putExtra(EXTRA_GROUP, name);
+                startActivity(i3);
+                //Toast.makeText(getApplicationContext(), "Go in Group", Toast.LENGTH_SHORT).show();
 
 
             }});*/
@@ -65,10 +83,10 @@ public class Group extends AppCompatActivity {
 
         //tu peux donc utiliser la variable double "d"
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+       Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+       FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -76,8 +94,8 @@ public class Group extends AppCompatActivity {
                 startActivity(intent);
               /*  Snackbar.make(view,"CreationGroup", Snackbar.LENGTH_LONG)
                         .setAction("CreationGroup", null).show();
-            */
-            }
+*/
+           }
         });
 
     }

@@ -29,6 +29,7 @@
         android:id="@+id/include"
         layout="@layout/content_group"
         android:layout_height="569dp" />
+
     <TextView
         android:layout_width="match_parent"
         android:layout_height="match_parent"

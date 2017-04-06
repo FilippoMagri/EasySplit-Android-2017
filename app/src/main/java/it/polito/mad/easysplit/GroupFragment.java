@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,7 +19,7 @@ import android.widget.Toast;
 
 import java.util.List;
 
-import it.polito.mad.easysplit.models.GroupModel;
+//import it.polito.mad.easysplit.models.GroupModel;
 
 
 import static it.polito.mad.easysplit.R.layout.fragment_group;
@@ -48,6 +49,19 @@ public class GroupFragment extends ListFragment {
 
     @Override
     public void onListItemClick(ListView l, View v, int position, long id) {
+        Log.e("Message", "Message");
+
         // TODO implement some logic
+        ListView listView = (ListView) v;
+        TextView label = (TextView) listView.findViewById(R.id.label);
+
+        l.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                //MyApplication app = (MyApplication) getApplicationContext();
+                Intent intent = new Intent (getActivity(), CreationGroup.class);
+                startActivity(intent);
+
     }
-}
+});
+    };}

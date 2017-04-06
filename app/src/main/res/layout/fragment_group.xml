@@ -17,14 +17,14 @@
         android:textSize="20dp"
         android:gravity="center_vertical|center_horizontal"
 
-
+        android:clickable="true"
         android:layout_marginTop="10dp"
-
         tools:layout_editor_absoluteY="8dp"
         tools:layout_editor_absoluteX="16dp"
         android:background="@color/colorClair">
 
     </TextView>
+
     <ImageView
         android:id="@+id/group"
         android:layout_width="100dp"
@@ -36,11 +36,11 @@
 
         android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true"
-
+        android:clickable="true"
         >
 
     </ImageView>
-    <ImageView
+    <ImageButton
         android:id="@+id/icon"
         android:layout_width="wrap_content"
         android:layout_height="495dp"
@@ -48,13 +48,15 @@
         android:layout_alignRight="@id/label"
         android:layout_marginTop="20dp"
         android:gravity="center_vertical"
-
+android:background="@color/colorClair"
         android:layout_alignParentTop="true"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"
+        android:clickable="true"
+        android:onClick="onClick"
         >
 
-    </ImageView>
+    </ImageButton>
 
 
 </RelativeLayout>
