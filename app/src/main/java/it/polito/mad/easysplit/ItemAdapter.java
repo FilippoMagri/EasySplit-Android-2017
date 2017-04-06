@@ -42,7 +42,7 @@ public class ItemAdapter<T extends Amountable> extends ArrayAdapter<T> {
         name.setText(item.getName());
         float cents = item.getAmount().getCents();
 
-        amount.setTextColor((cents > 0) ? 0xff64fa64 : 0xfffa6464);
+        amount.setTextColor((cents > 0) ? 0xff32a432 : 0xfffa6464);
         amount.setText(item.getAmount().toString());
 
         return convertView;

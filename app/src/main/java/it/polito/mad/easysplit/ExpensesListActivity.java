@@ -1,23 +1,15 @@
 package it.polito.mad.easysplit;
 
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View.OnClickListener;
-import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.view.View;
-import android.widget.TextView;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import it.polito.mad.easysplit.models.ExpenseModel;
@@ -31,9 +23,10 @@ public class ExpensesListActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_expenses_list);
-
+        /*
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        */
 
         MyApplication app = (MyApplication) getApplicationContext();
         GroupModel dm = app.getGroupModel(); //new DummyGroupModel();

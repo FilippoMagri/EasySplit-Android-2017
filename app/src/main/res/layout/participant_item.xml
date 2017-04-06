@@ -20,17 +20,6 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true" />
 
-    <ImageView
-        android:id="@+id/nextIcon"
-        android:layout_width="wrap_content"
-        android:layout_height="495dp"
-        android:src="@drawable/ic_next"
-        android:gravity="center_vertical"
-
-        android:layout_centerVertical="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true" />
-
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -60,5 +49,6 @@
 
 
     </LinearLayout>
+
 
 </RelativeLayout>
