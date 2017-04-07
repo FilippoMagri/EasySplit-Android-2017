@@ -97,7 +97,7 @@ public class DummyGroupModel extends ObservableBase implements GroupModel  {
                     new Money(currency, (long) rand.nextInt(10000)),
                     (PersonModel) members.get(personIndex),
                     this,
-                    null);
+                    members);
             expenses.add(exp);
         }
 
