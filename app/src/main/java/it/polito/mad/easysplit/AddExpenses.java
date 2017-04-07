@@ -170,10 +170,18 @@ public class AddExpenses extends AppCompatActivity {
 
                 String payer_selected = payer;
                 DummyPersonModel dummyPersonModel_ofpayer  = new DummyPersonModel(payer,gm);
-                ArrayList<PersonModel> participants = new ArrayList<>();
-                for (int i=0;i<payerGroup.size();i++) {
-                    participants.add(gm.getMember(payerGroup.get(i)));
+                List<PersonModel> participants;
+
+                if (payerGroup != null) {
+                    participants = new ArrayList<>();
+                    for (int i = 0; i < payerGroup.size(); i++) {
+                        participants.add(gm.getMember(payerGroup.get(i)));
+                    }
                 }
+                else {
+                    participants = gm.getMembers();
+                }
+
                 DummyExpenseModel expenseModel = new DummyExpenseModel(title,calendar,money,dummyPersonModel_ofpayer,gm, participants);
                 try {
                     gm.addExpense(expenseModel);
