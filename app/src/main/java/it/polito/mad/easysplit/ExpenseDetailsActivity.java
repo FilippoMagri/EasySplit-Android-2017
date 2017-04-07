@@ -63,7 +63,7 @@ public class ExpenseDetailsActivity extends AppCompatActivity {
         }
 
         List<Participant> participants = new ArrayList<>();
-        List<PersonModel> members = expense.getGroup().getMembers();
+        List<PersonModel> members = expense.getParticipants(); //getGroup().getMembers();
         int participantsNumber = members.size();
         Money owed = expense.getAmount().div(participantsNumber).neg();
 

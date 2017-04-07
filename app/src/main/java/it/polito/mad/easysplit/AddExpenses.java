@@ -166,12 +166,15 @@ public class AddExpenses extends AppCompatActivity {
                 String title = dateEditText2.getText().toString();
                 EditText dateEditText3 = (EditText) findViewById(R.id.dateEditText4);
                 String amount = dateEditText3.getText().toString();
-                Log.e("AAAAAAAAAAAA!!!!!!!", amount);
                 Money money = new Money(Money.getDefaultCurrency(),(long)(Float.parseFloat(amount)*100));
 
                 String payer_selected = payer;
                 DummyPersonModel dummyPersonModel_ofpayer  = new DummyPersonModel(payer,gm);
-                DummyExpenseModel expenseModel = new DummyExpenseModel(title,calendar,money,dummyPersonModel_ofpayer,gm);
+                ArrayList<PersonModel> participants = new ArrayList<>();
+                for (int i=0;i<payerGroup.size();i++) {
+                    participants.add(gm.getMember(payerGroup.get(i)));
+                }
+                DummyExpenseModel expenseModel = new DummyExpenseModel(title,calendar,money,dummyPersonModel_ofpayer,gm, participants);
                 try {
                     gm.addExpense(expenseModel);
                 } catch (ConstraintException e) {
@@ -179,12 +182,9 @@ public class AddExpenses extends AppCompatActivity {
                 }
                 MyApplication app = (MyApplication) getApplicationContext();
                 app.setGroupModel(gm);
-                /*
-                for (int i=0;i<payerGroup.size();i++) {
-                    payersEngaged.add(new DummyPersonModel(payerGroup.get(i),gm));
-                }
+
+
                 //Something like app.setpayersEngaged
-                */
                 Intent i = new Intent(getApplicationContext(),ExpensesListActivity.class);
                 startActivity(i);
             }

@@ -96,7 +96,8 @@ public class DummyGroupModel extends ObservableBase implements GroupModel  {
                     (Calendar) time.clone(),
                     new Money(currency, (long) rand.nextInt(10000)),
                     (PersonModel) members.get(personIndex),
-                    this);
+                    this,
+                    null);
             expenses.add(exp);
         }
 
@@ -169,6 +170,16 @@ public class DummyGroupModel extends ObservableBase implements GroupModel  {
             e.printStackTrace();
             return "";
         }
+    }
+
+    @Override
+    public PersonModel getMember(String id) {
+        for (PersonModel person : members) {
+            if (person.getIdentifier().equals(id)) {
+                return person;
+            }
+        }
+        return null;
     }
 
     public static DummyGroupModel fromJSONstatic(String result) {
