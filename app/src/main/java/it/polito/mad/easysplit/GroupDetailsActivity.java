@@ -3,13 +3,12 @@ package it.polito.mad.easysplit;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.ListView;
-import android.view.View;
 
 import java.util.List;
 
@@ -18,12 +17,12 @@ import it.polito.mad.easysplit.models.GroupModel;
 import it.polito.mad.easysplit.models.dummy.DummyGroupModel;
 
 
-public class ExpensesListActivity extends AppCompatActivity {
+public class GroupDetailsActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_expenses_list);
+        setContentView(R.layout.activity_group_details);
         /*
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -31,7 +30,7 @@ public class ExpensesListActivity extends AppCompatActivity {
 
         MyApplication app = (MyApplication) getApplicationContext();
         GroupModel dm = app.getGroupModel(); //new DummyGroupModel();
-        if (dm==null) {
+        if (dm == null) {
             dm = new DummyGroupModel();
             app.setGroupModel(dm);
         }
@@ -44,7 +43,7 @@ public class ExpensesListActivity extends AppCompatActivity {
 
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                ExpenseModel expense = ((ItemAdapter<ExpenseModel>)parent.getAdapter()).getItem(position);
+                ExpenseModel expense = ((ItemAdapter<ExpenseModel>) parent.getAdapter()).getItem(position);
                 MyApplication app = (MyApplication) getApplicationContext();
                 app.setCurrentExpense(expense);
                 Intent showExpense = new Intent(view.getContext(), ExpenseDetailsActivity.class);
@@ -52,7 +51,7 @@ public class ExpensesListActivity extends AppCompatActivity {
             }
         });
         setTitle(dm.getName());
-        if(getTitle().equals("Gruppo MAD")) {
+        if (getTitle().equals("Gruppo MAD")) {
             ImageView imgView = (ImageView) findViewById(R.id.add_button_expense);
             imgView.setOnClickListener(new View.OnClickListener() {
                 @Override

@@ -11,7 +11,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity android:name=".CreationGroup"/>
-        <activity android:name=".ExpensesListActivity">
+        <activity android:name=".GroupDetailsActivity">
         </activity>
         <activity android:name=".ExpenseDetailsActivity" />
         <activity

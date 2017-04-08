@@ -1,17 +1,12 @@
 package it.polito.mad.easysplit;
 
-import android.app.Application;
 import android.app.DatePickerDialog;
 import android.content.Intent;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.InputType;
-import android.util.Log;
-import android.view.Gravity;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -19,12 +14,9 @@ import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Spinner;
-import android.widget.Toast;
 
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
-
-import org.json.JSONObject;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -36,7 +28,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 
@@ -47,8 +38,6 @@ import it.polito.mad.easysplit.models.PersonModel;
 import it.polito.mad.easysplit.models.dummy.DummyExpenseModel;
 import it.polito.mad.easysplit.models.dummy.DummyGroupModel;
 import it.polito.mad.easysplit.models.dummy.DummyPersonModel;
-
-import static android.os.Environment.getExternalStorageDirectory;
 
 public class AddExpenses extends AppCompatActivity {
     Toolbar toolbar;
@@ -61,7 +50,7 @@ public class AddExpenses extends AppCompatActivity {
     DummyGroupModel gm;
     List<PersonModel> lpm;
     ArrayList<String> payerGroup;
-    ArrayList<PersonModel> payersEngaged = new ArrayList<PersonModel>();;
+    ArrayList<PersonModel> payersEngaged = new ArrayList<PersonModel>();
     int size_group;
 
     @Override
@@ -193,7 +182,7 @@ public class AddExpenses extends AppCompatActivity {
 
 
                 //Something like app.setpayersEngaged
-                Intent i = new Intent(getApplicationContext(),ExpensesListActivity.class);
+                Intent i = new Intent(getApplicationContext(), GroupDetailsActivity.class);
                 startActivity(i);
             }
         });
