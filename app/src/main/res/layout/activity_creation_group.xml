@@ -29,8 +29,8 @@
             android:src="@drawable/ic_back"
             tools:layout_editor_absoluteX="8dp"
             tools:layout_editor_absoluteY="-116dp" />
-        <ImageButton
 
+        <ImageButton
             android:id="@+id/valid"
             android:layout_width="54dp"
             android:layout_height="67dp"
@@ -39,20 +39,16 @@
             tools:layout_editor_absoluteX="330dp"
             tools:layout_editor_absoluteY="0dp" />
 
-
         <TextView
-
             android:id="@+id/choosename"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-
             android:layout_below="@id/back"
             android:text="Choose a Group Name"
             android:textSize="40px"
             tools:layout_editor_absoluteX="50dp"
             tools:layout_editor_absoluteY="61dp"
             android:layout_marginLeft="20px"/>
-
 
         <EditText
             android:id="@+id/nameGroup"
@@ -65,7 +61,6 @@
             tools:layout_editor_absoluteX="65dp"
             tools:layout_editor_absoluteY="78dp"
             android:layout_marginLeft="20px"/>
-
 
         <TextView
             android:id="@+id/ListParticipant"
@@ -103,7 +98,5 @@
             android:layout_alignRight="@id/ListParticipant"
             android:layout_marginLeft="50px"
             android:layout_below="@id/ListParticipant"/>
-
-
     </RelativeLayout>
 </android.support.constraint.ConstraintLayout>

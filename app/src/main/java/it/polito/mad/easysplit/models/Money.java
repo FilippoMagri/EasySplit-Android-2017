@@ -63,7 +63,7 @@ public class Money {
 
     @Override
     public String toString() {
-        long fractionalDenom = 10 * currency.getDefaultFractionDigits();
+        long fractionalDenom = (long) Math.pow(10, currency.getDefaultFractionDigits());
         long integ = cents / fractionalDenom;
         // `integ` already has the right sign
         long frac = Math.abs(cents % fractionalDenom);

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    android:id="@+id/linearLayout_checkBoxItem"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_height="wrap_content"
+    android:layout_width="match_parent"
+    android:orientation="horizontal">
+<CheckBox
+    android:id="@+id/checkBoxItem"
+    android:layout_margin="10dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:text="chekBox Prova"
+    android:gravity="center"
+    >
+</CheckBox>
+</LinearLayout>

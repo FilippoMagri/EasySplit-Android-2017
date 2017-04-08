@@ -7,4 +7,6 @@ public interface PersonModel extends Observable {
     String getIdentifier();
     Set<GroupModel> getMemberships();
     List<ExpenseModel> getExpenses();
+    String toJSON();
+    PersonModel fromJSON();
 }
