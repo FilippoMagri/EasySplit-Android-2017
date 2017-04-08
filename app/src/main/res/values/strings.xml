@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">€asySplit</string>
+    <string name="app_name" translatable="false">€asySplit</string>
     <string name="action_settings">Settings</string>
     <string name="title_activity_add_expenses">AddExpenses</string>
 
@@ -9,5 +9,7 @@
     </string-array>
     <string name="title_activity_add_expenses_check_box">AddExpenses_checkBox</string>
 
-    <string name="title_activity_group_balance_dummy">GroupBalanceDummyActivity</string>
+    <string name="title_activity_group_balance_dummy">Group balance</string>
+    <string name="paid_by">Paid by</string>
+    <string name="on_date">on</string>
 </resources>

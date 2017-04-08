@@ -7,6 +7,8 @@ import java.util.Set;
 
 public interface PersonModel extends Observable {
     String getIdentifier();
+
+    String getName();
     Drawable getProfilePicture();
     Set<GroupModel> getMemberships();
     List<ExpenseModel> getExpenses();

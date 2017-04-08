@@ -1,15 +1,15 @@
 package it.polito.mad.easysplit;
 
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.List;
-
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ListView;
 import android.widget.TextView;
+
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.List;
 
 import it.polito.mad.easysplit.models.Amountable;
 import it.polito.mad.easysplit.models.ExpenseModel;
@@ -32,11 +32,13 @@ public class ExpenseDetailsActivity extends AppCompatActivity {
         ExpenseModel expense = app.getCurrentExpense();
 
         TextView name = (TextView) findViewById(R.id.expenseName);
+        TextView payerName = (TextView) findViewById(R.id.payerName);
         TextView creation = (TextView) findViewById(R.id.expenseCreationDate);
 
         name.setText(expense.getName());
+        payerName.setText(expense.getPayer().getName());
         SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy");
-        creation.setText("Creation date: " + format.format(expense.getTimestamp().getTime()));
+        creation.setText(format.format(expense.getTimestamp().getTime()));
 
         class Participant implements Amountable {
             private PersonModel person;
@@ -62,6 +64,8 @@ public class ExpenseDetailsActivity extends AppCompatActivity {
             }
         }
 
+        /// TODO Refactor logic into a model
+        ///    ticket https://trello.com/c/mSVIV1vj/23-expensedetailsactivity-refactor-logic-into-a-model
         List<Participant> participants = new ArrayList<>();
         List<PersonModel> members = expense.getParticipants(); //getGroup().getMembers();
         int participantsNumber = members.size();

@@ -1,19 +1,19 @@
 package it.polito.mad.easysplit.models.dummy;
 
+import android.graphics.drawable.Drawable;
+
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import android.graphics.drawable.Drawable;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import it.polito.mad.easysplit.models.ExpenseModel;
 import it.polito.mad.easysplit.models.GroupModel;
 import it.polito.mad.easysplit.models.ObservableBase;
 import it.polito.mad.easysplit.models.PersonModel;
-import it.polito.mad.easysplit.models.ExpenseModel;
 
 public class DummyPersonModel extends ObservableBase implements PersonModel {
     private String name;
@@ -26,6 +26,11 @@ public class DummyPersonModel extends ObservableBase implements PersonModel {
 
     @Override
     public String getIdentifier() {
+        return name;
+    }
+
+    @Override
+    public String getName() {
         return name;
     }
 
