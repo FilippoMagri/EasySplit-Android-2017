@@ -7,4 +7,6 @@
     <string name="title_activity_add_expenses_check_box">Scegli partecipanti</string>
     <string name="title_activity_group_balance_dummy">Bilancio del gruppo</string>
     <string name="on_date">il</string>
+    <string name="tab_name_members">Membri</string>
+    <string name="tab_name_balance">Bilancio</string>
 </resources>

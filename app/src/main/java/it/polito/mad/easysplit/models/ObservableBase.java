@@ -1,13 +1,13 @@
 package it.polito.mad.easysplit.models;
 
-import java.util.HashSet;
+import java.util.WeakHashMap;
 
 public class ObservableBase implements Observable {
-    private HashSet<Observer> observers = new HashSet<>();
+    private WeakHashMap<Observer, Boolean> observers = new WeakHashMap<>();
 
     @Override
     public void registerObserver(Observer observer) {
-        observers.add(observer);
+        observers.put(observer, true);
     }
 
     @Override
@@ -16,12 +16,12 @@ public class ObservableBase implements Observable {
     }
 
     protected void notifyChanged() {
-        for (Observer observer : observers)
+        for (Observer observer : observers.keySet())
             observer.onChanged();
     }
 
     protected void notifyInvalidated() {
-        for (Observer observer : observers)
+        for (Observer observer : observers.keySet())
             observer.onInvalidated();
     }
 }

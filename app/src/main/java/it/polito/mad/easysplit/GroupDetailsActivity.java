@@ -1,32 +1,38 @@
 package it.polito.mad.easysplit;
 
-import android.content.Intent;
 import android.os.Bundle;
+import android.support.design.widget.TabLayout;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ImageView;
-import android.widget.ListView;
 
-import java.util.List;
-
-import it.polito.mad.easysplit.models.ExpenseModel;
+import it.polito.mad.easysplit.layout.ExpenseListFragment;
+import it.polito.mad.easysplit.layout.MemberListFragment;
 import it.polito.mad.easysplit.models.GroupModel;
+import it.polito.mad.easysplit.models.PersonModel;
 import it.polito.mad.easysplit.models.dummy.DummyGroupModel;
 
 
-public class GroupDetailsActivity extends AppCompatActivity {
+public class GroupDetailsActivity extends AppCompatActivity implements MemberListFragment.OnListFragmentInteractionListener {
+    private View[] tabs;
+
+    public GroupModel getGroup() {
+        return ((MyApplication) getApplication()).getGroupModel();
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_group_details);
-        /*
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        */
 
         MyApplication app = (MyApplication) getApplicationContext();
         GroupModel dm = app.getGroupModel(); //new DummyGroupModel();
@@ -34,33 +40,52 @@ public class GroupDetailsActivity extends AppCompatActivity {
             dm = new DummyGroupModel();
             app.setGroupModel(dm);
         }
-        List<ExpenseModel> expenses = dm.getExpenses();
-        ItemAdapter<ExpenseModel> adapter = new ItemAdapter<>(this, R.layout.expense_item, expenses);
-        ListView lv = (ListView) findViewById(R.id.expensesList);
-        lv.setAdapter(adapter);
 
-        lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                ExpenseModel expense = ((ItemAdapter<ExpenseModel>) parent.getAdapter()).getItem(position);
-                MyApplication app = (MyApplication) getApplicationContext();
-                app.setCurrentExpense(expense);
-                Intent showExpense = new Intent(view.getContext(), ExpenseDetailsActivity.class);
-                startActivity(showExpense);
-            }
-        });
         setTitle(dm.getName());
-        if (getTitle().equals("Gruppo MAD")) {
-            ImageView imgView = (ImageView) findViewById(R.id.add_button_expense);
-            imgView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    Intent i = new Intent(getApplicationContext(), AddExpenses.class);
-                    startActivity(i);
-                }
-            });
+
+        LocalPagerAdapter pagerAdapter = new LocalPagerAdapter(getSupportFragmentManager());
+        ViewPager pager = (ViewPager) findViewById(R.id.group_details_pager);
+        pager.setAdapter(pagerAdapter);
+
+        TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
+        tabLayout.setupWithViewPager(pager);
+    }
+
+    private class LocalPagerAdapter extends FragmentPagerAdapter {
+        private LocalPagerAdapter(FragmentManager fm) {
+            super(fm);
         }
+
+        @Override
+        public Fragment getItem(int i) {
+            /// TODO Set the specific group through arguments in a Bundle
+            if (i == 0)
+                return new ExpenseListFragment();
+            else if (i == 1)
+                return new MemberListFragment();
+            return null;
+        }
+
+        @Override
+        public CharSequence getPageTitle(int position) {
+            if (position == 0)
+                return getString(R.string.tab_name_members);
+            else if (position == 1)
+                return getString(R.string.tab_name_balance);
+            return null;
+        }
+
+        @Override
+        public int getCount() {
+            return 2;
+        }
+    }
+
+    @Override
+    public void onListFragmentInteraction(PersonModel person) {
+        // Called when a person is clicked in the balance view.
+        // Do nothing (for now)
+        /// TODO Do something?
     }
 
     @Override

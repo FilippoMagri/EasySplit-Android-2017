@@ -12,4 +12,6 @@
     <string name="title_activity_group_balance_dummy">Group balance</string>
     <string name="paid_by">Paid by</string>
     <string name="on_date">on</string>
+    <string name="tab_name_members">Members</string>
+    <string name="tab_name_balance">Balance</string>
 </resources>
