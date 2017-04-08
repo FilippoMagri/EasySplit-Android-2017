@@ -127,6 +127,8 @@ public class AddExpenses extends AppCompatActivity {
             }
 
         },newCalendar.get(Calendar.YEAR), newCalendar.get(Calendar.MONTH), newCalendar.get(Calendar.DAY_OF_MONTH));
+        // Disable future dates
+        datePickerDialog.getDatePicker().setMaxDate(System.currentTimeMillis());
         Calendar newDate = Calendar.getInstance();
         dateEditText.setText(dateFormatter.format(newDate.getTime()));
     }
