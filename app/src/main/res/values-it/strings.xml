@@ -9,4 +9,5 @@
     <string name="on_date">il</string>
     <string name="tab_name_members">Membri</string>
     <string name="tab_name_balance">Bilancio</string>
+    <string name="tab_name_expenses">Spese</string>
 </resources>

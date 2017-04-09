@@ -1,15 +1,8 @@
 package it.polito.mad.easysplit.models.dummy;
 
-import com.google.gson.annotations.SerializedName;
-import com.google.gson.stream.JsonWriter;
-
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Currency;
@@ -27,12 +20,32 @@ import it.polito.mad.easysplit.models.PersonModel;
 
 public class DummyGroupModel extends ObservableBase implements GroupModel  {
     private static String NAMES[] = {
-            "Marco", "Filippo", "Sebastiano", "Camille", "Flavio", "Anna",
-            "Saro", "Stefano", "Pasquale"
+            "Marco", "Filippo", "Sebastiano", "Camille", "Flavio", "Anna", "Saro", "Stefano",
+            "Pasquale", "Sofia", "Aurora", "Giulia", "Giorgia", "Alice", "Martina", "Emma", "Greta",
+            "Chiara", "Anna", "Sara", "Ginevra", "Gaia", "Beatrice", "Noemi", "Francesca", "Nicole",
+            "Alessia", "Vittoria", "Matilde", "Arianna", "Viola", "Giada", "Rebecca", "Camilla",
+            "Elena", "Elisa", "Mia", "Bianca", "Maria", "Francesco", "Alessandro", "Mattia",
+            "Lorenzo", "Leonardo", "Andrea", "Gabriele", "Matteo", "Tommaso", "Riccardo", "Davide",
+            "Giuseppe", "Edoardo", "Antonio", "Federico", "Giovanni", "Marco", "Diego", "Samuele",
+            "Pietro", "Christian", "Nicolo", "Luca", "Simone", "Filippo", "Alessio", "Gabriel",
+            "Michele", "Emanuele", "Jacopo"
     };
     private static String SURNAMES[] = {
             "Falsaperla", "Rossi", "Passalacqua", "Pulvirenti", "Barrera", "Magrì",
-            "Giobergia", "Zappalà"
+            "Giobergia", "Zappalà", "Rossi", "Russo", "Ferrari", "Esposito", "Bianchi",
+            "Romano", "Colombo", "Ricci", "Marino", "Greco", "Bruno", "Gallo", "Conti",
+            "De Luca", "Mancini", "Costa", "Giordano", "Rizzo", "Lombardi", "Moretti",
+            "Barbieri", "Fontana", "Santoro", "Mariani", "Rinaldi", "Caruso", "Ferrara",
+            "Galli", "Martini", "Leone", "Longo", "Gentile", "Martinelli", "Vitale",
+            "Lombardo", "Serra", "Coppola", "De Santis", "D'angelo", "Marchetti", "Parisi",
+            "Villa", "Conte", "Ferraro", "Ferri", "Fabbri", "Bianco", "Marini", "Grasso",
+            "Valentini", "Messina", "Sala", "De Angelis", "Gatti", "Pellegrini", "Palumbo",
+            "Sanna", "Farina", "Rizzi", "Monti", "Cattaneo", "Morelli", "Amato",
+            "Silvestri", "Mazza", "Testa", "Grassi", "Pellegrino", "Carbone", "Giuliani",
+            "Benedetti", "Barone", "Rossetti", "Caputo", "Montanari", "Guerra", "Palmieri",
+            "Bernardi", "Martino", "Fiore", "De Rosa", "Ferretti", "Bellini", "Basile",
+            "Riva", "Donati", "Piras", "Vitali", "Battaglia", "Sartori", "Neri",
+            "Costantini", "Milani", "Pagano", "Ruggiero", "Sorrentino", "D'amico"
     };
     private static String randomName(Random rand) {
         int nameIndex = rand.nextInt(NAMES.length);
@@ -97,7 +110,7 @@ public class DummyGroupModel extends ObservableBase implements GroupModel  {
                     namePool[nameIndex],
                     (Calendar) time.clone(),
                     new Money(currency, (long) rand.nextInt(10000)),
-                    (PersonModel) members.get(personIndex),
+                    members.get(personIndex),
                     this,
                     members);
             expenses.add(exp);

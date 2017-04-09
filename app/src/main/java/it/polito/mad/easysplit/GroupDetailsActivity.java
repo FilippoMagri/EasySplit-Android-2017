@@ -10,7 +10,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 
 import it.polito.mad.easysplit.layout.ExpenseListFragment;
 import it.polito.mad.easysplit.layout.MemberListFragment;
@@ -20,8 +19,7 @@ import it.polito.mad.easysplit.models.dummy.DummyGroupModel;
 
 
 public class GroupDetailsActivity extends AppCompatActivity implements MemberListFragment.OnListFragmentInteractionListener {
-    private View[] tabs;
-
+    /// TODO The activity should refer to a single specific group (not in the global state)
     public GroupModel getGroup() {
         return ((MyApplication) getApplication()).getGroupModel();
     }
@@ -69,7 +67,7 @@ public class GroupDetailsActivity extends AppCompatActivity implements MemberLis
         @Override
         public CharSequence getPageTitle(int position) {
             if (position == 0)
-                return getString(R.string.tab_name_members);
+                return getString(R.string.tab_name_expenses);
             else if (position == 1)
                 return getString(R.string.tab_name_balance);
             return null;
