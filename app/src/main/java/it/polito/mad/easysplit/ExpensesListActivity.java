@@ -31,37 +31,40 @@ public class ExpensesListActivity extends AppCompatActivity {
 
         MyApplication app = (MyApplication) getApplicationContext();
         GroupModel dm = app.getGroupModel(); //new DummyGroupModel();
-        if (dm==null) {
-            dm = new DummyGroupModel();
-            app.setGroupModel(dm);
+        //if (dm==null) {
+        //    dm = new DummyGroupModel();
+        //    app.setGroupModel(dm);
+        //}
+        if (dm !=null) {
+            if (dm.getExpenses().size()>0) {
+                List<ExpenseModel> expenses = dm.getExpenses();
+                ItemAdapter<ExpenseModel> adapter = new ItemAdapter<>(this, R.layout.expense_item, expenses);
+                ListView lv = (ListView) findViewById(R.id.expensesList);
+                lv.setAdapter(adapter);
+
+                lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+                    @Override
+                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                        ExpenseModel expense = ((ItemAdapter<ExpenseModel>) parent.getAdapter()).getItem(position);
+                        MyApplication app = (MyApplication) getApplicationContext();
+                        app.setCurrentExpense(expense);
+                        Intent showExpense = new Intent(view.getContext(), ExpenseDetailsActivity.class);
+                        startActivity(showExpense);
+                    }
+                });
+            }
+
         }
-        List<ExpenseModel> expenses = dm.getExpenses();
-        ItemAdapter<ExpenseModel> adapter = new ItemAdapter<>(this, R.layout.expense_item, expenses);
-        ListView lv = (ListView) findViewById(R.id.expensesList);
-        lv.setAdapter(adapter);
-
-        lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-
+        setTitle("Gruppo MAD");
+        ImageView imgView = (ImageView) findViewById(R.id.add_button_expense);
+        imgView.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                ExpenseModel expense = ((ItemAdapter<ExpenseModel>)parent.getAdapter()).getItem(position);
-                MyApplication app = (MyApplication) getApplicationContext();
-                app.setCurrentExpense(expense);
-                Intent showExpense = new Intent(view.getContext(), ExpenseDetailsActivity.class);
-                startActivity(showExpense);
+            public void onClick(View view) {
+                Intent i = new Intent(getApplicationContext(), AddExpenses.class);
+                startActivity(i);
             }
         });
-        setTitle(dm.getName());
-        if(getTitle().equals("Gruppo MAD")) {
-            ImageView imgView = (ImageView) findViewById(R.id.add_button_expense);
-            imgView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    Intent i = new Intent(getApplicationContext(), AddExpenses.class);
-                    startActivity(i);
-                }
-            });
-        }
     }
 
     @Override
