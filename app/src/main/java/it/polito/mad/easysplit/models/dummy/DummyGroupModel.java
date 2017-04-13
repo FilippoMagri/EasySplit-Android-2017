@@ -179,33 +179,29 @@ public class DummyGroupModel extends ObservableBase implements GroupModel  {
 
 
     @Override
-    public void writeIntoJsonFile(File fileDir,String nameFile) {
+    public void writeIntoJsonFile(File fileDir,String nameFile) throws IOException{
         //Example of usage
         //File file = new File(getCacheDir() , "user.json");
         JsonWriter writer;
-        try {
-            File file = new File(fileDir , nameFile);
-            writer = new JsonWriter(new FileWriter(file.getPath()));
-            writer.beginObject();
-            writer.name("group_name").value(this.getName());
-            writer.name("number_of_members").value(this.getMembers().size());
-            writer.name("members");
-            writer.beginArray();
-            for (int i=0;i<this.getMembers().size();i++) {
-                writer.value(this.getMembers().get(i).getIdentifier());
-            }
-            writer.endArray();
-            writer.endObject();
-            writer.close();
 
-        } catch (IOException e) {
-            e.printStackTrace();
+        File file = new File(fileDir , nameFile);
+        writer = new JsonWriter(new FileWriter(file.getPath()));
+        writer.beginObject();
+        writer.name("group_name").value(this.getName());
+        writer.name("number_of_members").value(this.getMembers().size());
+        writer.name("members");
+        writer.beginArray();
+        for (int i=0;i<this.getMembers().size();i++) {
+            writer.value(this.getMembers().get(i).getIdentifier());
         }
+        writer.endArray();
+        writer.endObject();
+        writer.close();
     }
 
     @Override
-    public void readFromJsonFile(File fileDir,String nameFile) {
-        try {
+    public void readFromJsonFile(File fileDir,String nameFile) throws IOException {
+
             JsonReader reader = new JsonReader(new FileReader(fileDir.toString()+"/"+nameFile));
 
             reader.beginObject();
@@ -238,11 +234,6 @@ public class DummyGroupModel extends ObservableBase implements GroupModel  {
             reader.endObject();
             reader.close();
 
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     @Override

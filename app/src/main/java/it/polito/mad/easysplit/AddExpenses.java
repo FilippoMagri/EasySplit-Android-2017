@@ -68,14 +68,18 @@ public class AddExpenses extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_expenses);
-        populateWithInformationReceived ();
+        try {
+            populateWithInformationReceived ();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         setEditText_n1();
         setActionButtons();
         addItemsOnSpinner();
         setEditText_n5();
     }
 
-    public void populateWithInformationReceived () {
+    public void populateWithInformationReceived () throws IOException {
         Intent received_intent = getIntent();
         if (received_intent.getExtras() == null ){
             gm = new DummyGroupModel("Gruppo MAD");

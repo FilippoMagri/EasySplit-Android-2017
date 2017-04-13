@@ -3,6 +3,7 @@ package it.polito.mad.easysplit.models;
 import com.google.gson.stream.JsonWriter;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
@@ -24,8 +25,8 @@ public interface GroupModel extends Observable {
 
     String toJSON();
 
-    void writeIntoJsonFile(File fileDir,String nameFile);
-    void readFromJsonFile(File fileDir,String nameFile);
+    void writeIntoJsonFile(File fileDir,String nameFile) throws IOException;
+    void readFromJsonFile(File fileDir,String nameFile) throws FileNotFoundException, IOException;
 
     GroupBalanceModel getBalance();
 }

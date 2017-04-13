@@ -31,10 +31,6 @@ public class ExpensesListActivity extends AppCompatActivity {
 
         MyApplication app = (MyApplication) getApplicationContext();
         GroupModel dm = app.getGroupModel(); //new DummyGroupModel();
-        //if (dm==null) {
-        //    dm = new DummyGroupModel();
-        //    app.setGroupModel(dm);
-        //}
         if (dm !=null) {
             if (dm.getExpenses().size()>0) {
                 List<ExpenseModel> expenses = dm.getExpenses();
