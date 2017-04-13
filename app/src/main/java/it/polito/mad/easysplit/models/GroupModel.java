@@ -1,16 +1,17 @@
 package it.polito.mad.easysplit.models;
 
-import java.util.List;
-import java.util.Set;
+import android.support.annotation.NonNull;
 
-public interface GroupModel extends Observable {
-    String getName();
-    void setName(String name) throws ConstraintException;
+import java.util.List;
+
+public interface GroupModel extends DataModel {
+    @NonNull String getName();
+    void setName(@NonNull String name) throws ConstraintException;
 
     /// @brief Return the list of members of the group.  The returned list shouldn't be modified.
     List<PersonModel> getMembers();
-    void addMember(PersonModel person) throws ConstraintException;
-    void removeMember(PersonModel person) throws ConstraintException;
+    void addMember(PersonModel person);
+    void removeMember(PersonModel person);
     PersonModel getMember (String id);
 
     List<ExpenseModel> getExpenses();

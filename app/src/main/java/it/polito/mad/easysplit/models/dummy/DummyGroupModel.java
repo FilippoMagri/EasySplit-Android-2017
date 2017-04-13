@@ -15,10 +15,10 @@ import it.polito.mad.easysplit.models.ExpenseModel;
 import it.polito.mad.easysplit.models.GroupBalanceModel;
 import it.polito.mad.easysplit.models.GroupModel;
 import it.polito.mad.easysplit.models.Money;
-import it.polito.mad.easysplit.models.ObservableBase;
 import it.polito.mad.easysplit.models.PersonModel;
 
-public class DummyGroupModel extends ObservableBase implements GroupModel  {
+@DummyDataModel.UriPath("groups")
+public class DummyGroupModel extends DummyDataModel implements GroupModel  {
     private static String NAMES[] = {
             "Marco", "Filippo", "Sebastiano", "Camille", "Flavio", "Anna", "Saro", "Stefano",
             "Pasquale", "Sofia", "Aurora", "Giulia", "Giorgia", "Alice", "Martina", "Emma", "Greta",
@@ -63,6 +63,13 @@ public class DummyGroupModel extends ObservableBase implements GroupModel  {
     private ArrayList<PersonModel> members;
     private ArrayList<ExpenseModel> expenses;
     private GroupBalanceModel balance;
+    private String mId = nextId();
+
+    private static long LAST_ID = 1;
+    private static String nextId() {
+        LAST_ID++;
+        return Long.toString(LAST_ID);
+    }
 
     public DummyGroupModel (String groupName) {
         name = groupName;
@@ -80,7 +87,7 @@ public class DummyGroupModel extends ObservableBase implements GroupModel  {
 
         int numMembers = 1 + rand.nextInt(10);
         for (int i = 0; i < numMembers; i++) {
-            members.add(new DummyPersonModel(randomName(rand), this));
+            addMember(new DummyPersonModel(randomName(rand)));
         }
 
         int numExps = 5 + rand.nextInt(10);
@@ -120,6 +127,11 @@ public class DummyGroupModel extends ObservableBase implements GroupModel  {
     }
 
     @Override
+    public String getIdentifier() {
+        return mId;
+    }
+
+    @Override
     public String getName() {
         return name;
     }
@@ -136,15 +148,17 @@ public class DummyGroupModel extends ObservableBase implements GroupModel  {
     }
 
     @Override
-    public void addMember(PersonModel person) throws ConstraintException {
+    public void addMember(PersonModel person) {
         if (members.contains(person))
             return;
         members.add(person);
+        // This call MUST be after the above .add in order to avoid an infinite recursion
+        person.addGroup(this);
         notifyChanged();
     }
 
     @Override
-    public void removeMember(PersonModel person) throws ConstraintException {
+    public void removeMember(PersonModel person) {
         if (members.remove(person))
             notifyChanged();
     }
@@ -209,8 +223,8 @@ public class DummyGroupModel extends ObservableBase implements GroupModel  {
             JSONObject jsonObject_group_members = jsonObject_group_info.getJSONObject("members");
             for (int i=0;i<size;i++) {
                 String name = jsonObject_group_members.getString(String.valueOf(i));
-                DummyPersonModel dummyPersonModel = new DummyPersonModel(name,dgm);
-                dgm.getMembers().add(dummyPersonModel);
+                DummyPersonModel dummyPersonModel = new DummyPersonModel(name);
+                dgm.addMember(dummyPersonModel);
             }
         }
         catch (JSONException e) {

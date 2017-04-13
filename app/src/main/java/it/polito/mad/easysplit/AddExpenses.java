@@ -158,7 +158,8 @@ public class AddExpenses extends AppCompatActivity {
                 Money money = new Money(Money.getDefaultCurrency(),(long)(Float.parseFloat(amount)*100));
 
                 String payer_selected = payer;
-                DummyPersonModel dummyPersonModel_ofpayer  = new DummyPersonModel(payer,gm);
+                DummyPersonModel dummyPersonModel_ofpayer  = new DummyPersonModel(payer);
+                gm.addMember(dummyPersonModel_ofpayer);
                 List<PersonModel> participants;
 
                 if (payerGroup != null) {
@@ -177,12 +178,12 @@ public class AddExpenses extends AppCompatActivity {
                 } catch (ConstraintException e) {
                     e.printStackTrace();
                 }
-                MyApplication app = (MyApplication) getApplicationContext();
-                app.setGroupModel(gm);
 
+                gm.save();
 
                 //Something like app.setpayersEngaged
                 Intent i = new Intent(getApplicationContext(), GroupDetailsActivity.class);
+                i.setData(gm.getUri());
                 startActivity(i);
             }
         });
@@ -268,7 +269,7 @@ public class AddExpenses extends AppCompatActivity {
                 } else if (name.equals("members")) {
                     reader.beginArray();
                     while (reader.hasNext()) {
-                        groupModel.getMembers().add(new DummyPersonModel(reader.nextString(),groupModel));
+                        groupModel.addMember(new DummyPersonModel(reader.nextString()));
                     }
                     reader.endArray();
                 } else {

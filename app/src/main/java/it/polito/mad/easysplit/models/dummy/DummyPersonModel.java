@@ -2,9 +2,6 @@ package it.polito.mad.easysplit.models.dummy;
 
 import android.graphics.drawable.Drawable;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -12,67 +9,53 @@ import java.util.Set;
 
 import it.polito.mad.easysplit.models.ExpenseModel;
 import it.polito.mad.easysplit.models.GroupModel;
-import it.polito.mad.easysplit.models.ObservableBase;
 import it.polito.mad.easysplit.models.PersonModel;
 
-public class DummyPersonModel extends ObservableBase implements PersonModel {
-    private String name;
-    private GroupModel group;
+@DummyDataModel.UriPath("people")
+public class DummyPersonModel extends DummyDataModel implements PersonModel {
+    private String mName;
+    private HashSet<GroupModel> mGroups = new HashSet<>();
 
-    public DummyPersonModel(String name, GroupModel group) {
-        this.name = name;
-        this.group = group;
+    public DummyPersonModel(String name) {
+        mName = name;
     }
 
     @Override
     public String getIdentifier() {
-        return name;
+        return mName;
     }
 
-    @Override
     public String getName() {
-        return name;
+        return mName;
     }
 
     @Override
     public Drawable getProfilePicture() {
-        /// TODO
+        /// TODO Store and provide profile picture
         return null;
     }
 
     @Override
     public Set<GroupModel> getMemberships() {
-        HashSet<GroupModel> ret = new HashSet<>();
-        ret.add(group);
-        return ret;
+        return mGroups;
+    }
+
+    @Override
+    public void addGroup(GroupModel group) {
+        mGroups.add(group);
+        group.addMember(this);
     }
 
     @Override
     public List<ExpenseModel> getExpenses() {
         ArrayList<ExpenseModel> filtered = new ArrayList<>();
-        for (ExpenseModel tx : group.getExpenses()) {
-            if (tx.getPayer() == this)
-                filtered.add(tx);
+        for (GroupModel group : mGroups) {
+            for (ExpenseModel tx : group.getExpenses()) {
+                if (tx.getPayer() == this)
+                    filtered.add(tx);
+            }
         }
         return filtered;
-    }
-    @Override
-    public String toJSON () {
-        JSONObject jsonObject= new JSONObject();
-        try {
-                jsonObject.put("name", name);
-                jsonObject.put("group", group.getName());
-            return jsonObject.toString();
-        } catch (JSONException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-            return "";
-        }
-    }
-    @Override
-    public DummyPersonModel fromJSON() {
-        DummyPersonModel dpm = new DummyPersonModel("name", new DummyGroupModel());
-        return dpm;
     }
 
     @Override
@@ -85,6 +68,6 @@ public class DummyPersonModel extends ObservableBase implements PersonModel {
             return false;
         }
 
-        return getIdentifier().equals(((DummyPersonModel)other).getIdentifier()) && this.group.equals(((DummyPersonModel)other).group);
+        return getIdentifier().equals(((DummyPersonModel)other).getIdentifier()) && this.mGroups.equals(((DummyPersonModel)other).mGroups);
     }
 }

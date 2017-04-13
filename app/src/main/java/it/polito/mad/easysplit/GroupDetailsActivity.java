@@ -1,5 +1,6 @@
 package it.polito.mad.easysplit;
 
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
@@ -13,15 +14,16 @@ import android.view.MenuItem;
 
 import it.polito.mad.easysplit.layout.ExpenseListFragment;
 import it.polito.mad.easysplit.layout.MemberListFragment;
+import it.polito.mad.easysplit.models.Database;
 import it.polito.mad.easysplit.models.GroupModel;
 import it.polito.mad.easysplit.models.PersonModel;
-import it.polito.mad.easysplit.models.dummy.DummyGroupModel;
 
 
 public class GroupDetailsActivity extends AppCompatActivity implements MemberListFragment.OnListFragmentInteractionListener {
-    /// TODO The activity should refer to a single specific group (not in the global state)
+    private GroupModel mGroup;
+
     public GroupModel getGroup() {
-        return ((MyApplication) getApplication()).getGroupModel();
+        return mGroup;
     }
 
     @Override
@@ -29,17 +31,14 @@ public class GroupDetailsActivity extends AppCompatActivity implements MemberLis
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_group_details);
 
+        Database db = ((MyApplication) getApplicationContext()).getDatabase();
+        Uri groupUri = getIntent().getData();
+        mGroup = db.findByUri(groupUri, GroupModel.class);
+
+        setTitle(mGroup.getName());
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
-        MyApplication app = (MyApplication) getApplicationContext();
-        GroupModel dm = app.getGroupModel(); //new DummyGroupModel();
-        if (dm == null) {
-            dm = new DummyGroupModel();
-            app.setGroupModel(dm);
-        }
-
-        setTitle(dm.getName());
 
         LocalPagerAdapter pagerAdapter = new LocalPagerAdapter(getSupportFragmentManager());
         ViewPager pager = (ViewPager) findViewById(R.id.group_details_pager);
@@ -56,10 +55,9 @@ public class GroupDetailsActivity extends AppCompatActivity implements MemberLis
 
         @Override
         public Fragment getItem(int i) {
-            /// TODO Set the specific group through arguments in a Bundle
             if (i == 0)
-                return new ExpenseListFragment();
-            else if (i == 1)
+                return ExpenseListFragment.newInstance(getGroup());
+            if (i == 1)
                 return new MemberListFragment();
             return null;
         }

@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import it.polito.mad.easysplit.models.Amountable;
+import it.polito.mad.easysplit.models.Database;
 import it.polito.mad.easysplit.models.ExpenseModel;
 import it.polito.mad.easysplit.models.Money;
 import it.polito.mad.easysplit.models.PersonModel;
@@ -28,8 +29,8 @@ public class ExpenseDetailsActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         */
 
-        MyApplication app = (MyApplication) getApplicationContext();
-        ExpenseModel expense = app.getCurrentExpense();
+        Database db = ((MyApplication) getApplicationContext()).getDatabase();
+        ExpenseModel expense = db.findByUri(getIntent().getData(), ExpenseModel.class);
 
         TextView name = (TextView) findViewById(R.id.expenseName);
         TextView payerName = (TextView) findViewById(R.id.payerName);
