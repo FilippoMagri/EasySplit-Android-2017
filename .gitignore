@@ -127,3 +127,6 @@ crashlytics-build.properties
 fabric.properties
 
 # End of https://www.gitignore.io/api/androidstudio
+
+# Google Services config file for Firebase
+/*/google-services.json
