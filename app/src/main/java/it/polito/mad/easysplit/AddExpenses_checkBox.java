@@ -51,19 +51,14 @@ public class AddExpenses_checkBox extends AppCompatActivity {
 
     public void populateWithInformationReceived() {
         Intent received_intent = getIntent();
-        if (received_intent.getExtras() == null ){
-            //If is null it means take random elements
-            gm = DummyGroupModel.getInstance();
-            list_pm = gm.getMembers();
-            setTitle(gm.getName());
-        } else {
-            //Otherwise: take the bundle, take elements sent by AddExpenses (managing JsonFormat)
-            Bundle b = received_intent.getExtras();
-            String info_received_json_format= (String) b.get("group_info");
-            gm = DummyGroupModel.fromJSONstatic(info_received_json_format);
-            list_pm = gm.getMembers();
-            setTitle(gm.getName());
-        }
+
+        //Otherwise: take the bundle, take elements sent by AddExpenses (managing JsonFormat)
+        Bundle b = received_intent.getExtras();
+        String info_received_json_format= (String) b.get("group_info");
+        gm = DummyGroupModel.fromJSONstatic(info_received_json_format);
+        list_pm = gm.getMembers();
+        setTitle(gm.getName());
+
         //add checkboxes Dynamically To The Screen
         LinearLayout ll = (LinearLayout)findViewById(R.id.linearLayoutCheckBox);
         for(int i = 0; i < list_pm.size(); i++) {

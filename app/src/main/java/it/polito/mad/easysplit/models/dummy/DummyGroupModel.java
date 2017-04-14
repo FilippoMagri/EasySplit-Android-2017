@@ -1,6 +1,7 @@
 package it.polito.mad.easysplit.models.dummy;
 
 import com.google.gson.annotations.SerializedName;
+import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 
 import org.json.JSONArray;
@@ -8,6 +9,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -172,6 +175,65 @@ public class DummyGroupModel extends ObservableBase implements GroupModel  {
             e.printStackTrace();
             return "";
         }
+    }
+
+
+    @Override
+    public void writeIntoJsonFile(File fileDir,String nameFile) throws IOException{
+        //Example of usage
+        //File file = new File(getCacheDir() , "user.json");
+        JsonWriter writer;
+
+        File file = new File(fileDir , nameFile);
+        writer = new JsonWriter(new FileWriter(file.getPath()));
+        writer.beginObject();
+        writer.name("group_name").value(this.getName());
+        writer.name("number_of_members").value(this.getMembers().size());
+        writer.name("members");
+        writer.beginArray();
+        for (int i=0;i<this.getMembers().size();i++) {
+            writer.value(this.getMembers().get(i).getIdentifier());
+        }
+        writer.endArray();
+        writer.endObject();
+        writer.close();
+    }
+
+    @Override
+    public void readFromJsonFile(File fileDir,String nameFile) throws IOException {
+
+            JsonReader reader = new JsonReader(new FileReader(fileDir.toString()+"/"+nameFile));
+
+            reader.beginObject();
+
+            while (reader.hasNext()) {
+
+                String name = reader.nextName();
+
+                if (name.equals("group_name")) {
+                    String test = reader.nextString();
+                    try {
+                        this.setName(test);
+                    } catch (ConstraintException e) {
+                        e.printStackTrace();
+                    }
+                    System.out.println(test);
+                } else if (name.equals("number_of_members")) {
+                    System.out.println(reader.nextInt());
+                } else if (name.equals("members")) {
+                    reader.beginArray();
+                    while (reader.hasNext()) {
+                        this.getMembers().add(new DummyPersonModel(reader.nextString(),this));
+                    }
+                    reader.endArray();
+                } else {
+                    reader.skipValue(); //avoid some unhandle events
+                }
+            }
+
+            reader.endObject();
+            reader.close();
+
     }
 
     @Override

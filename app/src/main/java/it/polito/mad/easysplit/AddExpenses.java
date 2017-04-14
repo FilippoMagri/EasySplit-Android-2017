@@ -68,26 +68,38 @@ public class AddExpenses extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_expenses);
-        populateWithInformationReceived ();
+        try {
+            populateWithInformationReceived ();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         setEditText_n1();
         setActionButtons();
         addItemsOnSpinner();
         setEditText_n5();
     }
 
-    public void populateWithInformationReceived () {
+    public void populateWithInformationReceived () throws IOException {
         Intent received_intent = getIntent();
         if (received_intent.getExtras() == null ){
-            gm = DummyGroupModel.getInstance();
-            writeIntoJsonFile(gm);
-            gm = readFromJsonFile("user.json");
+            gm = new DummyGroupModel("Gruppo MAD");
+            try {
+                gm.addMember(new DummyPersonModel("Filippo",gm));
+                gm.addMember(new DummyPersonModel("Camille",gm));
+                gm.addMember(new DummyPersonModel("Sebastiano",gm));
+                gm.addMember(new DummyPersonModel("Flavio",gm));
+            } catch (ConstraintException e) {
+                e.printStackTrace();
+            }
+            gm.writeIntoJsonFile(getCacheDir(),"group_members.json");
             lpm = gm.getMembers();
             size_group = gm.getMembers().size();
             setTitle(gm.getName());
         } else {
             if (received_intent.getExtras().get("Uniqid").equals("From_Activity_AddExpenses_checkBox")) {
                 //Populate again Screen By Reading file user.json
-                gm = readFromJsonFile("user.json");
+                gm = new DummyGroupModel("Gruppo MAD");
+                gm.readFromJsonFile(getCacheDir(),"group_members.json");
                 lpm = gm.getMembers();
                 size_group = gm.getMembers().size();
                 setTitle(gm.getName());
@@ -99,9 +111,6 @@ public class AddExpenses extends AppCompatActivity {
                 }
 
             }
-            //gm = inforeceivedFromVisualizeActivity_group
-            //lpm  = inforeceivedFromVisualizeActivity_group
-            //setTitle(gm.getName());
         }
     }
 
@@ -191,9 +200,11 @@ public class AddExpenses extends AppCompatActivity {
                     e.printStackTrace();
                 }
                 MyApplication app = (MyApplication) getApplicationContext();
-                app.setGroupModel(gm);
-
-
+                if (app.getGroupModel()==null) {
+                    app.setGroupModel(gm);
+                } else {
+                    app.getGroupModel().getExpenses().add(expenseModel);
+                }
                 //Something like app.setpayersEngaged
                 Intent i = new Intent(getApplicationContext(),ExpensesListActivity.class);
                 startActivity(i);
@@ -239,65 +250,6 @@ public class AddExpenses extends AppCompatActivity {
         });
     }
 
-    public void writeIntoJsonFile(GroupModel groupModel) {
-        JsonWriter writer;
-        try {
-            File file = new File(getCacheDir() , "user.json");
-            writer = new JsonWriter(new FileWriter(file.getPath()));
-            writer.beginObject();
-            writer.name("group_name").value(groupModel.getName());
-            writer.name("number_of_members").value(groupModel.getMembers().size());
-            writer.name("members");
-            writer.beginArray();
-            for (int i=0;i<groupModel.getMembers().size();i++) {
-                writer.value(groupModel.getMembers().get(i).getIdentifier());
-            }
-            writer.endArray();
-            writer.endObject();
-            writer.close();
 
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public DummyGroupModel readFromJsonFile (String nameFile) {
-        DummyGroupModel groupModel = null;
-        try {
-            JsonReader reader = new JsonReader(new FileReader(getCacheDir().toString()+"/"+nameFile));
-
-            reader.beginObject();
-
-            while (reader.hasNext()) {
-
-                String name = reader.nextName();
-
-                if (name.equals("group_name")) {
-                    String test = reader.nextString();
-                    groupModel = new DummyGroupModel(test);
-                    System.out.println(test);
-                } else if (name.equals("number_of_members")) {
-                    System.out.println(reader.nextInt());
-                } else if (name.equals("members")) {
-                    reader.beginArray();
-                    while (reader.hasNext()) {
-                        groupModel.getMembers().add(new DummyPersonModel(reader.nextString(),groupModel));
-                    }
-                    reader.endArray();
-                } else {
-                    reader.skipValue(); //avoid some unhandle events
-                }
-            }
-
-            reader.endObject();
-            reader.close();
-
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return groupModel;
-    }
 
 }
