@@ -33,11 +33,6 @@
             android:name=".GroupBalanceDummyActivity"
             android:label="@string/title_activity_group_balance_dummy"
             android:theme="@style/AppTheme.NoActionBar">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
         </activity>
 
         <activity
