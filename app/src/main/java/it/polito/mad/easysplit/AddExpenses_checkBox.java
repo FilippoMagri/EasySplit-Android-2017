@@ -2,41 +2,35 @@ package it.polito.mad.easysplit;
 
 import android.content.Intent;
 import android.content.res.Resources;
-import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutCompat;
 import android.support.v7.widget.Toolbar;
-import android.text.Layout;
+import android.util.JsonReader;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.TableRow;
 
-import java.sql.ParameterMetaData;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import it.polito.mad.easysplit.models.GroupModel;
 import it.polito.mad.easysplit.models.PersonModel;
 import it.polito.mad.easysplit.models.dummy.DummyGroupModel;
-import it.polito.mad.easysplit.models.dummy.DummyPersonModel;
 
 public class AddExpenses_checkBox extends AppCompatActivity {
 
     private ImageView checkImgView;
-    GroupModel gm;
-    private List<PersonModel> list_pm;
-    private Map<String ,Boolean> map_results_check_box = new HashMap<String ,Boolean>();
-    private ArrayList<String> payerGroup;
+    GroupModel dummyGroupModel_received;
+    private List<PersonModel> listPersonModel_received;
+    private ArrayList<String> payerGroup_ToSend;
+    private ArrayList<String> payerGroup_FromTemporaryInfoFile;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,22 +45,34 @@ public class AddExpenses_checkBox extends AppCompatActivity {
 
     public void populateWithInformationReceived() {
         Intent received_intent = getIntent();
-
         //Otherwise: take the bundle, take elements sent by AddExpenses (managing JsonFormat)
         Bundle b = received_intent.getExtras();
-        String info_received_json_format= (String) b.get("group_info");
-        gm = DummyGroupModel.fromJSONstatic(info_received_json_format);
-        list_pm = gm.getMembers();
-        setTitle(gm.getName());
+        String info_received_json_format= (String) b.get("members_info");
+        dummyGroupModel_received = DummyGroupModel.fromJSONstatic(info_received_json_format);
+        try {
+            readFromJsonFileTemporaryInformation(getExternalCacheDir(),"temporary_info.json");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        listPersonModel_received = dummyGroupModel_received.getMembers();
+        setTitle(dummyGroupModel_received.getName());
 
         //add checkboxes Dynamically To The Screen
         LinearLayout ll = (LinearLayout)findViewById(R.id.linearLayoutCheckBox);
-        for(int i = 0; i < list_pm.size(); i++) {
-            if (i<list_pm.size()) {
+        for(int i = 0; i < listPersonModel_received.size(); i++) {
+            if (i< listPersonModel_received.size()) {
                 CheckBox cb = new CheckBox(this);
-                cb.setText(list_pm.get(i).getIdentifier());
+                cb.setText(listPersonModel_received.get(i).getIdentifier());
                 cb.setId(i);
-                cb.setChecked(true);
+                if(payerGroup_FromTemporaryInfoFile.size()>0) {
+                    if (payerGroup_FromTemporaryInfoFile.contains(listPersonModel_received.get(i).getIdentifier())) {
+                        cb.setChecked(true);
+                    } else {
+                        cb.setChecked(false);
+                    }
+                } else {
+                    cb.setChecked(true);
+                }
                 cb.setWidth(LinearLayoutCompat.LayoutParams.MATCH_PARENT);
                 cb.setGravity(Gravity.END);
                 cb.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
@@ -94,20 +100,46 @@ public class AddExpenses_checkBox extends AppCompatActivity {
                 Intent intent = new Intent(getApplicationContext(),AddExpenses.class);
                 Bundle b = new Bundle();
                 //Add to the bundle all information about witch people are engaged into the cost
-                payerGroup = new ArrayList<String>();
-                for (int i=0;i<list_pm.size();i++) {
+                payerGroup_ToSend = new ArrayList<String>();
+                for (int i = 0; i< listPersonModel_received.size(); i++) {
                     CheckBox cb = (CheckBox) findViewById(i);
                     if (cb.isChecked()) {
-                        payerGroup.add(list_pm.get(i).getIdentifier());
+                        payerGroup_ToSend.add(listPersonModel_received.get(i).getIdentifier());
                     }
                 }
-                b.putSerializable("payerGroup",payerGroup);
+                b.putSerializable("payerMembersSelected", payerGroup_ToSend);
                 //Custom Message if we want
                 //Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG).setAction("Action", null).show();
                 intent.putExtras(b);
-                intent.putExtra("Uniqid","From_Activity_AddExpenses_checkBox");
+                intent.putExtra("Uniqid","Activity_AddExpenses_checkBox");
                 startActivity(intent);
             }
         });
+    }
+
+    public void readFromJsonFileTemporaryInformation(File fileDir, String nameFile) throws IOException {
+        //The information read here are inside a temporary file named temporary_info.json
+        //created ad-hoc from the Main Activity AddExpenses
+        JsonReader reader = new JsonReader(new FileReader(fileDir.toString()+"/"+nameFile));
+        reader.beginObject();
+        payerGroup_FromTemporaryInfoFile = new ArrayList<String>();
+        while (reader.hasNext()) {
+            String name = reader.nextName();
+            String value="";
+            if (name.equals("payer_members_selected")) {
+                reader.beginArray();
+                while (reader.hasNext()) {
+                    value = reader.nextString();
+                    payerGroup_FromTemporaryInfoFile.add(value);
+                }
+                reader.endArray();
+            }else {
+                reader.skipValue(); //avoid some unhandle events
+            }
+        }
+
+        reader.endObject();
+        reader.close();
+
     }
 }

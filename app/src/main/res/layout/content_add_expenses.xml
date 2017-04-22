@@ -35,6 +35,7 @@
                     android:layout_weight="0.8"/>
 
                 <ImageView
+                    android:id="@+id/dateImgView"
                     android:src="@drawable/ic_date_range_black_36dp"
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
@@ -61,7 +62,7 @@
                 <EditText
                     android:textAlignment="textEnd"
                     android:gravity="end"
-                    android:id="@+id/dateEditText3"
+                    android:id="@+id/EditText1"
                     android:layout_margin="10dp"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -96,7 +97,7 @@
                 <EditText
                     android:textAlignment="textEnd"
                     android:gravity="end"
-                    android:id="@+id/dateEditText4"
+                    android:id="@+id/EditText2"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_margin="10dp"
@@ -128,7 +129,7 @@
                     android:textSize="18sp"
                     android:gravity="center"/>
                 <Spinner
-                    android:id="@+id/spinner1"
+                    android:id="@+id/spinner"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_margin="10dp"
@@ -164,7 +165,7 @@
                 <EditText
                     android:textAlignment="textEnd"
                     android:gravity="end"
-                    android:id="@+id/dateEditText5"
+                    android:id="@+id/EditText3"
                     android:layout_margin="10dp"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
