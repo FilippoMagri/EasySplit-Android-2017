@@ -49,7 +49,7 @@ public class MemberListFragment extends Fragment {
         if (view instanceof ListView) {
             Context context = view.getContext();
             ListView listView = (ListView) view;
-            listView.setAdapter(new MemberListItemAdapter(context, mGroupUri, mListener));
+            listView.setAdapter(new GroupBalanceAdapter(context, mGroupUri, mListener));
         }
         return view;
     }

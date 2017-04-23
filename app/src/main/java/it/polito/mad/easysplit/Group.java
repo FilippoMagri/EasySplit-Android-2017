@@ -1,6 +1,7 @@
 package it.polito.mad.easysplit;
 
 import android.content.Intent;
+import android.database.DataSetObserver;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
@@ -15,6 +16,11 @@ import android.widget.TextView;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 
 public class Group extends AppCompatActivity {
@@ -36,19 +42,30 @@ public class Group extends AppCompatActivity {
     private final class AuthListener implements FirebaseAuth.AuthStateListener {
         @Override
         public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
-            FirebaseUser user = firebaseAuth.getCurrentUser();
+            final FirebaseUser user = firebaseAuth.getCurrentUser();
 
             ListView listView = (ListView) findViewById(R.id.group_list);
-            TextView userName = (TextView) findViewById(R.id.user_name);
+            final TextView userNameText = (TextView) findViewById(R.id.user_name);
+            final TextView noGroupsText = (TextView) findViewById(R.id.noGroupsText);
 
             if (user == null) {
                 listView.setAdapter(null);
                 listView.setOnItemClickListener(null);
-                userName.setText("(not logged in)");
+                userNameText.setText("(not logged in)");
                 return;
             }
 
-            SubscribedGroupListAdapter adapter = new SubscribedGroupListAdapter(Group.this, user.getUid());
+            final SubscribedGroupListAdapter adapter =
+                    new SubscribedGroupListAdapter(Group.this, user.getUid());
+
+            adapter.registerDataSetObserver(new DataSetObserver() {
+                @Override
+                public void onChanged() {
+                    noGroupsText.setVisibility(adapter.getCount() == 0 ? View.VISIBLE : View.GONE);
+                }
+
+                @Override public void onInvalidated() { }
+            });
 
             listView.setAdapter(adapter);
             listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -61,8 +78,21 @@ public class Group extends AppCompatActivity {
                 }
             });
 
-            Log.d(TAG, "setUser: " + user.getDisplayName() + "[" + user.getEmail() + "]");
-            userName.setText(user.getDisplayName());
+            DatabaseReference root = FirebaseDatabase.getInstance().getReference();
+            DatabaseReference userRef = root.child("users").child(user.getUid());
+            userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot userSnap) {
+                    Log.d(TAG, "setUser: " + user.getDisplayName() + "[" + user.getEmail() + "]");
+                    String userName = userSnap.child("name").getValue(String.class);
+                    userNameText.setText(userName);
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+                    userNameText.setText(user.getEmail());
+                }
+            });
         }
     }
 

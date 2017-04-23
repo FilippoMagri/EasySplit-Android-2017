@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -12,6 +13,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -25,8 +27,6 @@ import it.polito.mad.easysplit.R;
 import it.polito.mad.easysplit.Utils;
 
 public class ExpenseListFragment extends Fragment {
-    private final DatabaseReference mRoot = FirebaseDatabase.getInstance().getReference();
-
     public static ExpenseListFragment newInstance(Uri groupUri) {
         ExpenseListFragment frag = new ExpenseListFragment();
 
@@ -39,17 +39,16 @@ public class ExpenseListFragment extends Fragment {
 
 
     private DatabaseReference mExpenseIdsRef;
+    private final DatabaseReference mRoot = FirebaseDatabase.getInstance().getReference();
+    private String mGroupUri;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        Bundle args = savedInstanceState;
-        if (savedInstanceState == null)
-            args = getArguments();
-
-        String groupUri = (String) args.getCharSequence("groupUri");
-        DatabaseReference groupRef = Utils.findByUri(Uri.parse(groupUri), mRoot);
+        Bundle args = getArguments();
+        mGroupUri = (String) args.getCharSequence("groupUri");
+        DatabaseReference groupRef = Utils.findByUri(Uri.parse(mGroupUri), mRoot);
         mExpenseIdsRef = groupRef.child("expenses_ids");
     }
 
@@ -78,6 +77,8 @@ public class ExpenseListFragment extends Fragment {
             @Override
             public void onClick(View view) {
                 Intent i = new Intent(getContext(), AddExpenses.class);
+                String groupId = Uri.parse(mGroupUri).getPathSegments().get(1);
+                i.putExtra("groupId", groupId);
                 startActivity(i);
             }
         });
@@ -86,11 +87,12 @@ public class ExpenseListFragment extends Fragment {
     }
 
     private static final class ListItem {
-        String id, name;
+        String id, name, amount;
 
-        public ListItem(String id, String name) {
+        public ListItem(String id, String name, String amount) {
             this.id = id;
             this.name = name;
+            this.amount = amount;
         }
     }
 
@@ -99,21 +101,40 @@ public class ExpenseListFragment extends Fragment {
             super(ctx, R.layout.expense_item);
         }
 
+        @NonNull
+        @Override
+        public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
+            if (convertView == null) {
+                LayoutInflater inflater = LayoutInflater.from(getContext());
+                convertView = inflater.inflate(R.layout.expense_item, parent, false);
+            }
+
+            TextView nameText = (TextView) convertView.findViewById(R.id.name);
+            TextView amountText = (TextView) convertView.findViewById(R.id.amount);
+
+            ListItem item = getItem(position);
+            nameText.setText(item.name);
+            amountText.setText(item.amount);
+
+            return convertView;
+        }
+
         @Override
         public synchronized void onDataChange(DataSnapshot expenseIdsSnap) {
             clear();
             for (DataSnapshot child : expenseIdsSnap.getChildren()) {
                 final String expenseId = child.getKey();
-                mRoot.child("expenses/"+expenseId+"/name").addListenerForSingleValueEvent(new ValueEventListener() {
+                mRoot.child("expenses/"+expenseId).addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
-                    public void onDataChange(DataSnapshot nameSnap) {
-                        String expenseName = nameSnap.getValue(String.class);
-                        add(new ListItem(expenseId, expenseName));
+                    public void onDataChange(DataSnapshot expenseSnap) {
+                        String name = expenseSnap.child("name").getValue(String.class);
+                        String amount = expenseSnap.child("amount").getValue(String.class);
+                        add(new ListItem(expenseId, name, amount));
                     }
 
                     @Override
                     public void onCancelled(DatabaseError databaseError) {
-                        add(new ListItem(expenseId, "???"));
+                        add(new ListItem(expenseId, "???", "???"));
                     }
                 });
             }

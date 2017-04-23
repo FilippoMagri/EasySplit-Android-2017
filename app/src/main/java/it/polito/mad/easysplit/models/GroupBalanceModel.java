@@ -9,6 +9,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -111,19 +112,19 @@ public class GroupBalanceModel {
 
             for (DataSnapshot member : expense.child("members_ids").getChildren())
                 if (! balances.containsKey(member.getKey()))
-                    balances.put(member.getKey(), new Money(0));
+                    balances.put(member.getKey(), new Money(BigDecimal.ZERO));
 
             if (numPeople == 1)
                 continue;
 
             String payerId = expense.child("payer_id").getValue(String.class);
             Money amount = Money.parse(expense.child("amount").getValue(String.class));
-            Money quota = amount.div(numPeople);
+            Money quota = amount.div(BigDecimal.valueOf(numPeople));
 
             for (DataSnapshot member : expense.child("members_ids").getChildren()) {
                 String memberId = member.getKey();
                 if (memberId.equals(payerId))
-                    balances.get(memberId).add(quota.mul(numPeople - 1));
+                    balances.get(memberId).add(quota.mul(BigDecimal.valueOf(numPeople - 1)));
                 else
                     balances.get(memberId).add(quota.neg());
             }

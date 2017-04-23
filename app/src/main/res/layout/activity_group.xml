@@ -38,6 +38,15 @@
             android:text="YOUR NAME"
             android:textSize="20sp" />
 
+        <TextView
+            android:id="@+id/noGroupsText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="30dp"
+            android:text="You don't belong to any groups yet!"
+            android:textAlignment="center"
+            android:visibility="gone" />
+
         <ListView
             android:id="@+id/group_list"
             android:layout_width="match_parent"

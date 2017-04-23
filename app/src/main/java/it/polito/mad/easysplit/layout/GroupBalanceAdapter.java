@@ -24,7 +24,7 @@ import it.polito.mad.easysplit.layout.MemberListFragment.OnListFragmentInteracti
 import it.polito.mad.easysplit.models.GroupBalanceModel;
 import it.polito.mad.easysplit.models.Money;
 
-public class MemberListItemAdapter extends ArrayAdapter<MemberListItemAdapter.ListItem> {
+public class GroupBalanceAdapter extends ArrayAdapter<GroupBalanceAdapter.ListItem> {
 
     static final class ListItem {
         public String id, name;
@@ -42,7 +42,7 @@ public class MemberListItemAdapter extends ArrayAdapter<MemberListItemAdapter.Li
     private final OnListFragmentInteractionListener mListener;
     private final Drawable defaultProfilePic = null;
 
-    public MemberListItemAdapter(Context ctx, Uri groupUri, OnListFragmentInteractionListener listener) {
+    public GroupBalanceAdapter(Context ctx, Uri groupUri, OnListFragmentInteractionListener listener) {
         super(ctx, R.layout.list_item_member);
         mListener = listener;
         mBalance = new GroupBalanceModel(groupUri);

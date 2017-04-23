@@ -7,6 +7,7 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import it.polito.mad.easysplit.models.Amountable;
@@ -35,13 +36,13 @@ public class ItemAdapter<T extends Amountable> extends ArrayAdapter<T> {
         if (convertView == null) { // not recycling an existing view, inflate it!
             convertView = LayoutInflater.from(ctx).inflate(resource, parent, false);
         }
-        TextView name = (TextView) convertView.findViewById(R.id.name);
-        TextView amount = (TextView) convertView.findViewById(R.id.amount);
-        name.setText(item.getName());
-        float cents = item.getAmount().getCents();
+        TextView nameText = (TextView) convertView.findViewById(R.id.name);
+        TextView amountText = (TextView) convertView.findViewById(R.id.amount);
+        nameText.setText(item.getName());
+        BigDecimal amount = item.getAmount().getAmount();
 
-        amount.setTextColor((cents > 0) ? 0xff32a432 : 0xfffa6464);
-        amount.setText(item.getAmount().toString());
+        amountText.setTextColor(amount.signum() == 1 ? 0xff32a432 : 0xfffa6464);
+        amountText.setText(item.getAmount().toString());
 
         return convertView;
     }

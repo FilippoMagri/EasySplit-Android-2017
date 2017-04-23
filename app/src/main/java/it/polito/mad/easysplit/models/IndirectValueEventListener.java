@@ -18,7 +18,7 @@ public abstract class IndirectValueEventListener implements ValueEventListener {
                 if (mRef != null)
                     mRef.removeEventListener(this);
                 mRef = getTarget(key, idRef.getRoot());
-                mRef.addValueEventListener(this);
+                mRef.addValueEventListener(IndirectValueEventListener.this);
             }
 
             @Override
