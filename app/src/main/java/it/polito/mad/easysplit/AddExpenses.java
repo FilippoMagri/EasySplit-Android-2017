@@ -53,6 +53,8 @@ public class AddExpenses extends AppCompatActivity {
     EditText editText1,editText2,editText3;
     ImageView dateImgView;
 
+    private UnsavedChangesNotifier notifier;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -66,6 +68,14 @@ public class AddExpenses extends AppCompatActivity {
         setActionOnButtons();
         addItemsOnSpinner();
         setEditText3();
+
+        notifier = new UnsavedChangesNotifier(this, this); // prepare unsaved changes notifier
+        /* as a test, setChanged() is called right here
+         * rather than when an actually change occurs.
+         * This callback should be called whenever
+         * something is changed
+         * */
+        notifier.setChanged();
     }
 
     public void populateWithInformationReceived () throws IOException {
@@ -324,5 +334,8 @@ public class AddExpenses extends AppCompatActivity {
 
     }
 
-
+    @Override
+    public void onBackPressed() {
+        notifier.handleBackButton();
+    }
 }
