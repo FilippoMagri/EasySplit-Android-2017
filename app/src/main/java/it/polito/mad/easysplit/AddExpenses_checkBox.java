@@ -2,39 +2,29 @@ package it.polito.mad.easysplit;
 
 import android.content.Intent;
 import android.content.res.Resources;
-import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutCompat;
 import android.support.v7.widget.Toolbar;
-import android.text.Layout;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.TableRow;
 
-import java.sql.ParameterMetaData;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import it.polito.mad.easysplit.models.GroupModel;
-import it.polito.mad.easysplit.models.PersonModel;
-import it.polito.mad.easysplit.models.dummy.DummyGroupModel;
-import it.polito.mad.easysplit.models.dummy.DummyPersonModel;
+import it.polito.mad.easysplit.models.dummy.DummyGroupIdentity;
 
 public class AddExpenses_checkBox extends AppCompatActivity {
 
     private ImageView checkImgView;
-    GroupModel gm;
-    private List<PersonModel> list_pm;
+    GroupState gm;
+    private List<PersonState> list_pm;
     private Map<String ,Boolean> map_results_check_box = new HashMap<String ,Boolean>();
     private ArrayList<String> payerGroup;
 
@@ -50,20 +40,15 @@ public class AddExpenses_checkBox extends AppCompatActivity {
     }
 
     public void populateWithInformationReceived() {
-        Intent received_intent = getIntent();
-        if (received_intent.getExtras() == null ){
-            //If is null it means take random elements
-            gm = DummyGroupModel.getInstance();
-            list_pm = gm.getMembers();
-            setTitle(gm.getName());
-        } else {
-            //Otherwise: take the bundle, take elements sent by AddExpenses (managing JsonFormat)
-            Bundle b = received_intent.getExtras();
-            String info_received_json_format= (String) b.get("group_info");
-            gm = DummyGroupModel.fromJSONstatic(info_received_json_format);
-            list_pm = gm.getMembers();
-            setTitle(gm.getName());
-        }
+        Intent receivedIntent = getIntent();
+
+        //Otherwise: take the bundle, take elements sent by AddExpenses (managing JsonFormat)
+        Bundle b = receivedIntent.getExtras();
+        String info_received_json_format= (String) b.get("group_info");
+        gm = DummyGroupIdentity.fromJSONstatic(info_received_json_format);
+        list_pm = gm.getMembers();
+        setTitle(gm.getName());
+
         //add checkboxes Dynamically To The Screen
         LinearLayout ll = (LinearLayout)findViewById(R.id.linearLayoutCheckBox);
         for(int i = 0; i < list_pm.size(); i++) {

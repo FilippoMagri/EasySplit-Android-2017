@@ -1,7 +1,9 @@
 package it.polito.mad.easysplit.models;
 
+import java.math.BigDecimal;
 import java.util.Currency;
 import java.util.Locale;
+import java.util.Scanner;
 
 public class Money {
     private Currency currency;
@@ -69,5 +71,13 @@ public class Money {
         // `integ` already has the right sign
         long frac = Math.abs(cents % fractionalDenom);
         return String.format(Locale.getDefault(), "%+d.%02d %s", integ, frac, currency.getSymbol());
+    }
+
+    public static Money parse(String text) {
+        Scanner scanner = new Scanner(text);
+        BigDecimal cents = scanner.nextBigDecimal();
+        String currencyCode = scanner.next();
+        return new Money(Currency.getInstance(currencyCode), cents.longValue());
+
     }
 }

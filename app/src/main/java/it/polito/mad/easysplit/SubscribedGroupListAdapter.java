@@ -3,67 +3,93 @@ package it.polito.mad.easysplit;
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
-import java.util.ArrayList;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
 import java.util.Comparator;
 
-import it.polito.mad.easysplit.models.GroupModel;
-import it.polito.mad.easysplit.models.Observer;
-import it.polito.mad.easysplit.models.PersonModel;
+public class SubscribedGroupListAdapter extends ArrayAdapter<SubscribedGroupListAdapter.Item> {
+    public static final class Item {
+        public String id, name;
 
-class SubscribedGroupListAdapter extends ArrayAdapter<GroupModel> implements Observer {
-    private PersonModel mPerson;
-    private Comparator<GroupModel> mComparator;
-
-    private final class OrderByName implements Comparator<GroupModel> {
-        @Override
-        public int compare(GroupModel lhs, GroupModel rhs) {
-            if (lhs == rhs)
-                return 0;
-            return lhs.getName().compareTo(rhs.getName());
+        public Item(String id, String name) {
+            this.id = id;
+            this.name = name;
         }
     }
 
-    SubscribedGroupListAdapter(Context context, PersonModel person) {
-        super(context, R.layout.row_item_group, new ArrayList<>(person.getMemberships()));
-        mComparator = new OrderByName();
-        mPerson = person;
-        mPerson.registerObserver(this);
+
+    private final DatabaseReference root = FirebaseDatabase.getInstance().getReference();
+    private SubscribedGroupListener mGroupsListener = new SubscribedGroupListener();
+    private Comparator<Item> mComparator = new Comparator<Item>() {
+        @Override
+        public int compare(Item lhs, Item rhs) {
+            return lhs.name.compareTo(rhs.name);
+        }
+    };
+
+
+    SubscribedGroupListAdapter(Context context, String userId) {
+        super(context, R.layout.row_item_group);
+        DatabaseReference groupsRef = root.child("users").child(userId).child("groups_ids");
+        groupsRef.addValueEventListener(mGroupsListener);
+    }
+
+
+    private class SubscribedGroupListener implements ValueEventListener {
+        @Override
+        public void onDataChange(DataSnapshot groupsIdsSnap) {
+            clear();
+            for (DataSnapshot groupId : groupsIdsSnap.getChildren()) {
+                final String itemId = groupId.getKey();
+                final DatabaseReference nameRef = root.child("groups").child(itemId).child("name");
+                nameRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot nameSnap) {
+                        String itemName = nameSnap.getValue(String.class);
+                        add(new Item(itemId, itemName));
+                        sort(mComparator);
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) { cancel(); }
+                });
+            }
+        }
+
+        @Override
+        public void onCancelled(DatabaseError error) {
+            cancel();
+        }
+    }
+
+    private void cancel() {
+        clear();
+        notifyDataSetInvalidated();
     }
 
     @NonNull
     @Override
     public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
-        GroupModel group = getItem(position);
-
         if (convertView == null) {
-            convertView = LayoutInflater.from(getContext())
-                    .inflate(R.layout.row_item_group, parent, false);
+            LayoutInflater inflater = LayoutInflater.from(getContext());
+            convertView = inflater.inflate(R.layout.row_item_group, parent, false);
         }
 
-        TextView label = (TextView) convertView.findViewById(R.id.group_name);
-        label.setText(group.getName());
+        String groupName = getItem(position).name;
+        if (groupName != null) {
+            TextView label = (TextView) convertView.findViewById(R.id.group_name);
+            label.setText(groupName);
+        }
         return convertView;
     }
-
-    @Override
-    public void onChanged() {
-        this.clear();
-        this.addAll(mPerson.getMemberships());
-        this.sort(mComparator);
-        notifyDataSetChanged();
-    }
-
-    @Override
-    public void onInvalidated() {
-        this.clear();
-        notifyDataSetInvalidated();
-    }
-
 }

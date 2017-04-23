@@ -4,16 +4,16 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import it.polito.mad.easysplit.BuildConfig;
-import it.polito.mad.easysplit.models.dummy.DummyGroupModel;
+import it.polito.mad.easysplit.models.dummy.DummyGroupIdentity;
 
-public class GroupBalanceModelTest {
+public class GroupBalanceStateTest {
     @Test
     public void recompute() throws Exception {
-        DummyGroupModel group = new DummyGroupModel();
+        DummyGroupIdentity group = new DummyGroupIdentity();
 
         if (BuildConfig.DEBUG) {
             System.err.println("=== Group expenses");
-            for (ExpenseModel exp : group.getExpenses())
+            for (ExpenseState exp : group.getExpenses())
                 System.err.println("  " + exp.getPayer().getIdentifier() + ": " + exp.getAmount());
         }
 
@@ -27,7 +27,7 @@ public class GroupBalanceModelTest {
         if (BuildConfig.DEBUG)
             System.err.println("=== Balance");
 
-        for (PersonModel person : balanceModel.getGroup().getMembers()) {
+        for (PersonState person : balanceModel.getGroup().getMembers()) {
             Money residue = balanceModel.getResidueFor(person);
             total = total.add(residue);
 
@@ -48,19 +48,19 @@ public class GroupBalanceModelTest {
         }
 
         @Override
-        public void onChanged() {
+        public void onChanged(Object sender) {
             changed = true;
         }
 
         @Override
-        public void onInvalidated() {
+        public void onInvalidated(Object sender) {
             invalidated = true;
         }
     }
 
     @Test
     public void observability() throws Exception {
-        DummyGroupModel group = new DummyGroupModel();
+        DummyGroupIdentity group = new DummyGroupIdentity();
         GroupBalanceModel balanceModel = new GroupBalanceModel(group);
 
         TestObserver observer = new TestObserver();

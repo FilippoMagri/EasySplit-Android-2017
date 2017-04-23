@@ -6,26 +6,23 @@ import org.junit.Test;
 
 import java.util.List;
 
-import it.polito.mad.easysplit.models.PersonModel;
-import it.polito.mad.easysplit.models.ExpenseModel;
-
 public class DummyPersonModelTest {
 
     @Test
     public void getMemberships() throws Exception {
-        DummyGroupModel group = new DummyGroupModel();
-        for (PersonModel person : group.getMembers())
+        DummyGroupIdentity group = new DummyGroupIdentity();
+        for (PersonState person : group.getMembers())
             Assert.assertTrue(person.getMemberships().contains(group));
     }
 
     @Test
     public void getTransactions() throws Exception {
-        DummyGroupModel group = new DummyGroupModel();
-        for (PersonModel person : group.getMembers()) {
-            List<ExpenseModel> personTxs = person.getExpenses();
+        DummyGroupIdentity group = new DummyGroupIdentity();
+        for (PersonState person : group.getMembers()) {
+            List<ExpenseState> personTxs = person.getExpenses();
 
             int found = 0;
-            for (ExpenseModel tx : group.getExpenses()) {
+            for (ExpenseState tx : group.getExpenses()) {
                 if (tx.getPayer() != person)
                     continue;
 

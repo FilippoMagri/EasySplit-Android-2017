@@ -1,28 +1,44 @@
 package it.polito.mad.easysplit.layout;
 
 import android.content.Context;
+import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ListView;
+
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 import it.polito.mad.easysplit.R;
-import it.polito.mad.easysplit.models.GroupModel;
-import it.polito.mad.easysplit.models.PersonModel;
-import it.polito.mad.easysplit.models.dummy.DummyGroupModel;
 
-/**
- * A fragment representing a list of Items.
- * <p/>
- * Activities containing this fragment MUST implement the {@link OnListFragmentInteractionListener}
- * interface.
- */
 public class MemberListFragment extends Fragment {
 
+    public static MemberListFragment newInstance(Uri groupUri) {
+        MemberListFragment frag = new MemberListFragment();
+
+        Bundle args = new Bundle();
+        args.putCharSequence("groupUri", groupUri.toString());
+        frag.setArguments(args);
+
+        return frag;
+    }
+
+
     private OnListFragmentInteractionListener mListener;
+    private final DatabaseReference mRoot = FirebaseDatabase.getInstance().getReference();
+    private Uri mGroupUri;
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        Bundle args = getArguments();
+        mGroupUri = Uri.parse(args.getCharSequence("groupUri").toString());
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -30,12 +46,10 @@ public class MemberListFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_member_list, container, false);
 
         // Set the adapter
-        if (view instanceof RecyclerView) {
+        if (view instanceof ListView) {
             Context context = view.getContext();
-            RecyclerView recyclerView = (RecyclerView) view;
-            recyclerView.setLayoutManager(new LinearLayoutManager(context));
-            GroupModel group = DummyGroupModel.getInstance();
-            recyclerView.setAdapter(new MemberListItemAdapter(group, mListener));
+            ListView listView = (ListView) view;
+            listView.setAdapter(new MemberListItemAdapter(context, mGroupUri, mListener));
         }
         return view;
     }
@@ -58,6 +72,6 @@ public class MemberListFragment extends Fragment {
     }
 
     public interface OnListFragmentInteractionListener {
-        void onListFragmentInteraction(PersonModel person);
+        void onListFragmentInteraction(String personId);
     }
 }

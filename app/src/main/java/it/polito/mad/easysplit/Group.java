@@ -2,8 +2,10 @@ package it.polito.mad.easysplit;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -11,12 +13,13 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import it.polito.mad.easysplit.models.Database;
-import it.polito.mad.easysplit.models.GroupModel;
-import it.polito.mad.easysplit.models.PersonModel;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 
 public class Group extends AppCompatActivity {
+    private static String TAG = Group.class.getName();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -25,26 +28,42 @@ public class Group extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        Database db = ((MyApplication) getApplication()).getDatabase();
-        /// TODO Check that the user is logged-in
-        PersonModel user = db.getUser();
+        FirebaseAuth.getInstance().addAuthStateListener(new AuthListener());
 
-        SubscribedGroupListAdapter adapter = new SubscribedGroupListAdapter(this, user);
+        ActivityUtils.requestLogin(this);
+    }
 
-        ListView listView = (ListView) findViewById(R.id.group_list);
-        listView.setAdapter(adapter);
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                GroupModel group = (GroupModel) parent.getItemAtPosition(position);
-                Intent i = new Intent(Group.this, GroupDetailsActivity.class);
-                i.setData(group.getUri());
-                startActivity(i);
+    private final class AuthListener implements FirebaseAuth.AuthStateListener {
+        @Override
+        public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+            FirebaseUser user = firebaseAuth.getCurrentUser();
+
+            ListView listView = (ListView) findViewById(R.id.group_list);
+            TextView userName = (TextView) findViewById(R.id.user_name);
+
+            if (user == null) {
+                listView.setAdapter(null);
+                listView.setOnItemClickListener(null);
+                userName.setText("(not logged in)");
+                return;
             }
-        });
 
-        TextView userName = (TextView) findViewById(R.id.user_name);
-        userName.setText(user.getName());
+            SubscribedGroupListAdapter adapter = new SubscribedGroupListAdapter(Group.this, user.getUid());
+
+            listView.setAdapter(adapter);
+            listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                    SubscribedGroupListAdapter.Item item = (SubscribedGroupListAdapter.Item) parent.getItemAtPosition(position);
+                    Intent i = new Intent(Group.this, GroupDetailsActivity.class);
+                    i.setData(Utils.getUriFor(Utils.UriType.GROUP, item.id));
+                    startActivity(i);
+                }
+            });
+
+            Log.d(TAG, "setUser: " + user.getDisplayName() + "[" + user.getEmail() + "]");
+            userName.setText(user.getDisplayName());
+        }
     }
 
     @Override
@@ -71,12 +90,3 @@ public class Group extends AppCompatActivity {
     }
 
 }
-              /* //is working
-        String[] values = new String[] { "Trip", "iPhone", "WindowsMobile",
-                "Blackberry", "WebOS", "Ubuntu", "Windows7", "Max OS X",
-                "Linux", "OS/2" };
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
-                android.R.layout.simple_list_item_1, values);
-        setListAdapter(adapter);
-*/
-

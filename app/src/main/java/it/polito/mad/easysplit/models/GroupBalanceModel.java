@@ -1,100 +1,148 @@
 package it.polito.mad.easysplit.models;
 
-import android.support.annotation.Nullable;
+import android.net.Uri;
 
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
-public class GroupBalanceModel extends ObservableBase {
-    private GroupModel group;
+import it.polito.mad.easysplit.Utils;
 
-    public GroupModel getGroup() {
-        return group;
+public class GroupBalanceModel {
+
+    // At the moment, recompute() is called a few more times than strictly necessary.
+    // In particular, it's called every time *anything* changes in an expense (e.g. name included),
+    // and once for each expense added/removed from a group (even when they're added and/or removed
+    // atomically).  Shouldn't be a big problem; probably not worth to fix it.
+
+
+    public interface Listener {
+        void onChanged(Map<String, Money> balances);
+        void onCancelled(DatabaseError error);
     }
 
-    private static class Balance {
-        public Money credit = new Money(0);
-        public Money debit = new Money(0);
 
-        public void add(Money amount) {
-            if (amount.getCents() > 0)
-                credit = credit.add(amount);
-            if (amount.getCents() < 0)
-                debit = debit.add(amount.neg());
-        }
+    private final DatabaseReference mRoot = FirebaseDatabase.getInstance().getReference();
+    private ExpenseSetListener mExpenseSetListener = new ExpenseSetListener();
 
-        public Money getResidue() {
-            return credit.sub(debit);
-        }
+    private HashMap<String, DataSnapshot> mExpenseSnaps = new HashMap<>();
+    private HashMap<String, DatabaseReference> mExpenseRefs = new HashMap<>();
+    private ExpenseListener mExpenseListener = new ExpenseListener();
+
+    private ArrayList<Listener> mListeners = new ArrayList<>();
+
+    public GroupBalanceModel(Uri groupUri) {
+        DatabaseReference groupRef = Utils.findByUri(groupUri, mRoot);
+        groupRef.child("expenses_ids").addChildEventListener(mExpenseSetListener);
     }
 
-    private HashMap<PersonModel, Balance> balances = new HashMap<>();
 
-    public GroupBalanceModel(GroupModel group) {
-        this.group = group;
-        this.group.registerObserver(new ChangeObserver());
-        recompute();
-    }
-
-    private class ChangeObserver implements Observer {
+    private final class ExpenseSetListener implements ChildEventListener {
         @Override
-        public void onChanged() {
+        public void onChildAdded(DataSnapshot expenseIdSnap, String s) {
+            String expenseId = expenseIdSnap.getKey();
+            DatabaseReference expenseRef = mRoot.child("expenses").child(expenseId);
+            expenseRef.addValueEventListener(mExpenseListener);
+            mExpenseRefs.put(expenseId, expenseRef);
+        }
+
+        @Override
+        public void onChildChanged(DataSnapshot expenseIdSnap, String s) {
+            Boolean value = expenseIdSnap.getValue(Boolean.class);
+            if (value == null)
+                return;
+            if (value == Boolean.TRUE)
+                onChildAdded(expenseIdSnap, s);
+            else
+                onChildRemoved(expenseIdSnap);
+        }
+
+        @Override
+        public void onChildRemoved(DataSnapshot expenseIdSnap) {
+            String expenseId = expenseIdSnap.getKey();
+            DatabaseReference ref = mExpenseRefs.get(expenseId);
+            if (ref == null)
+                return;
+            ref.removeEventListener(mExpenseListener);
+            mExpenseRefs.remove(expenseId);
+            mExpenseSnaps.remove(expenseId);
+        }
+
+        @Override
+        public void onChildMoved(DataSnapshot dataSnapshot, String s) { }
+
+        @Override
+        public void onCancelled(DatabaseError databaseError) {
+            notifyCancelled(databaseError);
+        }
+    }
+
+    private final class ExpenseListener implements ValueEventListener {
+        @Override
+        public void onDataChange(DataSnapshot expenseSnap) {
+            mExpenseSnaps.put(expenseSnap.getKey(), expenseSnap);
             recompute();
         }
 
         @Override
-        public void onInvalidated() {
-            notifyInvalidated();
+        public void onCancelled(DatabaseError databaseError) {
+            notifyCancelled(databaseError);
         }
     }
 
+
     private void recompute() {
-        int numPeople = group.getMembers().size();
-        if (numPeople == 0)
-            return;
+        HashMap<String, Money> balances = new HashMap<>();
 
-        for (PersonModel person : this.group.getMembers())
-            balances.put(person, new Balance());
+        for (Map.Entry<String, DataSnapshot> entry : mExpenseSnaps.entrySet()) {
+            String expenseId = entry.getKey();
+            DataSnapshot expense = entry.getValue();
 
-        if (numPeople == 1)
-            return;
+            int numPeople = (int) expense.child("members_ids").getChildrenCount();
+            if (numPeople == 0)
+                continue;
 
-        for (ExpenseModel exp : this.group.getExpenses()) {
-            PersonModel creditor = exp.getPayer();
-            Money quota = exp.getAmount().div(numPeople);
+            for (DataSnapshot member : expense.child("members_ids").getChildren())
+                if (! balances.containsKey(member.getKey()))
+                    balances.put(member.getKey(), new Money(0));
 
-            for (PersonModel person : this.group.getMembers()) {
-                if (person == creditor)
-                    balances.get(person).add(quota.mul(numPeople - 1));
+            if (numPeople == 1)
+                continue;
+
+            String payerId = expense.child("payer_id").getValue(String.class);
+            Money amount = Money.parse(expense.child("amount").getValue(String.class));
+            Money quota = amount.div(numPeople);
+
+            for (DataSnapshot member : expense.child("members_ids").getChildren()) {
+                String memberId = member.getKey();
+                if (memberId.equals(payerId))
+                    balances.get(memberId).add(quota.mul(numPeople - 1));
                 else
-                    balances.get(person).add(quota.neg());
+                    balances.get(memberId).add(quota.neg());
             }
         }
 
-        notifyChanged();
+        for (Listener listener : new ArrayList<>(mListeners))
+            listener.onChanged(balances);
     }
 
-    @Nullable
-    public Money getCreditFor(PersonModel person) {
-        Balance balance = balances.get(person);
-        if (balance == null)
-            return null;
-        return balance.credit;
+    public void addListener(Listener listener) {
+        mListeners.add(listener);
     }
 
-    @Nullable
-    public Money getDebitFor(PersonModel person) {
-        Balance balance = balances.get(person);
-        if (balance == null)
-            return null;
-        return balance.debit;
+    public void removeListener(Listener listener) {
+        mListeners.remove(mListeners.indexOf(listener));
     }
 
-    @Nullable
-    public Money getResidueFor(PersonModel person) {
-        Balance balance = balances.get(person);
-        if (balance == null)
-            return null;
-        return balance.getResidue();
+    private void notifyCancelled(DatabaseError error) {
+        for (Listener listener : new ArrayList<>(mListeners))
+            listener.onCancelled(error);
     }
-
 }

@@ -12,33 +12,38 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
 import it.polito.mad.easysplit.layout.ExpenseListFragment;
 import it.polito.mad.easysplit.layout.MemberListFragment;
-import it.polito.mad.easysplit.models.Database;
-import it.polito.mad.easysplit.models.GroupModel;
-import it.polito.mad.easysplit.models.PersonModel;
 
 
 public class GroupDetailsActivity extends AppCompatActivity implements MemberListFragment.OnListFragmentInteractionListener {
-    private GroupModel mGroup;
-
-    public GroupModel getGroup() {
-        return mGroup;
-    }
+    private final DatabaseReference mRoot = FirebaseDatabase.getInstance().getReference();
+    private Uri mGroupUri;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_group_details);
 
-        Database db = ((MyApplication) getApplicationContext()).getDatabase();
-        Uri groupUri = getIntent().getData();
-        mGroup = db.findByUri(groupUri, GroupModel.class);
-
-        setTitle(mGroup.getName());
-
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        mGroupUri = getIntent().getData();
+        DatabaseReference groupRef = Utils.findByUri(mGroupUri, mRoot).child("name");
+        groupRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot groupNameSnap) {
+                setTitle(groupNameSnap.getValue(String.class));
+            }
+
+            @Override public void onCancelled(DatabaseError databaseError) { }
+        });
 
         LocalPagerAdapter pagerAdapter = new LocalPagerAdapter(getSupportFragmentManager());
         ViewPager pager = (ViewPager) findViewById(R.id.group_details_pager);
@@ -56,9 +61,9 @@ public class GroupDetailsActivity extends AppCompatActivity implements MemberLis
         @Override
         public Fragment getItem(int i) {
             if (i == 0)
-                return ExpenseListFragment.newInstance(getGroup());
+                return ExpenseListFragment.newInstance(mGroupUri);
             if (i == 1)
-                return new MemberListFragment();
+                return MemberListFragment.newInstance(mGroupUri);
             return null;
         }
 
@@ -78,7 +83,7 @@ public class GroupDetailsActivity extends AppCompatActivity implements MemberLis
     }
 
     @Override
-    public void onListFragmentInteraction(PersonModel person) {
+    public void onListFragmentInteraction(String personId) {
         // Called when a person is clicked in the balance view.
         // Do nothing (for now)
         /// TODO Do something?

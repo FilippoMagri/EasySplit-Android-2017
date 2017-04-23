@@ -31,13 +31,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-import it.polito.mad.easysplit.models.ConstraintException;
-import it.polito.mad.easysplit.models.GroupModel;
 import it.polito.mad.easysplit.models.Money;
-import it.polito.mad.easysplit.models.PersonModel;
-import it.polito.mad.easysplit.models.dummy.DummyExpenseModel;
-import it.polito.mad.easysplit.models.dummy.DummyGroupModel;
-import it.polito.mad.easysplit.models.dummy.DummyPersonModel;
+import it.polito.mad.easysplit.models.dummy.DummyExpenseIdentity;
+import it.polito.mad.easysplit.models.dummy.DummyGroupIdentity;
+import it.polito.mad.easysplit.models.dummy.DummyPersonIdentity;
 
 public class AddExpenses extends AppCompatActivity {
     Toolbar toolbar;
@@ -47,42 +44,42 @@ public class AddExpenses extends AppCompatActivity {
     private SimpleDateFormat dateFormatter;
     private Spinner spinner1;
     private String payer;
-    DummyGroupModel gm;
-    List<PersonModel> lpm;
+    DummyGroupIdentity gm;
+    List<PersonState> lpm;
     ArrayList<String> payerGroup;
-    ArrayList<PersonModel> payersEngaged = new ArrayList<PersonModel>();
+    ArrayList<PersonState> payersEngaged = new ArrayList<PersonState>();
     int size_group;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_expenses);
-        populateWithInformationReceived ();
+        populateWithInformationReceived();
         setEditText_n1();
         setActionButtons();
         addItemsOnSpinner();
         setEditText_n5();
     }
 
-    public void populateWithInformationReceived () {
-        Intent received_intent = getIntent();
-        if (received_intent.getExtras() == null ){
-            gm = DummyGroupModel.getInstance();
+    public void populateWithInformationReceived() {
+        Intent receivedIntent = getIntent();
+        if (receivedIntent.getExtras() == null) {
+            gm = DummyGroupIdentity.getInstance();
             writeIntoJsonFile(gm);
             gm = readFromJsonFile("user.json");
             lpm = gm.getMembers();
             size_group = gm.getMembers().size();
             setTitle(gm.getName());
         } else {
-            if (received_intent.getExtras().get("Uniqid").equals("From_Activity_AddExpenses_checkBox")) {
+            if (receivedIntent.getExtras().get("Uniqid").equals("From_Activity_AddExpenses_checkBox")) {
                 //Populate again Screen By Reading file user.json
                 gm = readFromJsonFile("user.json");
                 lpm = gm.getMembers();
                 size_group = gm.getMembers().size();
                 setTitle(gm.getName());
                 //Retrieve Element Engaged into the payment
-                payerGroup = (ArrayList<String>) received_intent.getExtras().getSerializable("payerGroup");
-                if (payerGroup.size()<lpm.size()) {
+                payerGroup = (ArrayList<String>) receivedIntent.getExtras().getSerializable("payerGroup");
+                if (payerGroup.size() < lpm.size()) {
                     EditText editText5 = (EditText) findViewById(R.id.dateEditText5);
                     editText5.setText("Custom Members");
                 }
@@ -94,7 +91,7 @@ public class AddExpenses extends AppCompatActivity {
         }
     }
 
-    private void setEditText_n1 () {
+    private void setEditText_n1() {
         dateFormatter = new SimpleDateFormat("dd-MM-yyyy", Locale.ITALY);
         dateEditText = (EditText) findViewById(R.id.dateEditText);
         dateEditText.setInputType(InputType.TYPE_NULL);
@@ -102,7 +99,7 @@ public class AddExpenses extends AppCompatActivity {
         dateEditText.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(view == dateEditText) {
+                if (view == dateEditText) {
                     datePickerDialog.show();
                 }
             }
@@ -115,7 +112,7 @@ public class AddExpenses extends AppCompatActivity {
                 dateEditText.setText(dateFormatter.format(newDate.getTime()));
             }
 
-        },newCalendar.get(Calendar.YEAR), newCalendar.get(Calendar.MONTH), newCalendar.get(Calendar.DAY_OF_MONTH));
+        }, newCalendar.get(Calendar.YEAR), newCalendar.get(Calendar.MONTH), newCalendar.get(Calendar.DAY_OF_MONTH));
         Calendar newDate = Calendar.getInstance();
         dateEditText.setText(dateFormatter.format(newDate.getTime()));
     }
@@ -145,34 +142,35 @@ public class AddExpenses extends AppCompatActivity {
 
                 String dateStr = date;
                 SimpleDateFormat curFormater = new SimpleDateFormat("dd-MM-yyyy");
-                Date dateObj=null;
+                Date dateObj = null;
                 try {
                     dateObj = curFormater.parse(dateStr);
-                } catch(ParseException e) { e.printStackTrace();}
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
                 Calendar calendar = Calendar.getInstance();
                 calendar.setTime(dateObj);
                 EditText dateEditText2 = (EditText) findViewById(R.id.dateEditText3);
                 String title = dateEditText2.getText().toString();
                 EditText dateEditText3 = (EditText) findViewById(R.id.dateEditText4);
                 String amount = dateEditText3.getText().toString();
-                Money money = new Money(Money.getDefaultCurrency(),(long)(Float.parseFloat(amount)*100));
+                Money money = new Money(Money.getDefaultCurrency(), (long) (Float.parseFloat(amount) * 100));
 
                 String payer_selected = payer;
-                DummyPersonModel dummyPersonModel_ofpayer  = new DummyPersonModel(payer);
+                DummyPersonIdentity dummyPersonModel_ofpayer = new DummyPersonIdentity(payer);
                 gm.addMember(dummyPersonModel_ofpayer);
-                List<PersonModel> participants;
+                List<PersonState> participants;
 
                 if (payerGroup != null) {
                     participants = new ArrayList<>();
                     for (int i = 0; i < payerGroup.size(); i++) {
                         participants.add(gm.getMember(payerGroup.get(i)));
                     }
-                }
-                else {
+                } else {
                     participants = gm.getMembers();
                 }
 
-                DummyExpenseModel expenseModel = new DummyExpenseModel(title,calendar,money,dummyPersonModel_ofpayer,gm, participants);
+                DummyExpenseIdentity expenseModel = new DummyExpenseIdentity(title, calendar, money, dummyPersonModel_ofpayer, gm, participants);
                 try {
                     gm.addExpense(expenseModel);
                 } catch (ConstraintException e) {
@@ -193,7 +191,7 @@ public class AddExpenses extends AppCompatActivity {
         spinner1 = (Spinner) findViewById(R.id.spinner1);
         List<String> list = new ArrayList<String>();
         int dim = lpm.size();
-        for (int i=0;i<dim;i++) {
+        for (int i = 0; i < dim; i++) {
             list.add(lpm.get(i).getIdentifier());
         }
         ArrayAdapter<String> dataAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, list);
@@ -205,6 +203,7 @@ public class AddExpenses extends AppCompatActivity {
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
                 payer = adapterView.getItemAtPosition(i).toString();
             }
+
             @Override
             public void onNothingSelected(AdapterView<?> adapterView) {
 
@@ -212,32 +211,33 @@ public class AddExpenses extends AppCompatActivity {
         });
     }
 
-    public void setEditText_n5 () {
-        EditText editText5 = (EditText)findViewById(R.id.dateEditText5);
-        if ((payerGroup==null)||(payerGroup.size()==lpm.size())) editText5.setText("All Members");
+    public void setEditText_n5() {
+        EditText editText5 = (EditText) findViewById(R.id.dateEditText5);
+        if ((payerGroup == null) || (payerGroup.size() == lpm.size()))
+            editText5.setText("All Members");
         editText5.setInputType(InputType.TYPE_NULL);
         editText5.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(getApplicationContext(),AddExpenses_checkBox.class);
+                Intent intent = new Intent(getApplicationContext(), AddExpenses_checkBox.class);
                 Bundle b = new Bundle();
-                intent.putExtra("group_info",gm.toJSON());
+                intent.putExtra("group_info", gm.toJSON());
                 startActivity(intent);
             }
         });
     }
 
-    public void writeIntoJsonFile(GroupModel groupModel) {
+    public void writeIntoJsonFile(GroupState groupModel) {
         JsonWriter writer;
         try {
-            File file = new File(getCacheDir() , "user.json");
+            File file = new File(getCacheDir(), "user.json");
             writer = new JsonWriter(new FileWriter(file.getPath()));
             writer.beginObject();
             writer.name("group_name").value(groupModel.getName());
             writer.name("number_of_members").value(groupModel.getMembers().size());
             writer.name("members");
             writer.beginArray();
-            for (int i=0;i<groupModel.getMembers().size();i++) {
+            for (int i = 0; i < groupModel.getMembers().size(); i++) {
                 writer.value(groupModel.getMembers().get(i).getIdentifier());
             }
             writer.endArray();
@@ -249,10 +249,10 @@ public class AddExpenses extends AppCompatActivity {
         }
     }
 
-    public DummyGroupModel readFromJsonFile (String nameFile) {
-        DummyGroupModel groupModel = null;
+    public DummyGroupIdentity readFromJsonFile(String nameFile) {
+        DummyGroupIdentity groupModel = null;
         try {
-            JsonReader reader = new JsonReader(new FileReader(getCacheDir().toString()+"/"+nameFile));
+            JsonReader reader = new JsonReader(new FileReader(getCacheDir().toString() + "/" + nameFile));
 
             reader.beginObject();
 
@@ -262,14 +262,14 @@ public class AddExpenses extends AppCompatActivity {
 
                 if (name.equals("group_name")) {
                     String test = reader.nextString();
-                    groupModel = new DummyGroupModel(test);
+                    groupModel = new DummyGroupIdentity(test);
                     System.out.println(test);
                 } else if (name.equals("number_of_members")) {
                     System.out.println(reader.nextInt());
                 } else if (name.equals("members")) {
                     reader.beginArray();
                     while (reader.hasNext()) {
-                        groupModel.addMember(new DummyPersonModel(reader.nextString()));
+                        groupModel.addMember(new DummyPersonIdentity(reader.nextString()));
                     }
                     reader.endArray();
                 } else {

@@ -4,21 +4,25 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.ListView;
 import android.widget.TextView;
 
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.List;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.ValueEventListener;
 
-import it.polito.mad.easysplit.models.Amountable;
-import it.polito.mad.easysplit.models.Database;
-import it.polito.mad.easysplit.models.ExpenseModel;
-import it.polito.mad.easysplit.models.Money;
-import it.polito.mad.easysplit.models.PersonModel;
+import it.polito.mad.easysplit.models.IndirectValueEventListener;
 
 
 public class ExpenseDetailsActivity extends AppCompatActivity {
+    private TextView mPayerName;
+    private TextView mExpenseName;
+    private TextView mCreationDate;
+
+    private DatabaseReference mRef;
+    private ValueEventListener mListener;
+    private IndirectValueEventListener mPayerNameListener;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,62 +33,48 @@ public class ExpenseDetailsActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         */
 
-        Database db = ((MyApplication) getApplicationContext()).getDatabase();
-        ExpenseModel expense = db.findByUri(getIntent().getData(), ExpenseModel.class);
+        mPayerName = (TextView) findViewById(R.id.payerName);
+        mExpenseName = (TextView) findViewById(R.id.expenseName);
+        mCreationDate = (TextView) findViewById(R.id.expenseCreationDate);
 
-        TextView name = (TextView) findViewById(R.id.expenseName);
-        TextView payerName = (TextView) findViewById(R.id.payerName);
-        TextView creation = (TextView) findViewById(R.id.expenseCreationDate);
+        mRef = Utils.findByUri(getIntent().getData());
 
-        name.setText(expense.getName());
-        payerName.setText(expense.getPayer().getName());
-        SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy");
-        creation.setText(format.format(expense.getTimestamp().getTime()));
-
-        class Participant implements Amountable {
-            private PersonModel person;
-            private Money owed;
-
-            public Participant (PersonModel person, Money owed) {
-                this.person = person;
-                this.owed = owed;
-            }
-
-            public PersonModel getPerson() {
-                return person;
+        mListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                mExpenseName.setText(dataSnapshot.child("name").getValue(String.class));
+                mCreationDate.setText(dataSnapshot.child("timestamp").getValue(String.class));
+                /// TODO Participants list adapter
             }
 
             @Override
-            public String getName () {
-                return person.getIdentifier();
+            public void onCancelled(DatabaseError databaseError) {
+                /// TODO
+            }
+        };
+        mRef.addValueEventListener(mListener);
+
+        mPayerNameListener = new IndirectValueEventListener(mRef.child("payer_id")) {
+            @Override
+            protected DatabaseReference getTarget(String id, DatabaseReference root) {
+                return root.child("users").child(id).child("name");
             }
 
             @Override
-            public Money getAmount() {
-                return owed;
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                mPayerName.setText(dataSnapshot.getValue(String.class));
             }
-        }
 
-        /// TODO Refactor logic into a model
-        ///    ticket https://trello.com/c/mSVIV1vj/23-expensedetailsactivity-refactor-logic-into-a-model
-        List<Participant> participants = new ArrayList<>();
-        List<PersonModel> members = expense.getParticipants(); //getGroup().getMembers();
-        int participantsNumber = members.size();
-        Money owed = expense.getAmount().div(participantsNumber).neg();
+            @Override
+            public void onCancelled(DatabaseError databaseError) {}
+        };
+    }
 
-        for (PersonModel person : members) {
-            if (person.equals(expense.getPayer())) { // payer, display amount of money paid
-                participants.add(new Participant(person, expense.getAmount()));
-            }
-            else { // amount of money owed
-                participants.add(new Participant(person, owed));
-            }
-        }
-        ItemAdapter<Participant> adapter = new ItemAdapter<>(this, R.layout.participant_item, participants);
-        ListView lv = (ListView) findViewById(R.id.participantsList);
-        lv.setAdapter(adapter);
-
-
+    @Override
+    protected void onDestroy() {
+        mRef.removeEventListener(mListener);
+        mPayerNameListener.detach();
+        super.onDestroy();
     }
 
     @Override

@@ -1,7 +1,6 @@
 package it.polito.mad.easysplit;
 
 import android.content.Context;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,7 +10,6 @@ import android.widget.TextView;
 import java.util.List;
 
 import it.polito.mad.easysplit.models.Amountable;
-import it.polito.mad.easysplit.models.ExpenseModel;
 
 /**
  * Created by fgiobergia on 06/04/17.
@@ -31,7 +29,7 @@ public class ItemAdapter<T extends Amountable> extends ArrayAdapter<T> {
 
     @Override
     public View getView (int position, View convertView, ViewGroup parent) {
-        //ExpenseModel expense = expenses.get(position);
+        //ExpenseState expense = expenses.get(position);
         T item = items.get(position);
 
         if (convertView == null) { // not recycling an existing view, inflate it!
