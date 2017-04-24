@@ -55,6 +55,8 @@ public class AddExpenses extends AppCompatActivity {
     private DateFormat mTimestampFormat;
     private String mGroupId;
 
+    private UnsavedChangesNotifier mNotifier;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -67,6 +69,9 @@ public class AddExpenses extends AppCompatActivity {
         setActionOnButtons();
         setupMembersSpinner();
         setupMembersChecklist();
+
+        mNotifier = new UnsavedChangesNotifier(this, this); // prepare unsaved changes notifier
+        /// TODO Add calls to mNotifier.setChanged() where relevant
     }
 
     private void setupDateEdit() {
@@ -259,6 +264,12 @@ public class AddExpenses extends AppCompatActivity {
                 startActivity(i);
             }
         });
+    }
+
+
+    @Override
+    public void onBackPressed() {
+        mNotifier.handleBackButton();
     }
 
 }
