@@ -1,13 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="it.polito.mad.easysplit.Group"
     >
-
-
 
     <android.support.design.widget.AppBarLayout
         android:layout_width="match_parent"
@@ -20,18 +18,40 @@
             android:layout_height="?attr/actionBarSize"
             android:background="?attr/colorPrimary"
             app:popupTheme="@style/AppTheme.PopupOverlay"
+            android:title="@string/your_groups"
             />
 
     </android.support.design.widget.AppBarLayout>
 
-    <android.support.design.widget.CollapsingToolbarLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="?attr/actionBarSize">
+        android:orientation="vertical"
+        android:layout_marginTop="?attr/actionBarSize" >
+
+        <TextView
+            android:id="@+id/user_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="10sp"
+            android:textAlignment="textEnd"
+            android:text="YOUR NAME"
+            android:textSize="20sp" />
+
+        <TextView
+            android:id="@+id/noGroupsText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="30dp"
+            android:text="You don't belong to any groups yet!"
+            android:textAlignment="center"
+            android:visibility="gone" />
+
         <ListView
-            android:id="@+id/listViewDemo"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content">
-        </ListView>
-    </android.support.design.widget.CollapsingToolbarLayout>
-</android.support.design.widget.CoordinatorLayout>
+            android:id="@+id/group_list"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:descendantFocusability="blocksDescendants" />
+    </LinearLayout>
+
+</FrameLayout>

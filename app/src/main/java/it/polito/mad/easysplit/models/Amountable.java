@@ -7,5 +7,4 @@ package it.polito.mad.easysplit.models;
 public interface Amountable {
     String getName();
     Money getAmount();
-
 }

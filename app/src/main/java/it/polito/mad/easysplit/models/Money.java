@@ -1,11 +1,12 @@
 package it.polito.mad.easysplit.models;
 
+import java.math.BigDecimal;
 import java.util.Currency;
-import java.util.Locale;
+import java.util.Scanner;
 
 public class Money {
     private Currency currency;
-    private long cents;
+    private BigDecimal amount;
 
     private static Currency defaultCurrency = Currency.getInstance("EUR");
 
@@ -17,21 +18,21 @@ public class Money {
         Money.defaultCurrency = defaultCurrency;
     }
 
-    public Money(long cents) {
-        this(defaultCurrency, cents);
+    public Money(BigDecimal amount) {
+        this(defaultCurrency, amount);
     }
 
-    public Money(Currency currency, long cents) {
+    public Money(Currency currency, BigDecimal amount) {
         this.currency = currency;
-        this.cents = cents;
+        this.amount = amount;
     }
 
     public Currency getCurrency() {
         return currency;
     }
 
-    public long getCents() {
-        return cents;
+    public BigDecimal getAmount() {
+        return amount;
     }
 
     public Money add(Money rhs) {
@@ -39,7 +40,7 @@ public class Money {
         if (! rhs.getCurrency().equals(this.getCurrency()))
             throw new AssertionError("Multiple currencies aren't yet implemented");
 
-        return new Money(this.getCurrency(), this.cents + rhs.cents);
+        return new Money(this.getCurrency(), this.amount.add(rhs.amount));
     }
 
     public Money sub(Money rhs) {
@@ -47,27 +48,34 @@ public class Money {
         if (! rhs.getCurrency().equals(this.getCurrency()))
             throw new AssertionError("Multiple currencies aren't yet implemented");
 
-        return new Money(this.getCurrency(), this.cents - rhs.cents);
+        return new Money(this.getCurrency(), this.amount.subtract(rhs.amount));
     }
 
-    public Money div(int denom) {
-        return new Money(this.getCurrency(), this.cents / denom);
+    public Money div(BigDecimal denom) {
+        return new Money(this.getCurrency(), this.amount.divide(denom));
     }
 
     public Money neg() {
-        return new Money(this.getCurrency(), - this.cents);
+        return new Money(this.getCurrency(), this.amount.negate());
     }
 
-    public Money mul(int factor) {
-        return new Money(this.getCurrency(), this.cents * factor);
+    public Money mul(BigDecimal factor) {
+        return new Money(this.getCurrency(), this.amount.multiply(factor));
     }
 
     @Override
     public String toString() {
-        long fractionalDenom = (long) Math.pow(10, currency.getDefaultFractionDigits());
-        long integ = cents / fractionalDenom;
-        // `integ` already has the right sign
-        long frac = Math.abs(cents % fractionalDenom);
-        return String.format(Locale.getDefault(), "%+d.%02d %s", integ, frac, currency.getSymbol());
+        return amount.toString() + " " + currency.getCurrencyCode();
+    }
+
+    public static Money parse(String text) {
+        Scanner scanner = new Scanner(text);
+        BigDecimal cents = scanner.nextBigDecimal();
+        if (scanner.hasNext()) {
+            String currencyCode = scanner.next();
+            return new Money(Currency.getInstance(currencyCode), cents);
+        } else {
+            return new Money(cents);
+        }
     }
 }
