@@ -112,8 +112,8 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         public void onComplete(@NonNull Task<AuthResult> task) {
             showProgress(false);
 
-            AuthResult authResult = task.getResult();
             if (task.isSuccessful()) {
+                AuthResult authResult = task.getResult();
                 if(!authResult.getUser().isEmailVerified()) {
                     authResult.getUser().sendEmailVerification();
                     AlertDialog dialog = new AlertDialog.Builder(LoginActivity.this)
@@ -160,8 +160,8 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         public void onComplete(@NonNull Task<AuthResult> task) {
             showProgress(false);
 
-            AuthResult authResult = task.getResult();
             if (task.isSuccessful()) {
+                AuthResult authResult = task.getResult();
                 if(authResult.getUser().isEmailVerified()) {
                     LoginActivity.this.finish();
                 } else {
