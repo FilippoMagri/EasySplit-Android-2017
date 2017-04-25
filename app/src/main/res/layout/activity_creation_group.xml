@@ -1,54 +1,57 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout
+<RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
-    tools:context="it.polito.mad.easysplit.CreationGroup">
+    android:layout_width="380dp"
+    android:layout_height="437dp"
+
+    tools:layout_editor_absoluteY="0dp"
+    tools:layout_editor_absoluteX="0dp"
+
+tools:context=".CreationGroup">
+
+
+                <include
+                    android:id="@+id/include"
+                    layout="@layout/fragment_back_group">
+
+                </include>
+
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/valid"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical|center_horizontal"
+
+        app:layout_anchor="@+id/include"
+        app:layout_anchorGravity="center_vertical|right"
+        app:srcCompat="@drawable/ic_valid"
+        android:layout_marginTop="@dimen/fab_margin"
+        android:layout_marginLeft="300dp"
 
 
 
-    <RelativeLayout
-        android:layout_width="0dp"
-        android:layout_height="495dp"
-        tools:layout_editor_absoluteX="91dp"
-        tools:layout_editor_absoluteY="58dp"
-        android:layout_marginLeft="20px">
 
-        <ImageButton
+        />
 
-            android:id="@+id/back"
-            android:layout_width="match_parent"
-            android:layout_height="67dp"
-            android:layout_alignParentEnd="true"
-            android:layout_alignParentRight="true"
-            android:layout_alignParentTop="true"
-
-
-            android:src="@drawable/ic_back"
-            tools:layout_editor_absoluteX="8dp"
-            tools:layout_editor_absoluteY="-116dp" />
-
-        <ImageButton
-            android:id="@+id/valid"
-            android:layout_width="54dp"
-            android:layout_height="67dp"
-            android:layout_alignRight="@id/back"
-            android:src="@drawable/ic_valid"
-            tools:layout_editor_absoluteX="330dp"
-            tools:layout_editor_absoluteY="0dp" />
 
         <TextView
+
             android:id="@+id/choosename"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@id/back"
+
+            android:layout_below="@id/valid"
+
+            android:layout_marginTop="60dp"
             android:text="Choose a Group Name"
             android:textSize="40px"
             tools:layout_editor_absoluteX="50dp"
             tools:layout_editor_absoluteY="61dp"
             android:layout_marginLeft="20px"/>
+
 
         <EditText
             android:id="@+id/nameGroup"
@@ -59,8 +62,9 @@
             android:drawableRight="@drawable/ic_write"
             android:textSize="35px"
             tools:layout_editor_absoluteX="65dp"
-            tools:layout_editor_absoluteY="78dp"
+            tools:layout_editor_absoluteY="150dp"
             android:layout_marginLeft="20px"/>
+
 
         <TextView
             android:id="@+id/ListParticipant"
@@ -69,7 +73,7 @@
             android:layout_below="@id/nameGroup"
             android:hint="Add Participant"
             android:textSize="40px"
-            android:layout_marginTop="40px"
+            android:layout_marginTop="60px"
             tools:layout_editor_absoluteX="65dp"
             tools:layout_editor_absoluteY="167dp"
             android:layout_marginLeft="20px"/>
@@ -84,19 +88,52 @@
             android:textSize="35px"
             tools:layout_editor_absoluteX="65dp"
             tools:layout_editor_absoluteY="201dp"
-            android:layout_marginLeft="30px"/>
+            android:layout_marginLeft="20px"
+            />
+    <EditText
+        android:id="@+id/Participant2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/Participant"
+        android:hint="Maria        "
+        android:drawableRight="@drawable/ic_write"
+        android:textSize="35px"
+        tools:layout_editor_absoluteX="65dp"
+        tools:layout_editor_absoluteY="201dp"
+        android:layout_marginLeft="20px"
+        />
+    <EditText
+        android:id="@+id/Participant3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/Participant2"
+        android:hint="Maria        "
+        android:drawableRight="@drawable/ic_write"
+        android:textSize="35px"
+        tools:layout_editor_absoluteX="65dp"
+        tools:layout_editor_absoluteY="201dp"
+        android:layout_marginLeft="20px"
+        />
 
         <android.support.design.widget.FloatingActionButton
-            android:id="@+id/fab2"
+            android:id="@+id/Addparticipant"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical|center_horizontal"
-            android:layout_margin="@dimen/fab_margin"
+            android:background="@drawable/round"
+
             app:layout_anchor="@+id/include"
             app:layout_anchorGravity="center_vertical|right"
             app:srcCompat="@android:drawable/ic_input_add"
-            android:layout_alignRight="@id/ListParticipant"
-            android:layout_marginLeft="50px"
-            android:layout_below="@id/ListParticipant"/>
-    </RelativeLayout>
-</android.support.constraint.ConstraintLayout>
+            android:layout_below="@id/Participant2"
+            android:layout_toRightOf="@id/Participant3"
+            android:layout_marginLeft="50dp"/>
+
+<TextView
+    android:layout_width="wrap_content"
+    android:layout_height="match_parent"
+        android:id="@+id/newparticipant"
+    android:layout_below="@+id/Participant"
+    />
+
+</RelativeLayout>
