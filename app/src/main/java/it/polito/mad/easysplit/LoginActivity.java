@@ -82,12 +82,62 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             }
         });
 
+        Button mEmailRegisterButton = (Button) findViewById(R.id.email_register_button);
+        mEmailRegisterButton.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                attemptRegister();
+            }
+        });
+
         mLoginFormView = findViewById(R.id.login_form);
         mProgressView = findViewById(R.id.login_progress);
     }
-
     /**
-     * Attempts to sign in or register the account specified by the login form.
+     * Attempts to create the account specified by the login form.
+     * If there are form errors (invalid email, missing fields, etc.), the
+     * errors are presented and no actual register attempt is made.
+     */
+    private void attemptRegister() {
+        // Store values at the time of the register attempt.
+        String email = mEmailView.getText().toString();
+        String password = mPasswordView.getText().toString();
+
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        auth.createUserWithEmailAndPassword(email,password).addOnCompleteListener(new RegisterTaskListener());
+    }
+
+    private class RegisterTaskListener implements OnCompleteListener<AuthResult> {
+        @Override
+        public void onComplete(@NonNull Task<AuthResult> task) {
+            showProgress(false);
+
+            if (task.isSuccessful()) {
+                AuthResult authResult = task.getResult();
+                if(!authResult.getUser().isEmailVerified()) {
+                    authResult.getUser().sendEmailVerification();
+                    AlertDialog dialog = new AlertDialog.Builder(LoginActivity.this)
+                            .setTitle("Waiting for the email verification")
+                            .setMessage("We have sent an email to you, please confirm your address and then sign in ")
+                            .setPositiveButton(android.R.string.ok, null)
+                            .create();
+                    dialog.show();
+                } else {
+                    LoginActivity.this.finish();
+                }
+            } else {
+                Exception exc = task.getException();
+                AlertDialog dialog = new AlertDialog.Builder(LoginActivity.this)
+                        .setTitle("Couldn't Register!")
+                        .setMessage(exc.getLocalizedMessage())
+                        .setPositiveButton(android.R.string.ok, null)
+                        .create();
+                dialog.show();
+            }
+        }
+    }
+    /**
+     * Attempts to sign the account specified by the login form.
      * If there are form errors (invalid email, missing fields, etc.), the
      * errors are presented and no actual login attempt is made.
      */
@@ -111,7 +161,17 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             showProgress(false);
 
             if (task.isSuccessful()) {
-                LoginActivity.this.finish();
+                AuthResult authResult = task.getResult();
+                if(authResult.getUser().isEmailVerified()) {
+                    LoginActivity.this.finish();
+                } else {
+                    AlertDialog dialog = new AlertDialog.Builder(LoginActivity.this)
+                            .setTitle("Waiting for the email verification")
+                            .setMessage("We have sent an email to you, please confirm your address and then sign in ")
+                            .setPositiveButton(android.R.string.ok, null)
+                            .create();
+                    dialog.show();
+                }
             } else {
                 Exception exc = task.getException();
                 AlertDialog dialog = new AlertDialog.Builder(LoginActivity.this)
