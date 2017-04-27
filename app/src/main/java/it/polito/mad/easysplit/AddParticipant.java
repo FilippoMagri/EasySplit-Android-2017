@@ -10,6 +10,7 @@ import android.widget.TextView;
  */
 
 public class AddParticipant extends Activity{
+    /*
     final String EXTRA_PARTICIPANT = null;
 
     public void onCreate(Bundle savedInstanceState) {
@@ -24,4 +25,6 @@ public class AddParticipant extends Activity{
             loginDisplays.setText(i1.getStringExtra(EXTRA_PARTICIPANT));
 
         }
-    };}
+    };
+    */
+}

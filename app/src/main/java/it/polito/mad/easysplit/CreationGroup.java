@@ -1,138 +1,187 @@
 package it.polito.mad.easysplit;
 
-import android.content.Context;
-import android.content.Intent;
-import android.content.SharedPreferences;
-import android.os.Environment;
-import android.preference.PreferenceManager;
+import android.graphics.Color;
+import android.net.Uri;
 import android.provider.ContactsContract;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.SpannableString;
+import android.text.TextWatcher;
+import android.text.style.BackgroundColorSpan;
+import android.util.Log;
 import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageButton;
-import android.widget.TextView;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 
 public class CreationGroup extends AppCompatActivity {
-private String ListGroup ="listgroup.txt";
-
-    private File mFile =null;
-private EditText nameGroup = null;
-    private ImageButton valid = null;
-    private String finalName = null;
-    private Button mread = null;
-
+    final CreationGroup self = this;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        setContentView(R.layout.activity_creation_group);
 
-       setContentView(R.layout.activity_creation_group);
-        // On crée un fichier qui correspond à l'emplacement extérieur
-        mFile = new File(Environment.getExternalStorageDirectory().getPath() + "/Android/data/ " + getPackageName() + "/files/" + ListGroup);
+        final EditText groupName = (EditText) findViewById(R.id.nameGroup);
+        final EditText participantsList = (EditText) findViewById(R.id.newGroupParticipantsList);
+        FloatingActionButton submit = (FloatingActionButton) findViewById(R.id.valid);
 
-
-
-       ImageButton back = (ImageButton) findViewById(R.id.back);
-        back.setOnClickListener(new View.OnClickListener() {
+        TextWatcher tw = new TextWatcher() {
             @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(CreationGroup.this, Group.class);
-                startActivity(intent);
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
 
-
-
-
-        valid = (ImageButton) findViewById(R.id.valid);
-        valid.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View view) {
-                try {
-                    // Flux interne
-                    FileOutputStream output = openFileOutput(ListGroup, MODE_PRIVATE);
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
 
+            }
 
-                   nameGroup = (EditText) findViewById(R.id.nameGroup);
-                    finalName = nameGroup.getText().toString();
-                    output.write(finalName.getBytes());
-                    // On écrit dans le flux interne
-                    //output.write(nameGroup.getText().toString());
+            private int getColorFromString (String str) {
+                if (str.matches("^[\\w\\.]+@[\\w\\.]+\\.[a-z]+$")) {
+                    return Color.GREEN;
+                }
+                else {
+                    return Color.RED;
+                }
+            }
 
-                    if (output != null)
-                        output.close();
+            @Override
+            public void afterTextChanged(Editable s) {
+                Character [] spacingChars = { ' ', '\t', '\n' };
 
-
-                    // Si le fichier est lisible et qu'on peut écrire dedans
-                    if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())
-                            && !Environment.MEDIA_MOUNTED_READ_ONLY.equals(Environment.getExternalStorageState())) {
-                        // On crée un nouveau fichier. Si le fichier existe déjà, il ne sera pas créé
-                        mFile.createNewFile();
-                        output = new FileOutputStream(mFile);
-
-                        //output.write(nameGroup.getBytes());
-                        output.write(finalName.getBytes());
-
-                        if (output != null)
-                            output.close();
+                String str = s.toString();
+                SpannableString text = new SpannableString(str);
+                int position = participantsList.getSelectionStart();
+                int start;
+                for (start = 0; start < s.length(); ) {
+                    int end = start;
+                    while (end < str.length() && !Arrays.asList(spacingChars).contains(str.charAt(end))) {
+                        end ++;
                     }
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-    }});}}
-
-   /* mRead = (Button) findViewById(R.id.read);
-    mRead.setOnClickListener(new View.OnClickListener() {
-
-        public void onClick(View pView) {
-            try {
-                FileInputStream input = openFileInput(PRENOM);
-                int value;
-                // On utilise un StringBuffer pour construire la chaîne au fur et à mesure
-                StringBuffer lu = new StringBuffer();
-                // On lit les caractères les uns après les autres
-                while((value = input.read()) != -1) {
-                    // On écrit dans le fichier le caractère lu
-                    lu.append((char)value);
-                }
-                Toast.makeText(MainActivity.this, "Interne : " + lu.toString(), Toast.LENGTH_SHORT).show();
-                if(input != null)
-                    input.close();
-
-                if(Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {
-                    lu = new StringBuffer();
-                    input = new FileInputStream(mFile);
-                    while((value = input.read()) != -1)
-                        lu.append((char)value);
-
-                    Toast.makeText(MainActivity.this, "Externe : " + lu.toString(), Toast.LENGTH_SHORT).show();
-                    if(input != null)
-                        input.close();
+                    text.setSpan(new BackgroundColorSpan(getColorFromString(str.substring(start,end))), start, end, 0);
+                    start = end + 1;
+                    while (start < str.length() && Arrays.asList(spacingChars).contains(str.charAt(start))) {
+                        start++;
+                    }
                 }
 
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
+                /* set new text (with highlights) */
+                participantsList.removeTextChangedListener(this);
+                participantsList.setText(text);
+                participantsList.addTextChangedListener(this);
+                participantsList.setSelection(position); // update to previous position */
             }
-                Intent intent = new Intent(CreationGroup.this, Group.class);
-                startActivity(intent);
+        };
+        participantsList.addTextChangedListener(tw);
+
+        submit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                final DatabaseReference ref = FirebaseDatabase.getInstance().getReference();
+                //DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child("users");
+                ref.child("users").addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        String name = groupName.getText().toString();
+
+                        ArrayList<String> emails = new ArrayList<>(Arrays.asList(
+                                    participantsList.getText().toString().split("\\s+")
+                        ));
+                        ArrayList<String> externalEmails = new ArrayList<>(emails);
+
+                        HashMap<String, Boolean> groupMembers = new HashMap<>();
+                        HashMap<String, Object> childUpdates = new HashMap<>();
+                        String groupKey = ref.child("groups").push().getKey();
+
+                        /* create an internal mapping email -> uid */
+                        if (dataSnapshot.hasChildren()) {
+                            Iterable<DataSnapshot> iter = dataSnapshot.getChildren();
+                            for (DataSnapshot user : iter) {
+                                if (user.hasChild("email")) {
+                                    // okay, email found
+                                    String emailAddr = (String)user.child("email").getValue();
+                                    if (emails.contains(emailAddr)) {
+                                        // Okay, email required by the user! include it
+                                        // (UID used as key, not the email!)
+                                        groupMembers.put(user.getKey(), true);
+                                        childUpdates.put("/users/" + user.getKey() + "/groups_ids/" + groupKey, true);
+                                        externalEmails.remove(emailAddr); // user found, no need to register it
+                                    }
+                                }
+                            }
+                        }
+
+                        /* proceed with the registration of the new email accounts! */
+                        for (String email : externalEmails) {
+                            if (email.length() > 0) { // add here checks on email validity!
+                                /* TODO add authentication part of the registration */
+                                HashMap<String, Object> newUser = new HashMap<>();
+                                String userId = ref.child("users").push().getKey(); // replace userId if need with the UID provided by authentication
+                                newUser.put("email", email);
+                                newUser.put("name", email); // use email as the name (until specified by the user upon registration)
+                                HashMap<String, Boolean> groupsMap = new HashMap<>();
+                                groupsMap.put(groupKey, true); // add group to the user
+                                newUser.put("groups_ids", groupsMap);
+                                childUpdates.put("/users/" + userId, newUser); // add new user to database
+                                groupMembers.put(userId, true); // add user to the group
+                            }
+                        }
+
+                        /* Finally, add current user */
+                        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+                        groupMembers.put(user.getUid(), true);
+                        childUpdates.put("/users/" + user.getUid() + "/groups_ids/" + groupKey, true);
+
+                        HashMap<String, Object> map = new HashMap<>();
+                        map.put("name", name);
+                        map.put("expenses_ids", new HashMap<String,Boolean>());
+                        map.put("members_ids", groupMembers);
+
+                        //ref.child("groups").push().setValue(map);
+
+                        childUpdates.put("/groups/" + groupKey, map);
+                        Log.e("Map", childUpdates.toString());
+                        ref.updateChildren(childUpdates);
+                        Log.e("Done", ":)");
+
+                        self.finish();
+/*
+{
+    /groups/-KikQN2Ie4WXJJG5p8hH=
+        {name=Sdf, expenses_ids={}, members_ids=
+                {m6eA2FsFCQgoIGa49l0YHUkFliK2=true, -KikQN2Ie4WXJJG5p8hI=true}
+        },
+    /users/m6eA2FsFCQgoIGa49l0YHUkFliK2/groups_ids/-KikQN2Ie4WXJJG5p8hH=true,
+    /users/-KikQN2Ie4WXJJG5p8hI=
+        {groups_ids={-KikQN2Ie4WXJJG5p8hH=true}, name=, email=}}
+
+*/
+                    }
+
+
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
 
             }
-
         });
 
     }
 
-    private void addPreferencesFromResource(int preferenceResId) {
-    }
-}*/
+}

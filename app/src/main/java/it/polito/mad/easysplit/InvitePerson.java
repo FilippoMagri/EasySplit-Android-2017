@@ -16,12 +16,14 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import it.polito.mad.easysplit.Email.GMailSender;
@@ -38,6 +40,7 @@ public class InvitePerson extends AppCompatActivity implements View.OnClickListe
     String emailToCheck;
     String groupName;
     String idGroup;
+    String existingUserId;
 
     EditText mEmail;
 
@@ -90,6 +93,7 @@ public class InvitePerson extends AppCompatActivity implements View.OnClickListe
                     // This user already exists in firebase.
                     Log.d(TAG,"User Exists into DB");
                     Log.d(TAG,"Il Suo ID è: "+idExistingUser);
+                    existingUserId = idExistingUser;
                     userPresentIntoDB(idExistingUser);
                 }
                 else {
@@ -140,7 +144,11 @@ public class InvitePerson extends AppCompatActivity implements View.OnClickListe
                 }
                 if(!userMemberOfThisGroup) {
                     Log.d(TAG,"User is NOT Member of this Group");
-                    // TODO Add the User by mail to the Database (with a systemPassword that will be changed later on during user registration ,by himself) @Flavio Giobergia
+                    // TODO figure out why this does not get called
+                    HashMap<String,Object> childUpdates = new HashMap<>();
+                    childUpdates.put("/groups/" + idGroup + "/members_ids/" + existingUserId, true); // add user to group
+                    childUpdates.put("/users/" + existingUserId + "/groups_ids/" + idGroup, true); // add group to user
+                    database.getReference().updateChildren(childUpdates);
                 }
             }
 
@@ -164,7 +172,7 @@ public class InvitePerson extends AppCompatActivity implements View.OnClickListe
 
     private void userPresentIntoDB(String idExistingUser) {
         DatabaseReference groups_ids_reference = usersUriRef.child(idExistingUser).child("groups_ids");
-        groups_ids_reference.addValueEventListener(userGroupIdsValueEventListener);
+        groups_ids_reference.addListenerForSingleValueEvent(userGroupIdsValueEventListener); // updated so as not to constantly update information!
     }
 
     private void userNotPresentIntoDb() {
@@ -173,8 +181,6 @@ public class InvitePerson extends AppCompatActivity implements View.OnClickListe
 
         //Register user with temporaryPassword inside Authentication Structure of Firebase
         attemptRegister();
-
-        // TODO Add the User by mail to the Database (with a systemPassword that will be changed later on during user registration ,by himself) @Flavio Giobergia
 
         Snackbar.make(mCoordinatorLayout,"User has been added temporary to the group.\n" +
                                          "We've sent an email for the registration to become\n" +
@@ -230,6 +236,27 @@ public class InvitePerson extends AppCompatActivity implements View.OnClickListe
         public void onComplete(@NonNull Task<AuthResult> task) {
 
             if (task.isSuccessful()) {
+                /* get newly created user */
+                FirebaseUser user = task.getResult().getUser();
+                HashMap<String, Object> childUpdates = new HashMap<>();
+                HashMap<String, Object> newUser = new HashMap<>();
+                String userId = user.getUid();
+
+                /* create new user in database */
+                newUser.put("email", emailToCheck);
+                newUser.put("name", emailToCheck); // use email as the name (until specified by the user upon registration)
+                HashMap<String, Boolean> groupsMap = new HashMap<>();
+                groupsMap.put(idGroup, true);
+                newUser.put("groups_ids", groupsMap); // add group to user
+                childUpdates.put("/users/" + userId, newUser); // add new user to database
+                childUpdates.put("/groups/" + idGroup + "/members_ids/" + userId, true); // add user to group
+                /* here, if we really wanted to be consistent,
+                 * one may want to figure out how to delete the user
+                 * from the authentication part, if things go awry
+                 * with the creation of the new account in the database
+                  */
+                database.getReference().updateChildren(childUpdates);
+
                 //The user has been added with temporaryPassword inside Authentication Structure of Firebase
                 //Do Nothing Because The Verification-Mail Will be sent only after the real Registration
                 //Performed by the user
