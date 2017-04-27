@@ -7,6 +7,12 @@
         <item>Italy</item>
         <item>Germany</item>
     </string-array>
+       <string-array name="CurrencyListItem">
+        <item>USD</item>
+        <item>EUR</item>
+
+
+    </string-array>
     <string name="title_activity_add_expenses_check_box">AddExpenses_checkBox</string>
 
     <string name="title_activity_group_balance_dummy">Group balance</string>
