@@ -144,7 +144,6 @@ public class InvitePerson extends AppCompatActivity implements View.OnClickListe
                 }
                 if(!userMemberOfThisGroup) {
                     Log.d(TAG,"User is NOT Member of this Group");
-                    // TODO figure out why this does not get called
                     HashMap<String,Object> childUpdates = new HashMap<>();
                     childUpdates.put("/groups/" + idGroup + "/members_ids/" + existingUserId, true); // add user to group
                     childUpdates.put("/users/" + existingUserId + "/groups_ids/" + idGroup, true); // add group to user
