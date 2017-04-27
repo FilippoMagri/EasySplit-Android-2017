@@ -5,6 +5,7 @@ import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.app.LoaderManager.LoaderCallbacks;
 import android.content.CursorLoader;
+import android.content.Intent;
 import android.content.Loader;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
@@ -13,6 +14,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -31,9 +33,14 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static android.Manifest.permission.READ_CONTACTS;
 
@@ -174,6 +181,37 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             }
         }
     }
+
+    private void actualizeUserIntoDB() {
+        // Write the new user inside the database
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference mRoot = database.getReference();
+        final String userId = mRoot.child("users").push().getKey();
+        Map<String, Object> update = new HashMap<>();
+        String email = mEmailView.getText().toString();
+        EditText nameUserEditText = (EditText) findViewById(R.id.name_loginUser);
+        String nameUser = nameUserEditText.getText().toString();
+        update.put("email", email);
+        if(nameUser.equals("")) {
+            update.put("name",email);
+        } else {
+            update.put("name",nameUser);
+        }
+        Log.d(TAG,"Sto attualizzando su : mRoot/users/"+userId+"/");
+        mRoot.child("users").child(userId).updateChildren(update).addOnCompleteListener(this, new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                if (! task.isSuccessful()) {
+                    String msg = task.getException().getLocalizedMessage();
+                    Log.d(TAG,msg);
+                    return;
+                } else {
+                    Log.d(TAG,"Update Child Effettuato");
+                }
+            }
+        });
+    }
+
     /**
      * Attempts to sign the account specified by the login form.
      * If there are form errors (invalid email, missing fields, etc.), the
@@ -201,6 +239,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             if (task.isSuccessful()) {
                 AuthResult authResult = task.getResult();
                 if(authResult.getUser().isEmailVerified()) {
+                    actualizeUserIntoDB();
                     LoginActivity.this.finish();
                 } else {
                     authResult.getUser().sendEmailVerification();
