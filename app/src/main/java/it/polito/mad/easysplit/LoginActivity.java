@@ -165,6 +165,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 if(authResult.getUser().isEmailVerified()) {
                     LoginActivity.this.finish();
                 } else {
+                    authResult.getUser().sendEmailVerification();
                     AlertDialog dialog = new AlertDialog.Builder(LoginActivity.this)
                             .setTitle("Waiting for the email verification")
                             .setMessage("We have sent an email to you, please confirm your address and then sign in ")
