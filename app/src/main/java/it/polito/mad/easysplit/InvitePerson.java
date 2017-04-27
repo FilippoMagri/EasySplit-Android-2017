@@ -24,6 +24,8 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.Map;
 
+import it.polito.mad.easysplit.Email.GMailSender;
+
 public class InvitePerson extends AppCompatActivity implements View.OnClickListener{
     private static final String TAG = "InvitePersonActivity";
     FirebaseDatabase database = FirebaseDatabase.getInstance();
@@ -167,6 +169,7 @@ public class InvitePerson extends AppCompatActivity implements View.OnClickListe
 
     private void userNotPresentIntoDb() {
         //Send the Invitation email
+        sendInvitationMail();
 
         //Register user with temporaryPassword inside Authentication Structure of Firebase
         attemptRegister();
@@ -176,6 +179,28 @@ public class InvitePerson extends AppCompatActivity implements View.OnClickListe
         Snackbar.make(mCoordinatorLayout,"User has been added temporary to the group.\n" +
                                          "We've sent an email for the registration to become\n" +
                                          "an interactive user",4000).show();
+
+    }
+
+    private void sendInvitationMail() {
+        new Thread(new Runnable() {
+            public void run() {
+                try {
+                    GMailSender sender = new GMailSender(
+                            "easysplitmad2017@gmail.com",
+                            "qwertyuiop12345");
+
+                    String htmlBody = "<h1 style=\"color: #5e9ca0; text-align: left;\">Welcome To EasySplit&nbsp;!</h1><h2 style=\"color: #2e6c80;\"><img src=\"https://firebasestorage.googleapis.com/v0/b/progetto-prova-firebase.appspot.com/o/email_attachment.jpg?alt=media&amp;token=bc14c2e6-937a-4e14-b08d-2b3ffff21cb3\" alt=\"\" width=\"416\" height=\"282\" /></h2><h2 style=\"color: #2e6c80;\">Somebody Invited you to the Group: "+groupName+".&nbsp;<br />If you want to share costs , just register by <br />clicking on Subscribe.</h2><p><a href=\"https://firebasestorage.googleapis.com/v0/b/progetto-prova-firebase.appspot.com/o/test%20app.apk?alt=media&amp;token=ae3522b5-f520-4519-a83d-5ee4aa17d1d7\"><img style=\"float: left;\" src=\"https://firebasestorage.googleapis.com/v0/b/progetto-prova-firebase.appspot.com/o/Subscribe-PNG-7.png?alt=media&amp;token=c8b66185-ca0d-4578-9fe7-d8d62c4e8434\" alt=\"interactive connection\" width=\"392\" height=\"122\" /></a></p><p><strong>&nbsp;</strong></p><p>&nbsp;</p>";
+                    sender.sendMail("["+groupName+"] [This User Wanna Share Expenses With You]", htmlBody ,
+                            "easysplitmad2017@gmail.com",emailToCheck);
+                } catch (Exception e) {
+                    Snackbar.make(mCoordinatorLayout,"Error",Snackbar.LENGTH_SHORT).show();
+                }
+
+            }
+
+        }).start();
+
 
     }
 

@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name" translatable="false">€asySplit</string>
     <string name="action_settings">Settings</string>
+    <string name="action_invite">Invite</string>
     <string name="title_activity_add_expenses">AddExpenses</string>
 
     <string-array name="countries_dummy_example">
