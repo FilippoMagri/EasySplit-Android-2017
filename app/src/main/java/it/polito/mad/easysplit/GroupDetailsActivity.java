@@ -1,5 +1,6 @@
 package it.polito.mad.easysplit;
 
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.TabLayout;
@@ -9,14 +10,19 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+
+import java.util.Map;
+import java.util.Set;
 
 import it.polito.mad.easysplit.layout.ExpenseListFragment;
 import it.polito.mad.easysplit.layout.MemberListFragment;
@@ -35,8 +41,9 @@ public class GroupDetailsActivity extends AppCompatActivity implements MemberLis
         setSupportActionBar(toolbar);
 
         mGroupUri = getIntent().getData();
-        DatabaseReference groupRef = Utils.findByUri(mGroupUri, mRoot).child("name");
-        groupRef.addValueEventListener(new ValueEventListener() {
+
+        DatabaseReference groupRefName = Utils.findByUri(mGroupUri, mRoot).child("name");
+        groupRefName.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot groupNameSnap) {
                 setTitle(groupNameSnap.getValue(String.class));
@@ -105,6 +112,9 @@ public class GroupDetailsActivity extends AppCompatActivity implements MemberLis
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            Intent i = new Intent(getApplicationContext(),InvitePerson.class);
+            i.putExtra("Group Name",getTitle());
+            startActivity(i);
             return true;
         }
 
