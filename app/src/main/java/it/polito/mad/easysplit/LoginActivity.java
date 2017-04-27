@@ -16,6 +16,7 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -45,6 +46,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
      * Id to identity READ_CONTACTS permission request.
      */
     private static final int REQUEST_READ_CONTACTS = 0;
+    private static final String TAG = "LoginActivity";
 
     /// TODO Allow to cancel the login currently in progress
 
@@ -53,6 +55,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     private EditText mPasswordView;
     private View mProgressView;
     private View mLoginFormView;
+    final String defaultTemporaryUserRegistrationPassword = "CA_FI_SE_FL_AN_MAD_2017";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -104,7 +107,42 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         String password = mPasswordView.getText().toString();
 
         FirebaseAuth auth = FirebaseAuth.getInstance();
-        auth.createUserWithEmailAndPassword(email,password).addOnCompleteListener(new RegisterTaskListener());
+        //Check if it is a temporaryPassiveUser
+        //If it is passive , updatePassword
+        //Otherwise register normally
+        auth.signInWithEmailAndPassword(email,defaultTemporaryUserRegistrationPassword).addOnCompleteListener(new LoginTemporaryUserTaskListener());
+    }
+
+    private class LoginTemporaryUserTaskListener implements OnCompleteListener<AuthResult> {
+        @Override
+        public void onComplete(@NonNull Task<AuthResult> task) {
+            showProgress(false);
+
+            if (task.isSuccessful()) {
+                //Temporary User needs to be converted into definitive user
+                AuthResult authResult = task.getResult();
+                String password = mPasswordView.getText().toString();
+                authResult.getUser().updatePassword(password);
+                Log.d(TAG,"Passive User , Password Aggiornata");
+                if(authResult.getUser().isEmailVerified()) {
+                    LoginActivity.this.finish();
+                } else {
+                    authResult.getUser().sendEmailVerification();
+                    AlertDialog dialog = new AlertDialog.Builder(LoginActivity.this)
+                            .setTitle("Waiting for the email verification")
+                            .setMessage("We have sent an email to you, please confirm your address and then sign in ")
+                            .setPositiveButton(android.R.string.ok, null)
+                            .create();
+                    dialog.show();
+                }
+            } else {
+                //Is not a temporary user just try to register
+                FirebaseAuth auth = FirebaseAuth.getInstance();
+                String email = mEmailView.getText().toString();
+                String password = mPasswordView.getText().toString();
+                auth.createUserWithEmailAndPassword(email,password).addOnCompleteListener(new RegisterTaskListener());
+            }
+        }
     }
 
     private class RegisterTaskListener implements OnCompleteListener<AuthResult> {
