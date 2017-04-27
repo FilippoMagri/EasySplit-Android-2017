@@ -93,9 +93,16 @@
                 android:inputType="numberDecimal"
                 android:textAlignment="textStart" />
 
-            <Space
+               <Spinner
+                android:id="@+id/spinnerMonney"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+                android:layout_height="match_parent"
+                android:layout_margin="10dp"
+                android:layout_weight="0.1"
+                android:textAlignment="textEnd"
+                android:gravity="end"
+                android:entries="@array/CurrencyListItem"/>
+
 
             <TextView
                 android:id="@+id/payerLabel"
