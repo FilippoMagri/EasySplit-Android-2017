@@ -1,6 +1,8 @@
 package it.polito.mad.easysplit;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.CoordinatorLayout;
@@ -164,7 +166,7 @@ public class InvitePerson extends AppCompatActivity implements View.OnClickListe
             emailToCheck = mEmail.getText().toString();
             Log.d(TAG,"MyRef: "+usersUriRef.toString());
             Log.d(TAG,"OnClick: Add EventListener");
-            usersUriRef.addValueEventListener(emailValueEventListener);
+            usersUriRef.addListenerForSingleValueEvent(emailValueEventListener);
         }
 
     }
@@ -259,6 +261,13 @@ public class InvitePerson extends AppCompatActivity implements View.OnClickListe
                 //The user has been added with temporaryPassword inside Authentication Structure of Firebase
                 //Do Nothing Because The Verification-Mail Will be sent only after the real Registration
                 //Performed by the user
+
+                SharedPreferences sharedPref = getSharedPreferences("MyPreferences",Context.MODE_PRIVATE);
+                String signin_email = sharedPref.getString("signin_email",null);
+                String signin_password = sharedPref.getString("signin_password",null);
+                Log.d(TAG,"Values: "+signin_email+signin_password);
+                FirebaseAuth auth = FirebaseAuth.getInstance();
+                auth.signInWithEmailAndPassword(signin_email,signin_password);
             } else {
                 Exception exc = task.getException();
                 AlertDialog dialog = new AlertDialog.Builder(InvitePerson.this)
