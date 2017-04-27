@@ -203,6 +203,7 @@ public class AddExpenses extends AppCompatActivity {
         EditText amountEdit = (EditText) findViewById(R.id.amountEdit);
         Spinner payerSpinner = (Spinner) findViewById(R.id.payerSpinner);
         ListView membersList = (ListView) findViewById(R.id.membersList);
+        Spinner spinnerMonney = (Spinner) findViewById(R.id.spinnerMonney);
 
         String dateStr = dateEdit.getText().toString();
         Date timestamp;
@@ -217,9 +218,14 @@ public class AddExpenses extends AppCompatActivity {
         String title = titleEdit.getText().toString();
 
         Money amount;
+                String currencyCode = (String) spinnerMonney.getSelectedItem();
+
         try {
-            amount = Money.parse(amountEdit.getText().toString());
-        } catch(NoSuchElementException exc) {
+//amount take the value of price + currencyCode
+            BigDecimal price = BigDecimal.valueOf(Long.parseLong(amountEdit.getText().toString()));
+            Currency cur = Currency.getInstance(currencyCode);
+            amount = new Money(cur, price);
+        } catch (NoSuchElementException exc) {
             Snackbar.make(contentView, "Invalid money amount!", Snackbar.LENGTH_LONG).show();
             return;
         }
