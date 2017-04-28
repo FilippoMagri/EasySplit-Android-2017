@@ -4,9 +4,11 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.app.LoaderManager.LoaderCallbacks;
+import android.content.Context;
 import android.content.CursorLoader;
 import android.content.Intent;
 import android.content.Loader;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
@@ -239,6 +241,13 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             if (task.isSuccessful()) {
                 AuthResult authResult = task.getResult();
                 if(authResult.getUser().isEmailVerified()) {
+                    //Save Informations about email e password Internally to the phone
+                    SharedPreferences sharedPref = getSharedPreferences("MyPreferences",Context.MODE_PRIVATE);
+                    SharedPreferences.Editor editor = sharedPref.edit();
+                    editor.putString("signin_email",mEmailView.getText().toString());
+                    editor.putString("signin_password",mPasswordView.getText().toString());
+                    editor.commit();
+
                     actualizeUserIntoDB();
                     LoginActivity.this.finish();
                 } else {

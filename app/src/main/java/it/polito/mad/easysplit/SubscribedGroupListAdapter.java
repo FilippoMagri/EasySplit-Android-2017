@@ -33,7 +33,12 @@ public class SubscribedGroupListAdapter extends ArrayAdapter<SubscribedGroupList
     private Comparator<Item> mComparator = new Comparator<Item>() {
         @Override
         public int compare(Item lhs, Item rhs) {
-            return lhs.name.compareTo(rhs.name);
+            /* workaround */
+            if (lhs.name != null && rhs.name != null) {
+                return lhs.name.compareTo(rhs.name);
+            }
+            /* 0 if they are both null, -1 otherwise */
+            return (lhs.name == rhs.name) ? 0 : -1;
         }
     };
 

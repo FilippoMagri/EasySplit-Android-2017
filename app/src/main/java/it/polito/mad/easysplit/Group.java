@@ -99,7 +99,7 @@ public class Group extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_group, menu);
+        getMenuInflater().inflate(R.menu.menu_list_groups, menu);
         return true;
     }
 
@@ -113,6 +113,8 @@ public class Group extends AppCompatActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            Intent intent = new Intent(Group.this, CreationGroup.class);
+            startActivity(intent);
             return true;
         }
 

@@ -40,4 +40,5 @@
         completions."
     </string>
     <string name="title_activity_invite_person">InvitePerson</string>
+    <string name="action_create_group">Create group</string>
 </resources>
