@@ -85,10 +85,14 @@ public class InvitePerson extends AppCompatActivity implements View.OnClickListe
                 String idExistingUser = "";
                 for (DataSnapshot child : dataSnapshot.getChildren()) {
                     Map<String, Object> model = (Map<String, Object>) child.getValue();
-                    if(model.get("email").equals(emailToCheck)) {
-                        idExistingUser = child.getKey();
-                        exists = true;
-                        break;
+                    Log.d(TAG,"Value model.get"+model.get("email").toString());
+                    if(model.get("email")!=null) {
+                        Log.d(TAG,"Value model.get"+model.get("email").toString());
+                        if (model.get("email").equals(emailToCheck)) {
+                            idExistingUser = child.getKey();
+                            exists = true;
+                            break;
+                        }
                     }
                 }
                 if(exists) {

@@ -162,6 +162,9 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             if (task.isSuccessful()) {
                 AuthResult authResult = task.getResult();
                 if(!authResult.getUser().isEmailVerified()) {
+                    // TODO Check if the user is already in the DB , in this case you have not to actualize again into dthe DB
+                    // TODO This will be done to prevent the stupid user press two times register button without accepting the invitation mail before
+                    actualizeUserIntoDB();
                     authResult.getUser().sendEmailVerification();
                     AlertDialog dialog = new AlertDialog.Builder(LoginActivity.this)
                             .setTitle("Waiting for the email verification")
@@ -248,7 +251,6 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                     editor.putString("signin_password",mPasswordView.getText().toString());
                     editor.commit();
 
-                    actualizeUserIntoDB();
                     LoginActivity.this.finish();
                 } else {
                     authResult.getUser().sendEmailVerification();
