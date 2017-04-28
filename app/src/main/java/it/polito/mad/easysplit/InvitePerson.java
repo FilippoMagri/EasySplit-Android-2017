@@ -35,7 +35,7 @@ public class InvitePerson extends AppCompatActivity implements View.OnClickListe
     FirebaseDatabase database = FirebaseDatabase.getInstance();
     final DatabaseReference usersUriRef = database.getReference().child("users");
     final DatabaseReference groupsUriRef = database.getReference().child("groups");
-    final String defaultTemporaryUserRegistrationPassword = "CA_FI_SE_FL_AN_MAD_2017";
+    static String defaultTemporaryUserRegistrationPassword = "CA_FI_SE_FL_AN_MAD_2017";
 
     CoordinatorLayout mCoordinatorLayout;
 
@@ -265,7 +265,6 @@ public class InvitePerson extends AppCompatActivity implements View.OnClickListe
                 SharedPreferences sharedPref = getSharedPreferences("MyPreferences",Context.MODE_PRIVATE);
                 String signin_email = sharedPref.getString("signin_email",null);
                 String signin_password = sharedPref.getString("signin_password",null);
-                Log.d(TAG,"Values: "+signin_email+signin_password);
                 FirebaseAuth auth = FirebaseAuth.getInstance();
                 auth.signInWithEmailAndPassword(signin_email,signin_password);
             } else {

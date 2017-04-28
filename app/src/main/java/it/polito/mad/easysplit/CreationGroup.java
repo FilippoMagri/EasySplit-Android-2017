@@ -1,11 +1,16 @@
 package it.polito.mad.easysplit;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.provider.ContactsContract;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.util.AsyncListUtil;
 import android.text.Editable;
 import android.text.SpannableString;
 import android.text.TextWatcher;
@@ -14,6 +19,10 @@ import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
+import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException;
 import com.google.firebase.auth.FirebaseUser;
@@ -26,6 +35,8 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Objects;
+import java.util.concurrent.ExecutionException;
 
 public class CreationGroup extends AppCompatActivity {
     final CreationGroup self = this;
@@ -95,69 +106,104 @@ public class CreationGroup extends AppCompatActivity {
                 ref.child("users").addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
-                        String name = groupName.getText().toString();
+                        class CreateGroup extends AsyncTask<Object, Void, Void> {
 
-                        ArrayList<String> emails = new ArrayList<>(Arrays.asList(
-                                    participantsList.getText().toString().split("\\s+")
-                        ));
-                        ArrayList<String> externalEmails = new ArrayList<>(emails);
+                            @Override
+                            protected Void doInBackground(Object... params) {
+                                String name = (String)params[0]; //groupName.getText().toString();
+                                // participantsList.getText().toString() -> params[1]
 
-                        HashMap<String, Boolean> groupMembers = new HashMap<>();
-                        HashMap<String, Object> childUpdates = new HashMap<>();
-                        String groupKey = ref.child("groups").push().getKey();
+                                ArrayList<String> emails = new ArrayList<>(Arrays.asList(
+                                        ((String)params[1]).split("\\s+")
+                                ));
+                                ArrayList<String> externalEmails = new ArrayList<>(emails);
+
+                                HashMap<String, Boolean> groupMembers = new HashMap<>();
+                                HashMap<String, Object> childUpdates = new HashMap<>();
+                                String groupKey = ref.child("groups").push().getKey();
 
                         /* create an internal mapping email -> uid */
-                        if (dataSnapshot.hasChildren()) {
-                            Iterable<DataSnapshot> iter = dataSnapshot.getChildren();
-                            for (DataSnapshot user : iter) {
-                                if (user.hasChild("email")) {
-                                    // okay, email found
-                                    String emailAddr = (String)user.child("email").getValue();
-                                    if (emails.contains(emailAddr)) {
-                                        // Okay, email required by the user! include it
-                                        // (UID used as key, not the email!)
-                                        groupMembers.put(user.getKey(), true);
-                                        childUpdates.put("/users/" + user.getKey() + "/groups_ids/" + groupKey, true);
-                                        externalEmails.remove(emailAddr); // user found, no need to register it
+                                DataSnapshot dataSnapshot = (DataSnapshot)params[2];
+                                if (dataSnapshot.hasChildren()) {
+                                    Iterable<DataSnapshot> iter = dataSnapshot.getChildren();
+                                    for (DataSnapshot user : iter) {
+                                        if (user.hasChild("email")) {
+                                            // okay, email found
+                                            String emailAddr = (String)user.child("email").getValue();
+                                            if (emails.contains(emailAddr)) {
+                                                // Okay, email required by the user! include it
+                                                // (UID used as key, not the email!)
+                                                groupMembers.put(user.getKey(), true);
+                                                childUpdates.put("/users/" + user.getKey() + "/groups_ids/" + groupKey, true);
+                                                externalEmails.remove(emailAddr); // user found, no need to register it
+                                            }
+                                        }
                                     }
                                 }
+
+                                /* proceed with the registration of the new email accounts! */
+                                for (String email : externalEmails) {
+                                    if (email.length() > 0) { // add here checks on email validity!
+
+                                        FirebaseAuth auth = FirebaseAuth.getInstance();
+                                        Task<AuthResult> task = auth.createUserWithEmailAndPassword(email,InvitePerson.defaultTemporaryUserRegistrationPassword);
+                                        try {
+                                            Tasks.await(task);
+                                            FirebaseUser user = task.getResult().getUser();
+                                            String userId = user.getUid();
+                                            HashMap < String, Object > newUser = new HashMap<>();
+
+                                            newUser.put("email", email);
+                                            newUser.put("name", email); // use email as the name (until specified by the user upon registration)
+                                            HashMap<String, Boolean> groupsMap = new HashMap<>();
+                                            groupsMap.put(groupKey, true); // add group to the user
+                                            newUser.put("groups_ids", groupsMap);
+                                            childUpdates.put("/users/" + userId, newUser); // add new user to database
+                                            groupMembers.put(userId, true); // add user to the group
+                                        } catch (ExecutionException e) {
+                                            e.printStackTrace();
+                                        } catch (InterruptedException e) {
+                                            e.printStackTrace();
+                                        }
+                                    }
+                                }
+
+                                SharedPreferences sharedPref = getSharedPreferences("MyPreferences", Context.MODE_PRIVATE);
+                                String signin_email = sharedPref.getString("signin_email",null);
+                                String signin_password = sharedPref.getString("signin_password",null);
+                                FirebaseAuth auth = FirebaseAuth.getInstance();
+                                try {
+                                    Tasks.await(auth.signInWithEmailAndPassword(signin_email,signin_password));
+                                } catch (ExecutionException e) {
+                                    e.printStackTrace();
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                }
+
+                                /* Finally, add current user */
+                                FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+                                groupMembers.put(user.getUid(), true);
+                                childUpdates.put("/users/" + user.getUid() + "/groups_ids/" + groupKey, true);
+
+                                HashMap<String, Object> map = new HashMap<>();
+                                map.put("name", name);
+                                map.put("expenses_ids", new HashMap<String,Boolean>());
+                                map.put("members_ids", groupMembers);
+
+                                //ref.child("groups").push().setValue(map);
+
+                                childUpdates.put("/groups/" + groupKey, map);
+                                ref.updateChildren(childUpdates);
+
+
+                                self.finish();
+
+
+                                return null;
                             }
                         }
+                        new CreateGroup().execute(groupName.getText().toString(), participantsList.getText().toString(), dataSnapshot);
 
-                        /* proceed with the registration of the new email accounts! */
-                        for (String email : externalEmails) {
-                            if (email.length() > 0) { // add here checks on email validity!
-                                /* TODO add authentication part of the registration */
-                                HashMap<String, Object> newUser = new HashMap<>();
-                                String userId = ref.child("users").push().getKey(); // replace userId if need with the UID provided by authentication
-                                newUser.put("email", email);
-                                newUser.put("name", email); // use email as the name (until specified by the user upon registration)
-                                HashMap<String, Boolean> groupsMap = new HashMap<>();
-                                groupsMap.put(groupKey, true); // add group to the user
-                                newUser.put("groups_ids", groupsMap);
-                                childUpdates.put("/users/" + userId, newUser); // add new user to database
-                                groupMembers.put(userId, true); // add user to the group
-                            }
-                        }
-
-                        /* Finally, add current user */
-                        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-                        groupMembers.put(user.getUid(), true);
-                        childUpdates.put("/users/" + user.getUid() + "/groups_ids/" + groupKey, true);
-
-                        HashMap<String, Object> map = new HashMap<>();
-                        map.put("name", name);
-                        map.put("expenses_ids", new HashMap<String,Boolean>());
-                        map.put("members_ids", groupMembers);
-
-                        //ref.child("groups").push().setValue(map);
-
-                        childUpdates.put("/groups/" + groupKey, map);
-                        Log.e("Map", childUpdates.toString());
-                        ref.updateChildren(childUpdates);
-                        Log.e("Done", ":)");
-
-                        self.finish();
 /*
 {
     /groups/-KikQN2Ie4WXJJG5p8hH=
