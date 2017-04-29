@@ -1,6 +1,7 @@
 package it.polito.mad.easysplit.models;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Currency;
 import java.util.Scanner;
 
@@ -52,7 +53,7 @@ public class Money {
     }
 
     public Money div(BigDecimal denom) {
-        return new Money(this.getCurrency(), this.amount.divide(denom));
+        return new Money(this.getCurrency(), this.amount.divide(denom, 2, RoundingMode.HALF_UP));
     }
 
     public Money neg() {
