@@ -34,6 +34,8 @@ public class Group extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        toolbar.setNavigationIcon(R.drawable.ic_home_white_48dp);
+
         FirebaseAuth.getInstance().addAuthStateListener(new AuthListener());
 
         ActivityUtils.requestLogin(this);

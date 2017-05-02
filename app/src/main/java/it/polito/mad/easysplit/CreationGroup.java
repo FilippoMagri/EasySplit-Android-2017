@@ -1,6 +1,7 @@
 package it.polito.mad.easysplit;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.net.Uri;
@@ -11,6 +12,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.util.AsyncListUtil;
+import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.SpannableString;
 import android.text.TextWatcher;
@@ -18,6 +20,7 @@ import android.text.style.BackgroundColorSpan;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.ImageView;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -48,8 +51,20 @@ public class CreationGroup extends AppCompatActivity {
 
         final EditText groupName = (EditText) findViewById(R.id.nameGroup);
         final EditText participantsList = (EditText) findViewById(R.id.newGroupParticipantsList);
-        FloatingActionButton submit = (FloatingActionButton) findViewById(R.id.valid);
+        ImageView submit = (ImageView) findViewById(R.id.valid);
 
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        toolbar.setNavigationIcon(R.drawable.ic_home_white_48dp);
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(getApplicationContext(),Group.class));
+            }
+        });
+
+        setTitle("Group Creation");
         TextWatcher tw = new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {

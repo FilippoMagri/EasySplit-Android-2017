@@ -270,6 +270,7 @@ public class AddExpenses extends AppCompatActivity {
                 Intent i = new Intent(getApplicationContext(), ExpenseDetailsActivity.class);
                 i.setData(Utils.getUriFor(Utils.UriType.EXPENSE, expenseId));
                 startActivity(i);
+                finish();
             }
         });
     }
