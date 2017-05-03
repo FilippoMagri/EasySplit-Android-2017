@@ -1,8 +1,10 @@
 package it.polito.mad.easysplit;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -50,10 +52,17 @@ public class ExpenseDetailsActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_expense_details);
-        /*
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        */
+
+        toolbar.setNavigationIcon(R.drawable.ic_home_white_48dp);
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(getApplicationContext(),Group.class));
+            }
+        });
 
         mPayerName = (TextView) findViewById(R.id.payerName);
         mExpenseName = (TextView) findViewById(R.id.expenseName);
