@@ -10,26 +10,21 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
-import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-import java.util.Map;
-import java.util.Set;
-
 import it.polito.mad.easysplit.layout.ExpenseListFragment;
 import it.polito.mad.easysplit.layout.MemberListFragment;
 
 
-public class GroupDetailsActivity extends AppCompatActivity implements MemberListFragment.OnListFragmentInteractionListener {
+public class GroupDetailsActivity extends AppCompatActivity {
     private final DatabaseReference mRoot = FirebaseDatabase.getInstance().getReference();
     private Uri mGroupUri;
 
@@ -96,13 +91,6 @@ public class GroupDetailsActivity extends AppCompatActivity implements MemberLis
         public int getCount() {
             return 2;
         }
-    }
-
-    @Override
-    public void onListFragmentInteraction(String personId) {
-        // Called when a person is clicked in the balance view.
-        // Do nothing (for now)
-        /// TODO Do something?
     }
 
     @Override
