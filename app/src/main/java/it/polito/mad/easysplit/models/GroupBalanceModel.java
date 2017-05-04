@@ -135,11 +135,13 @@ public class GroupBalanceModel {
             String name = (String) singleUser.get("name");
             String id = (String) singleUser.get("id");
             Map groupIds = (Map) singleUser.get("groups_ids");
-            if (groupIds.containsKey(thisGroupId)) {
-                Log.d(TAG, "User:" + name);
-                usersOfThisGroup_Firebase.put(entry.getKey(),entry.getValue());
-                Money money = new Money(new BigDecimal("0.00"));
-                membersBalanceInvolved.put(entry.getKey(),new MemberRepresentation(name,money));
+            if(groupIds!=null) {
+                if (groupIds.containsKey(thisGroupId)) {
+                    Log.d(TAG, "User:" + name);
+                    usersOfThisGroup_Firebase.put(entry.getKey(), entry.getValue());
+                    Money money = new Money(new BigDecimal("0.00"));
+                    membersBalanceInvolved.put(entry.getKey(), new MemberRepresentation(name, money));
+                }
             }
         }
         Log.d(TAG,"FINAL MAP USERS OF THIS GROUP:"+ usersOfThisGroup_Firebase.size());
