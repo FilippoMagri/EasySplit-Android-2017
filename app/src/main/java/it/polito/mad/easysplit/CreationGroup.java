@@ -125,7 +125,7 @@ public class CreationGroup extends AppCompatActivity {
 
                             @Override
                             protected Void doInBackground(Object... params) {
-                                String name = (String)params[0]; //groupName.getText().toString();
+                                String groupName = (String)params[0]; //groupName.getText().toString();
                                 // participantsList.getText().toString() -> params[1]
 
                                 ArrayList<String> emails = new ArrayList<>(Arrays.asList(
@@ -149,7 +149,7 @@ public class CreationGroup extends AppCompatActivity {
                                                 // Okay, email required by the user! include it
                                                 // (UID used as key, not the email!)
                                                 groupMembers.put(user.getKey(), user.child("name").getValue().toString());
-                                                childUpdates.put("/users/" + user.getKey() + "/groups_ids/" + groupKey, true);
+                                                childUpdates.put("/users/" + user.getKey() + "/groups_ids/" + groupKey, groupName);
                                                 externalEmails.remove(emailAddr); // user found, no need to register it
                                             }
                                         }
@@ -170,8 +170,8 @@ public class CreationGroup extends AppCompatActivity {
 
                                             newUser.put("email", email);
                                             newUser.put("name", email); // use email as the name (until specified by the user upon registration)
-                                            HashMap<String, Boolean> groupsMap = new HashMap<>();
-                                            groupsMap.put(groupKey, true); // add group to the user
+                                            HashMap<String, String> groupsMap = new HashMap<>();
+                                            groupsMap.put(groupKey, groupName); // add group to the user
                                             newUser.put("groups_ids", groupsMap);
                                             childUpdates.put("/users/" + userId, newUser); // add new user to database
                                             groupMembers.put(userId, email); // add user to the group
@@ -200,10 +200,10 @@ public class CreationGroup extends AppCompatActivity {
                                 /* Finally, add current user */
                                 FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
                                 groupMembers.put(user.getUid(), signin_complete_name);
-                                childUpdates.put("/users/" + user.getUid() + "/groups_ids/" + groupKey, true);
+                                childUpdates.put("/users/" + user.getUid() + "/groups_ids/" + groupKey, groupName);
 
                                 HashMap<String, Object> map = new HashMap<>();
-                                map.put("name", name);
+                                map.put("name", groupName);
                                 map.put("expenses_ids", new HashMap<String,Boolean>());
                                 map.put("members_ids", groupMembers);
 
