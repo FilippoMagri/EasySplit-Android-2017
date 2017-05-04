@@ -133,7 +133,7 @@ public class CreationGroup extends AppCompatActivity {
                                 ));
                                 ArrayList<String> externalEmails = new ArrayList<>(emails);
 
-                                HashMap<String, Boolean> groupMembers = new HashMap<>();
+                                HashMap<String, String> groupMembers = new HashMap<>();
                                 HashMap<String, Object> childUpdates = new HashMap<>();
                                 String groupKey = ref.child("groups").push().getKey();
 
@@ -148,7 +148,7 @@ public class CreationGroup extends AppCompatActivity {
                                             if (emails.contains(emailAddr)) {
                                                 // Okay, email required by the user! include it
                                                 // (UID used as key, not the email!)
-                                                groupMembers.put(user.getKey(), true);
+                                                groupMembers.put(user.getKey(), user.child("name").getValue().toString());
                                                 childUpdates.put("/users/" + user.getKey() + "/groups_ids/" + groupKey, true);
                                                 externalEmails.remove(emailAddr); // user found, no need to register it
                                             }
@@ -174,7 +174,8 @@ public class CreationGroup extends AppCompatActivity {
                                             groupsMap.put(groupKey, true); // add group to the user
                                             newUser.put("groups_ids", groupsMap);
                                             childUpdates.put("/users/" + userId, newUser); // add new user to database
-                                            groupMembers.put(userId, true); // add user to the group
+                                            groupMembers.put(userId, email); // add user to the group
+                                            // TODO Because in this case Flavio has expected the functionality of invite a new user by just the email, we'll have to introduce also here the invitation-mail. (Later on)
                                         } catch (ExecutionException e) {
                                             e.printStackTrace();
                                         } catch (InterruptedException e) {
@@ -186,6 +187,7 @@ public class CreationGroup extends AppCompatActivity {
                                 SharedPreferences sharedPref = getSharedPreferences("MyPreferences", Context.MODE_PRIVATE);
                                 String signin_email = sharedPref.getString("signin_email",null);
                                 String signin_password = sharedPref.getString("signin_password",null);
+                                String signin_complete_name = sharedPref.getString("signin_complete_name",null);
                                 FirebaseAuth auth = FirebaseAuth.getInstance();
                                 try {
                                     Tasks.await(auth.signInWithEmailAndPassword(signin_email,signin_password));
@@ -197,7 +199,7 @@ public class CreationGroup extends AppCompatActivity {
 
                                 /* Finally, add current user */
                                 FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-                                groupMembers.put(user.getUid(), true);
+                                groupMembers.put(user.getUid(), signin_complete_name);
                                 childUpdates.put("/users/" + user.getUid() + "/groups_ids/" + groupKey, true);
 
                                 HashMap<String, Object> map = new HashMap<>();
