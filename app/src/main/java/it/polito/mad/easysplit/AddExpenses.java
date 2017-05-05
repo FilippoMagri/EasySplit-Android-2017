@@ -235,11 +235,13 @@ public class AddExpenses extends AppCompatActivity {
         MemberListItem payerItem = (MemberListItem) payerSpinner.getSelectedItem();
         String payerId = payerItem.id;
 
-        Map<String, Boolean> memberIds = new HashMap<>();
+        Map<String, String> memberIds = new HashMap<>();
         int numMembers = membersList.getAdapter().getCount();
         for (int i=0; i < numMembers; i++) {
             MemberListItem item = (MemberListItem) membersList.getItemAtPosition(i);
-            memberIds.put(item.id, membersList.isItemChecked(i));
+            if(membersList.isItemChecked(i)) {
+                memberIds.put(item.id, item.name);
+            }
         }
 
         Map<String, Object> expense = new HashMap<>();
@@ -252,10 +254,10 @@ public class AddExpenses extends AppCompatActivity {
         expense.put("members_ids", memberIds);
 
         /// TODO Refactor database write logic to somewhere else
-        final String expenseId = mRoot.child("expenses").push().getKey();
+        final String expenseId = mRoot.child("groups").child(mGroupId).child("expenses").push().getKey();
         Map<String, Object> update = new HashMap<>();
-        update.put("groups/"+mGroupId+"/expenses_ids/"+expenseId, Boolean.TRUE);
-        update.put("users/"+payerId+"/expenses_ids/"+expenseId, Boolean.TRUE);
+        update.put("groups/"+mGroupId+"/expenses/"+expenseId, expense);
+        update.put("users/"+payerId+"/expenses_ids_as_payer/"+expenseId, title);
         update.put("expenses/"+expenseId, expense);
 
         mRoot.updateChildren(update).addOnCompleteListener(this, new OnCompleteListener<Void>() {

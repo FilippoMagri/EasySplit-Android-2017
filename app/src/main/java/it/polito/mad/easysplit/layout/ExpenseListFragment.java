@@ -49,7 +49,7 @@ public class ExpenseListFragment extends Fragment {
         Bundle args = getArguments();
         mGroupUri = (String) args.getCharSequence("groupUri");
         DatabaseReference groupRef = Utils.findByUri(Uri.parse(mGroupUri), mRoot);
-        mExpenseIdsRef = groupRef.child("expenses_ids");
+        mExpenseIdsRef = groupRef.child("expenses");
     }
 
     @Nullable
