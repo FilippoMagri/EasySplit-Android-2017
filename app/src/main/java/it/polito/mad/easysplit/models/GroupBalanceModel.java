@@ -23,8 +23,8 @@ public class GroupBalanceModel {
     static String TAG="GroupBalanceModel";
     private static final DatabaseReference mRoot = FirebaseDatabase.getInstance().getReference();
     String thisGroupId = "";
-    private Map<String,Object> expensesOfThisGroup_Firebase = new HashMap<String,Object>();
-    private Map<String,Object> usersOfThisGroup_Firebase = new HashMap<String,Object>();
+    private Map<String,Object> expensesOfThisGroup = new HashMap<String,Object>();
+    private Map<String,Object> usersOfThisGroup = new HashMap<String,Object>();
 
     // membersBalanceInvolved
     // is the HashMap created specially to compute the balance among a single group
@@ -37,20 +37,14 @@ public class GroupBalanceModel {
     public GroupBalanceModel(final Uri mGroupUri, final GroupBalanceAdapter groupBalanceAdapter) {
         thisGroupId = mGroupUri.toString().replace("content://it.polito.mad.easysplit/groups/","");
         Log.d(TAG,mGroupUri.toString());
-        mRoot.addValueEventListener(new ValueEventListener() {
+        DatabaseReference groupRef = mRoot.child("groups").child(thisGroupId).getRef();
+        groupRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                Map<String,Object> entireDatabase = new HashMap<String, Object>();
-                entireDatabase = (Map<String, Object>)dataSnapshot.getValue();
-                for (Map.Entry<String,Object> entry : entireDatabase.entrySet()) {
-                    HashMap<String,Object> singleTableDb = (HashMap<String, Object>) entry.getValue();
-                    if (entry.getKey().equals("users")) {
-                        retrieveUsersRelatedThisGroup(singleTableDb);
-                    }
-                    if(entry.getKey().equals("expenses")) {
-                        retrieveExpensesRelatedThisGroup(singleTableDb);
-                    }
-                }
+                Map<String,Object> entireGroupDB = new HashMap<String, Object>();
+                entireGroupDB = (Map<String, Object>)dataSnapshot.getValue();
+                retrieveUsersOfThisGroup((Map<String,Object>)entireGroupDB.get("members_ids"));
+                retrieveExpensesOfThisGroup((Map<String,Object>)entireGroupDB.get("expenses"));
                 computeBalance();
                 printDebugBalances();
                 updateListItemsOnFragment(groupBalanceAdapter);
@@ -63,6 +57,24 @@ public class GroupBalanceModel {
         });
     }
 
+    private void retrieveExpensesOfThisGroup(Map<String, Object> mapOfAllExpenses) {
+        for (Map.Entry<String, Object> entry : mapOfAllExpenses.entrySet()) {
+            Map singleExpense = (Map) entry.getValue();
+            Map<String,Object> involved_balance_members_ids = (Map<String,Object>) singleExpense.get("members_ids");
+            for (Map.Entry<String,Object> entry_nested: involved_balance_members_ids.entrySet()) {
+                String involved_balance_member_key = entry_nested.getKey();
+                String involved_balance_member_name = entry_nested.getValue().toString();
+                Money money = new Money(new BigDecimal("0.00"));
+                membersBalanceInvolved.put(involved_balance_member_key, new MemberRepresentation(involved_balance_member_name, money));
+            }
+        }
+        expensesOfThisGroup = mapOfAllExpenses;
+    }
+
+    private void retrieveUsersOfThisGroup(Map<String, Object> mapOfAllUsers) {
+        usersOfThisGroup = mapOfAllUsers;
+    }
+
     private void updateListItemsOnFragment(GroupBalanceAdapter groupBalanceAdapter) {
         groupBalanceAdapter.clear();
         for (Map.Entry<String,MemberRepresentation> entry : membersBalanceInvolved.entrySet()) {
@@ -71,7 +83,6 @@ public class GroupBalanceModel {
             String name = member.getName();
             String idMember = entry.getKey();
             GroupBalanceAdapter.ListItem listItem = new GroupBalanceAdapter.ListItem(idMember,name,residue);
-            Log.d(TAG,"CIAO");
             groupBalanceAdapter.add(listItem);
         }
     }
@@ -85,7 +96,7 @@ public class GroupBalanceModel {
 
     private void computeBalance() {
         //Log.d(TAG,"MembersInvolved:"+membersBalanceInvolved.toString());
-        for (Map.Entry<String,Object> entry : expensesOfThisGroup_Firebase.entrySet()) {
+        for (Map.Entry<String,Object> entry : expensesOfThisGroup.entrySet()) {
             Map singleExpense = (Map) entry.getValue();
 
             String amountTemp = (String) singleExpense.get("amount");
@@ -127,37 +138,6 @@ public class GroupBalanceModel {
         }
         MemberRepresentation memberUpdated = new MemberRepresentation(member.getName(),residue);
         membersBalanceInvolved.put(idMember,memberUpdated);
-    }
-
-    private void retrieveUsersRelatedThisGroup(Map<String, Object> mapOfAllUsers) {
-        for (Map.Entry<String,Object> entry: mapOfAllUsers.entrySet()) {
-            Map singleUser = (Map) entry.getValue();
-            String name = (String) singleUser.get("name");
-            String id = (String) singleUser.get("id");
-            Map groupIds = (Map) singleUser.get("groups_ids");
-            if(groupIds!=null) {
-                if (groupIds.containsKey(thisGroupId)) {
-                    Log.d(TAG, "User:" + name);
-                    usersOfThisGroup_Firebase.put(entry.getKey(), entry.getValue());
-                    Money money = new Money(new BigDecimal("0.00"));
-                    membersBalanceInvolved.put(entry.getKey(), new MemberRepresentation(name, money));
-                }
-            }
-        }
-        Log.d(TAG,"FINAL MAP USERS OF THIS GROUP:"+ usersOfThisGroup_Firebase.size());
-    }
-
-    public void retrieveExpensesRelatedThisGroup (Map<String, Object> mapOfAllExpenses) {
-        for (Map.Entry<String, Object> entry : mapOfAllExpenses.entrySet()) {
-            Map singleExpense = (Map) entry.getValue();
-            String group_id = (String) singleExpense.get("group_id");
-            if(group_id.equals(thisGroupId)) {
-                expensesOfThisGroup_Firebase.put(entry.getKey(),entry.getValue());
-            }
-            Log.d(TAG,singleExpense.toString());
-            Log.d(TAG,group_id);
-        }
-        Log.d(TAG,"FINAL MAP EXPENSES OF THIS GROUP:"+ expensesOfThisGroup_Firebase.size());
     }
 
     public class MemberRepresentation {
