@@ -58,17 +58,19 @@ public class GroupBalanceModel {
     }
 
     private void retrieveExpensesOfThisGroup(Map<String, Object> mapOfAllExpenses) {
-        for (Map.Entry<String, Object> entry : mapOfAllExpenses.entrySet()) {
-            Map singleExpense = (Map) entry.getValue();
-            Map<String,Object> involved_balance_members_ids = (Map<String,Object>) singleExpense.get("members_ids");
-            for (Map.Entry<String,Object> entry_nested: involved_balance_members_ids.entrySet()) {
-                String involved_balance_member_key = entry_nested.getKey();
-                String involved_balance_member_name = entry_nested.getValue().toString();
-                Money money = new Money(new BigDecimal("0.00"));
-                membersBalanceInvolved.put(involved_balance_member_key, new MemberRepresentation(involved_balance_member_name, money));
+        if (mapOfAllExpenses!=null) {
+            for (Map.Entry<String, Object> entry : mapOfAllExpenses.entrySet()) {
+                Map singleExpense = (Map) entry.getValue();
+                Map<String, Object> involved_balance_members_ids = (Map<String, Object>) singleExpense.get("members_ids");
+                for (Map.Entry<String, Object> entry_nested : involved_balance_members_ids.entrySet()) {
+                    String involved_balance_member_key = entry_nested.getKey();
+                    String involved_balance_member_name = entry_nested.getValue().toString();
+                    Money money = new Money(new BigDecimal("0.00"));
+                    membersBalanceInvolved.put(involved_balance_member_key, new MemberRepresentation(involved_balance_member_name, money));
+                }
             }
+            expensesOfThisGroup = mapOfAllExpenses;
         }
-        expensesOfThisGroup = mapOfAllExpenses;
     }
 
     private void retrieveUsersOfThisGroup(Map<String, Object> mapOfAllUsers) {
