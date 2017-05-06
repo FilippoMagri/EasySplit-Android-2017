@@ -119,6 +119,29 @@ public class GroupBalanceModel {
                 }
                 updateBalanceSingleMember(idMember,numberOfMembersInvolved,isPayer,amount);
             }
+
+            checkIfThePayerIsFinancierOfTheExpense(members_ids,payerId,amount);
+        }
+    }
+
+    private void checkIfThePayerIsFinancierOfTheExpense(HashMap<String,Object> members_ids,String payerId,Money amount) {
+        if (!members_ids.containsKey(payerId)) {
+            //The payer of this Expense is only a financier;
+            //and Because we don't find him inside the members_ids of the single expense
+            //we have to add him to the membersBalanceInvolved,in order to be visualized, but
+            //only as a financier that means without computing a quote
+            //but just adding him with a positive residue, equivalent to the entire amount
+            String financierName = usersOfThisGroup.get(payerId).toString();
+            Money  financierResidue = amount;
+            if (membersBalanceInvolved.containsKey(payerId)) {
+                //This is the case in which the Financier has been already considered and visualized in
+                //others expenses made before , but as a normal member of the single expense
+                //So we have to consider the update of the residue
+                Money residue = membersBalanceInvolved.get(payerId).getResidue();
+                financierResidue = residue.add(financierResidue);
+            }
+            MemberRepresentation memberUpdated = new MemberRepresentation(financierName,financierResidue);
+            membersBalanceInvolved.put(payerId,memberUpdated);
         }
     }
 
