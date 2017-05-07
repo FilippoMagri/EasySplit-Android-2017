@@ -10,9 +10,11 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.HashMap;
 import java.util.Map;
 
+import it.polito.mad.easysplit.ExpenseDetailsActivity;
 import it.polito.mad.easysplit.layout.GroupBalanceAdapter;
 
 /**
@@ -84,7 +86,8 @@ public class GroupBalanceModel {
             Money residue = member.getResidue();
             String name = member.getName();
             String idMember = entry.getKey();
-            GroupBalanceAdapter.ListItem listItem = new GroupBalanceAdapter.ListItem(idMember,name,residue);
+            String memberToGiveBack = member.getMemberToGiveBack();
+            GroupBalanceAdapter.ListItem listItem = new GroupBalanceAdapter.ListItem(idMember,name,residue,memberToGiveBack);
             groupBalanceAdapter.add(listItem);
         }
     }
@@ -119,9 +122,65 @@ public class GroupBalanceModel {
                 }
                 updateBalanceSingleMember(idMember,numberOfMembersInvolved,isPayer,amount);
             }
-
+            distributeTheRestAmongParticipants(amount,numberOfMembersInvolved,payerId);
             checkIfThePayerIsFinancierOfTheExpense(members_ids,payerId,amount);
         }
+
+        decideWhoHasToGiveBackTo();
+    }
+
+    private void distributeTheRestAmongParticipants(Money amount,int numberOfMembersInvolved,String payerId) {
+        Money quote = amount.div(new BigDecimal(numberOfMembersInvolved));
+        Money totalAmountCalculated = (quote.mul(new BigDecimal(numberOfMembersInvolved)));
+        Money singleExpenseRest = new Money(new BigDecimal("0.00"));
+        if (totalAmountCalculated.getAmount().compareTo(amount.getAmount())!=0) {
+            singleExpenseRest = amount.sub(totalAmountCalculated);
+            Log.d(TAG,"SingleRest: "+singleExpenseRest.toString());
+            //TODO Make the distribution onSingleExpense
+            BigDecimal d = BigDecimal.valueOf(singleExpenseRest.getAmount().doubleValue());
+            BigDecimal result = d.subtract(d.setScale(0, RoundingMode.HALF_UP)).movePointRight(d.scale());
+            Integer numberOfIteration = result.abs().intValue();
+            Log.d(TAG,"Number Of Iteration: "+numberOfIteration);
+            for (Map.Entry<String,MemberRepresentation> entry: membersBalanceInvolved.entrySet()) {
+                if (numberOfIteration!=0) {
+                    Log.d(TAG,"ITERATO");
+                    MemberRepresentation member =entry.getValue();
+                    if (entry.getKey().equals(payerId)) {continue;}
+                    if (singleExpenseRest.getAmount().compareTo(BigDecimal.ZERO)>0) {
+                        Money memberResidue = member.getResidue();
+                        memberResidue = memberResidue.add(new Money(new BigDecimal("-0.01")));
+                        member.setResidue(memberResidue);
+                    }
+                    if (singleExpenseRest.getAmount().compareTo(BigDecimal.ZERO)<0) {
+                        Money memberResidue = member.getResidue();
+                        memberResidue = memberResidue.add(new Money(new BigDecimal("+0.01")));
+                        member.setResidue(memberResidue);
+                    }
+                    numberOfIteration--;
+                }
+            }
+        }
+    }
+
+    private void decideWhoHasToGiveBackTo() {
+        HashMap<String,MemberRepresentation> temporaryMapForComputation = (HashMap<String,MemberRepresentation>) membersBalanceInvolved.clone();
+
+        for (Map.Entry<String,MemberRepresentation> entry:membersBalanceInvolved.entrySet()) {
+            MemberRepresentation singleMember = entry.getValue();
+
+            Money residue = singleMember.getResidue();
+            if (residue.getAmount().compareTo(BigDecimal.ZERO)<0) {
+                //Log.d(TAG,"Value <0");
+                // TODO create a double map with payers and who has to pay
+                singleMember.setMemberToGiveBack("Value < 0 Has To GiveBack");
+            }
+            if (residue.getAmount().compareTo(BigDecimal.ZERO)>0) {
+                //Log.d(TAG,"Value >0");
+                // TODO create a double map with payers and who has to pay
+                singleMember.setMemberToGiveBack("Value > 0 Has To Receive");
+            }
+        }
+
     }
 
     private void checkIfThePayerIsFinancierOfTheExpense(HashMap<String,Object> members_ids,String payerId,Money amount) {
@@ -168,6 +227,7 @@ public class GroupBalanceModel {
     public class MemberRepresentation {
         String name;
         Money residue;
+        String memberToGiveBack="";
 
         public MemberRepresentation(String name,Money residue) {
             this.name = name;
@@ -188,6 +248,14 @@ public class GroupBalanceModel {
 
         public void setResidue(Money residue) {
             this.residue = residue;
+        }
+
+        public String getMemberToGiveBack() {
+            return memberToGiveBack;
+        }
+
+        public void setMemberToGiveBack(String memberToGiveBack) {
+            this.memberToGiveBack = memberToGiveBack;
         }
     }
 }

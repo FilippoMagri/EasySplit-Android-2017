@@ -21,8 +21,12 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.ValueEventListener;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Currency;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 import it.polito.mad.easysplit.models.IndirectValueEventListener;
 import it.polito.mad.easysplit.models.Money;
@@ -34,6 +38,10 @@ public class ExpenseDetailsActivity extends AppCompatActivity {
     private TextView mExpenseName;
     private TextView mCreationDate;
     private ListView mParticipantsListView;
+    private Money singleExpenseRest = new Money(new BigDecimal("0.00"));
+    private String idOfThisExpense="";
+    private String idGroupOfThisExpense="";
+    private ArrayList<Participant> listOfParticipants = new ArrayList<>();
 
     private DatabaseReference mRef;
     private ValueEventListener mListener;
@@ -75,57 +83,55 @@ public class ExpenseDetailsActivity extends AppCompatActivity {
         //mRef will be something like "https://easysplit-853e4.firebaseio.com/expenses/-KitTZeY14BFsnsH_rpp"
         //It depends on the expense selected
         mRef = Utils.findByUri(getIntent().getData());
+        idOfThisExpense = mRef.toString().replace("https://easysplit-853e4.firebaseio.com/expenses/","");
 
         mListener = new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                mExpenseName.setText(dataSnapshot.child("name").getValue(String.class));
-                mCreationDate.setText(dataSnapshot.child("timestamp").getValue(String.class));
-                payerId = (String) dataSnapshot.child("payer_id").getValue();
-                String rawStringAmount = (String) dataSnapshot.child("amount").getValue();
-                moneyAmount = Money.parse(rawStringAmount);
-                setTitle(moneyAmount.toString());
-
-                Log.d(TAG,rawStringAmount.toString());
-                Log.d(TAG,moneyAmount.toString());
-                /// TODO Participants list adapter
-                numberOfParticipants = new BigDecimal(dataSnapshot.child("members_ids").getChildrenCount());
-                for (final DataSnapshot child :dataSnapshot.child("members_ids").getChildren()) {
-                    String participantKey = child.getKey();
-                    participantsIds.add(participantKey);
-                    Log.d(TAG,participantKey);
-                    DatabaseReference userRef = mRef.getParent().getParent().child("users").child(participantKey).getRef();
-                    userRef.addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(DataSnapshot dataSnapshot) {
-                            String name = dataSnapshot.child("name").getValue().toString();
-                            boolean isPayer=false;
-                            if (dataSnapshot.getKey().equals(payerId)) isPayer=true;
-                            Log.d(TAG,"chiave: "+child.getKey());
-                            Log.d(TAG,"name: "+name);
-                            Log.d(TAG,"isPayer: "+isPayer);
-                            Log.d(TAG,"MoneyAmount: "+moneyAmount);
-                            Log.d(TAG,"NumberOfParticipants: "+numberOfParticipants);
-                            Participant participant = new Participant(child.getKey(),name,isPayer,moneyAmount,numberOfParticipants);
-                            Log.d(TAG,"Residue: "+participant.getParticipationFee());
-                            Log.d(TAG,"MoneyBackToThePayer: "+participant.getMoneyBackToThePayer());
-                            adapter.add(participant);
+                idGroupOfThisExpense = dataSnapshot.child("group_id").getValue(String.class);
+                Log.d(TAG,idGroupOfThisExpense);
+                DatabaseReference thisExpenseRef = mRef.getParent().getParent().child("groups").child(idGroupOfThisExpense).child("expenses").child(idOfThisExpense).getRef();
+                thisExpenseRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        mExpenseName.setText(dataSnapshot.child("name").getValue(String.class));
+                        mCreationDate.setText(dataSnapshot.child("timestamp").getValue(String.class));
+                        payerId = (String) dataSnapshot.child("payer_id").getValue();
+                        String rawStringAmount = (String) dataSnapshot.child("amount").getValue();
+                        moneyAmount = Money.parse(rawStringAmount);
+                        setTitle(moneyAmount.toString());
+                        Log.d(TAG,rawStringAmount.toString());
+                        Log.d(TAG,moneyAmount.toString());
+                        /// TODO Participants list adapter
+                        numberOfParticipants = new BigDecimal(dataSnapshot.child("members_ids").getChildrenCount());
+                        HashMap<String,Object> mapMembers = (HashMap<String,Object>) dataSnapshot.child("members_ids").getValue();
+                        for (Map.Entry<String,Object> entry : mapMembers.entrySet()) {
+                            String participantKey = entry.getKey();
+                            String name = entry.getValue().toString();
+                            boolean isPayer = false;
+                            if (participantKey.equals(payerId)) {
+                                isPayer = true;
+                            }
+                            Participant participant = new Participant(participantKey,name,isPayer,moneyAmount,numberOfParticipants);
+                            listOfParticipants.add(participant);
                         }
+                        distributeTheRestAmongParticipants(payerId);
+                        addParticipantsToAdapter();
+                    }
 
-                        @Override
-                        public void onCancelled(DatabaseError databaseError) {
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
 
-                        }
-                    });
-                }
-
+                    }
+                });
             }
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
-                /// TODO
+
             }
         };
+
         mRef.addListenerForSingleValueEvent(mListener);
 
         //mRef.child("payer_id") will be something like "https://easysplit-853e4.firebaseio.com/expenses/-KitTZeY14BFsnsH_rpp/payer_id"
@@ -143,6 +149,31 @@ public class ExpenseDetailsActivity extends AppCompatActivity {
             @Override
             public void onCancelled(DatabaseError databaseError) {}
         };
+    }
+
+    private void addParticipantsToAdapter() {
+        adapter.addAll(listOfParticipants);
+    }
+
+    private void distributeTheRestAmongParticipants(String payerId) {
+        if (singleExpenseRest.getAmount().compareTo(BigDecimal.ZERO)!=0) {
+            //extract decimal part of singleExpenseRest to understand how many iterations we need
+            //in order to achieve the entire amount of the expense
+            BigDecimal d = BigDecimal.valueOf(singleExpenseRest.getAmount().doubleValue());
+            BigDecimal result = d.subtract(d.setScale(0, RoundingMode.HALF_UP)).movePointRight(d.scale());
+            Integer numberOfIteration = result.abs().intValue();
+            for (int i=0;i<listOfParticipants.size() && numberOfIteration!=0 ;i++, numberOfIteration--) {
+                Log.d(TAG,"ITERATO");
+                Participant participant = listOfParticipants.get(i);
+                if(participant.getId().equals(payerId)) { numberOfIteration++; continue; }
+                if(singleExpenseRest.getAmount().compareTo(BigDecimal.ZERO)>0){
+                    participant.participationFee = participant.participationFee.add(new Money(new BigDecimal("0.01")));
+                }
+                if (singleExpenseRest.getAmount().compareTo(BigDecimal.ZERO)<0){
+                    participant.participationFee = participant.participationFee.add(new Money(new BigDecimal("-0.01")));
+                }
+            }
+        }
     }
 
     @Override
@@ -190,12 +221,20 @@ public class ExpenseDetailsActivity extends AppCompatActivity {
             this.totalCost = totalCost;
             this.numberOfParticipants = numberOfParticipants;
             this.participationFee = totalCost.div(numberOfParticipants);
+            Money totalCostCalculated = participationFee.mul(numberOfParticipants);
+            //In case the quote is not strictly exact compared to the amount and the number of participants
+            //we have to consider a global rest of the single Expense
+            if (totalCostCalculated.getAmount().compareTo(totalCost.getAmount())!=0) {
+                singleExpenseRest = totalCost.sub(totalCostCalculated);
+                Log.d(TAG,singleExpenseRest.toString());
+            }
             if (isPayer) {
                 moneyBackToThePayer = totalCost.sub(participationFee);
             } else {
                 moneyBackToThePayer = new Money(totalCost.getCurrency(),new BigDecimal("0.00"));
             }
         }
+
         public String getId() {
             return id;
         }

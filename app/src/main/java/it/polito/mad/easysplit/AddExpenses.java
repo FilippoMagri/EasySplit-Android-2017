@@ -24,6 +24,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.util.Calendar;
@@ -224,9 +225,12 @@ public class AddExpenses extends AppCompatActivity {
 
         try {
 //amount take the value of price + currencyCode
-            BigDecimal price = BigDecimal.valueOf(Long.parseLong(amountEdit.getText().toString()));
+            BigDecimal price = BigDecimal.valueOf(Float.parseFloat(amountEdit.getText().toString()));
             Currency cur = Currency.getInstance(currencyCode);
+            //Rounding with 2 Numbers After dot
+            price = price.divide(new BigDecimal("1.00"),2,RoundingMode.HALF_UP);
             amount = new Money(cur, price);
+            amount.div(new BigDecimal("1.00"));
         } catch (NoSuchElementException exc) {
             Snackbar.make(contentView, "Invalid money amount!", Snackbar.LENGTH_LONG).show();
             return;
