@@ -43,6 +43,7 @@ public class InvitePerson extends AppCompatActivity implements View.OnClickListe
     String groupName;
     String idGroup;
     String existingUserId;
+    String userNameExistingUser;
 
     EditText mEmail;
 
@@ -96,6 +97,7 @@ public class InvitePerson extends AppCompatActivity implements View.OnClickListe
                     if(model.get("email")!=null) {
                         Log.d(TAG,"Value model.get"+model.get("email").toString());
                         if (model.get("email").equals(emailToCheck)) {
+                            userNameExistingUser = model.get("name").toString();
                             idExistingUser = child.getKey();
                             exists = true;
                             break;
@@ -158,8 +160,8 @@ public class InvitePerson extends AppCompatActivity implements View.OnClickListe
                 if(!userMemberOfThisGroup) {
                     Log.d(TAG,"User is NOT Member of this Group");
                     HashMap<String,Object> childUpdates = new HashMap<>();
-                    childUpdates.put("/groups/" + idGroup + "/members_ids/" + existingUserId, true); // add user to group
-                    childUpdates.put("/users/" + existingUserId + "/groups_ids/" + idGroup, true); // add group to user
+                    childUpdates.put("/groups/" + idGroup + "/members_ids/" + existingUserId, userNameExistingUser); // add user to group
+                    childUpdates.put("/users/" + existingUserId + "/groups_ids/" + idGroup, groupName); // add group to user
                     database.getReference().updateChildren(childUpdates);
                 }
             }
@@ -257,11 +259,11 @@ public class InvitePerson extends AppCompatActivity implements View.OnClickListe
                 /* create new user in database */
                 newUser.put("email", emailToCheck);
                 newUser.put("name", emailToCheck); // use email as the name (until specified by the user upon registration)
-                HashMap<String, Boolean> groupsMap = new HashMap<>();
-                groupsMap.put(idGroup, true);
+                HashMap<String, String> groupsMap = new HashMap<>();
+                groupsMap.put(idGroup, groupName);
                 newUser.put("groups_ids", groupsMap); // add group to user
                 childUpdates.put("/users/" + userId, newUser); // add new user to database
-                childUpdates.put("/groups/" + idGroup + "/members_ids/" + userId, true); // add user to group
+                childUpdates.put("/groups/" + idGroup + "/members_ids/" + userId, emailToCheck); // add user to group
                 /* here, if we really wanted to be consistent,
                  * one may want to figure out how to delete the user
                  * from the authentication part, if things go awry

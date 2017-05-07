@@ -24,6 +24,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.util.Calendar;
@@ -224,9 +225,12 @@ public class AddExpenses extends AppCompatActivity {
 
         try {
 //amount take the value of price + currencyCode
-            BigDecimal price = BigDecimal.valueOf(Long.parseLong(amountEdit.getText().toString()));
+            BigDecimal price = BigDecimal.valueOf(Float.parseFloat(amountEdit.getText().toString()));
             Currency cur = Currency.getInstance(currencyCode);
+            //Rounding with 2 Numbers After dot
+            price = price.divide(new BigDecimal("1.00"),2,RoundingMode.HALF_UP);
             amount = new Money(cur, price);
+            amount.div(new BigDecimal("1.00"));
         } catch (NoSuchElementException exc) {
             Snackbar.make(contentView, "Invalid money amount!", Snackbar.LENGTH_LONG).show();
             return;
@@ -235,11 +239,13 @@ public class AddExpenses extends AppCompatActivity {
         MemberListItem payerItem = (MemberListItem) payerSpinner.getSelectedItem();
         String payerId = payerItem.id;
 
-        Map<String, Boolean> memberIds = new HashMap<>();
+        Map<String, String> memberIds = new HashMap<>();
         int numMembers = membersList.getAdapter().getCount();
         for (int i=0; i < numMembers; i++) {
             MemberListItem item = (MemberListItem) membersList.getItemAtPosition(i);
-            memberIds.put(item.id, membersList.isItemChecked(i));
+            if(membersList.isItemChecked(i)) {
+                memberIds.put(item.id, item.name);
+            }
         }
 
         Map<String, Object> expense = new HashMap<>();
@@ -252,10 +258,10 @@ public class AddExpenses extends AppCompatActivity {
         expense.put("members_ids", memberIds);
 
         /// TODO Refactor database write logic to somewhere else
-        final String expenseId = mRoot.child("expenses").push().getKey();
+        final String expenseId = mRoot.child("groups").child(mGroupId).child("expenses").push().getKey();
         Map<String, Object> update = new HashMap<>();
-        update.put("groups/"+mGroupId+"/expenses_ids/"+expenseId, Boolean.TRUE);
-        update.put("users/"+payerId+"/expenses_ids/"+expenseId, Boolean.TRUE);
+        update.put("groups/"+mGroupId+"/expenses/"+expenseId, expense);
+        update.put("users/"+payerId+"/expenses_ids_as_payer/"+expenseId, title);
         update.put("expenses/"+expenseId, expense);
 
         mRoot.updateChildren(update).addOnCompleteListener(this, new OnCompleteListener<Void>() {

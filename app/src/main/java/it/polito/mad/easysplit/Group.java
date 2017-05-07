@@ -1,6 +1,8 @@
 package it.polito.mad.easysplit;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.DataSetObserver;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -88,6 +90,12 @@ public class Group extends AppCompatActivity {
                     Log.d(TAG, "setUser: " + user.getDisplayName() + "[" + user.getEmail() + "]");
                     String userName = userSnap.child("name").getValue(String.class);
                     userNameText.setText(userName);
+
+                    //Save Informations about email e password Internally to the phone
+                    SharedPreferences sharedPref = getSharedPreferences("MyPreferences", Context.MODE_PRIVATE);
+                    SharedPreferences.Editor editor = sharedPref.edit();
+                    editor.putString("signin_complete_name",userName);
+                    editor.commit();
                 }
 
                 @Override

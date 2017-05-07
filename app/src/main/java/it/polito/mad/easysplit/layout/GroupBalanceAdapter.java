@@ -25,11 +25,13 @@ public class GroupBalanceAdapter extends ArrayAdapter<GroupBalanceAdapter.ListIt
     public static final class ListItem {
         public String id, name;
         public Money residue;
+        String memberToGiveBack;
 
-        public ListItem(String id, String name, Money residue) {
+        public ListItem(String id, String name, Money residue,String memberToGiveBack) {
             this.id = id;
             this.name = name;
             this.residue = residue;
+            this.memberToGiveBack = memberToGiveBack;
         }
     }
 
@@ -48,6 +50,7 @@ public class GroupBalanceAdapter extends ArrayAdapter<GroupBalanceAdapter.ListIt
         final GroupBalanceAdapter.ListItem item = getItem(position);
         TextView name = (TextView) convertView.findViewById(R.id.name);
         TextView residue = (TextView) convertView.findViewById(R.id.residue);
+        TextView moneyToGiveBack = (TextView) convertView.findViewById(R.id.money_back_to);
 
         //TODO implement general Version For All Currencies
         name.setText(item.name);
@@ -55,8 +58,10 @@ public class GroupBalanceAdapter extends ArrayAdapter<GroupBalanceAdapter.ListIt
             residue.setText(item.residue.toString());
             if(item.residue.getAmount().compareTo(new BigDecimal("0.00"))>0) {
                 residue.setTextColor(Color.GREEN);
+                moneyToGiveBack.setText(item.memberToGiveBack);
             } else {
                 residue.setTextColor(Color.RED);
+                moneyToGiveBack.setText(item.memberToGiveBack);
             }
         } else {
             residue.setText("Catch up");
