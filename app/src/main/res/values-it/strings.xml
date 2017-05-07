@@ -11,4 +11,19 @@
     <string name="tab_name_balance">Bilancio</string>
     <string name="tab_name_expenses">Spese</string>
     <string name="your_groups">I tuoi gruppi</string>
+    <string name="action_edit_group">Modifica</string>
+    <string name="message_fetching_expense">We\'re loading the expense\'s data...</string>
+    <string name="action_invite">Invita</string>
+    <string name="action_create_group">Crea gruppo</string>
+    <string name="action_register">Iscriviti</string>
+    <string name="action_sign_in">Accedi</string>
+    <string name="action_sign_in_short">Accedi</string>
+    <string name="error_field_required">Questo campo dev\'essere riempito</string>
+    <string name="error_incorrect_password">La password è sbagliata</string>
+    <string name="error_invalid_email">L\'indirizzo email non è valido.</string>
+    <string name="error_invalid_password">La password è troppo corta.</string>
+    <string name="name_loginUser">Nome</string>
+    <string name="permission_rationale"></string>
+    <string name="title_activity_invite_person">Invita una persona</string>
+    <string name="title_activity_login">Accedi</string>
 </resources>

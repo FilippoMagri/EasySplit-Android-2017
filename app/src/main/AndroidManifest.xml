@@ -23,7 +23,7 @@
             android:name=".ExpenseDetailsActivity"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
-            android:name=".AddExpenses"
+            android:name=".EditExpenseActivity"
             android:label="@string/title_activity_add_expenses"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity

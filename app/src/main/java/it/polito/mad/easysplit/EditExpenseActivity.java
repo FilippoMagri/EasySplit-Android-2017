@@ -1,10 +1,12 @@
 package it.polito.mad.easysplit;
 
 import android.app.DatePickerDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -28,6 +30,8 @@ import com.google.firebase.database.ValueEventListener;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.DateFormat;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.text.ParseException;
 import java.util.Calendar;
 import java.util.Currency;
@@ -38,7 +42,13 @@ import java.util.NoSuchElementException;
 
 import it.polito.mad.easysplit.models.Money;
 
-public class AddExpenses extends AppCompatActivity {
+
+/** An activity that can add a new expense or edit an existing one.
+ *
+ * If the intent contains a string extra for key "expenseId", the activity will edit that activity;
+ * otherwise, a new one will be created. In both cases, the "groupId" extra is mandatory.
+ */
+public class EditExpenseActivity extends AppCompatActivity {
     // Used for both the spinner and the checklist
     private final class MemberListItem {
         String id, name;
@@ -56,31 +66,120 @@ public class AddExpenses extends AppCompatActivity {
 
     private final DatabaseReference mRoot = FirebaseDatabase.getInstance().getReference();
     private final DateFormat mUIDateFormat = DateFormat.getDateInstance();
+    private static final DecimalFormat mDecimalFormat = new DecimalFormat("#,##0.00");
     private DatePickerDialog mDatePickerDialog;
     private DateFormat mTimestampFormat;
     private String mGroupId;
-
+    private DataSnapshot mInitialExpense;
+    private View mProgressBarOverlay;
     private UnsavedChangesNotifier mNotifier;
+
+    static {
+        DecimalFormatSymbols symbols = DecimalFormatSymbols.getInstance();
+        symbols.setGroupingSeparator('\'');
+        mDecimalFormat.setDecimalFormatSymbols(symbols);
+        mDecimalFormat.setParseBigDecimal(true);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_expenses);
 
-        mGroupId = getIntent().getStringExtra("groupId");
-        mTimestampFormat = android.text.format.DateFormat.getLongDateFormat(this);
+        mProgressBarOverlay = findViewById(R.id.progress_bar_overlay);
 
-        setupDateEdit();
-        setActionOnButtons();
-        setupMembersSpinner();
-        setupMembersChecklist();
+        Intent i = getIntent();
+        mGroupId = getIntent().getStringExtra("groupId");
+        String expenseId = i.getStringExtra("expenseId");
+        if (expenseId != null) {
+            // edit mode
+            mProgressBarOverlay.setVisibility(View.VISIBLE);
+            mRoot.child("expenses").child(expenseId).addListenerForSingleValueEvent(new ExpenseListener());
+        } else {
+            // add mode: setup the (empty) view immediately
+            mProgressBarOverlay.setVisibility(View.GONE);
+            setupView();
+        }
+
+        mTimestampFormat = android.text.format.DateFormat.getLongDateFormat(this);
 
         mNotifier = new UnsavedChangesNotifier(this, this); // prepare unsaved changes notifier
         /// TODO Add calls to mNotifier.setChanged() where relevant
     }
 
+    private class ExpenseListener implements ValueEventListener {
+        @Override
+        public void onDataChange(DataSnapshot expenseSnap) {
+            mProgressBarOverlay.setVisibility(View.GONE);
+            mInitialExpense = expenseSnap;
+            setupView();
+        }
+
+        @Override
+        public void onCancelled(DatabaseError databaseError) {
+            mProgressBarOverlay.setVisibility(View.GONE);
+            AlertDialog.OnClickListener onClickGoBack = new AlertDialog.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    EditExpenseActivity.this.finish();
+                }
+            };
+            AlertDialog dialog = new AlertDialog.Builder(EditExpenseActivity.this)
+                    .setTitle("Error")
+                    .setMessage(databaseError.getMessage())
+                    .setNegativeButton(android.R.string.cancel, onClickGoBack)
+                    .create();
+            dialog.show();
+        }
+    }
+
+    private boolean isEditing() {
+        return mInitialExpense != null;
+    }
+
+    public void setupView() {
+        setupDateEdit();
+        setActionOnButtons();
+        setupMembersSpinner();
+        setupMembersChecklist();
+
+        if (isEditing()) {
+            EditText titleEdit = (EditText) findViewById(R.id.titleEdit);
+            titleEdit.setText(mInitialExpense.child("name").getValue(String.class));
+
+            EditText amountEdit = (EditText) findViewById(R.id.amountEdit);
+            Money amount = Money.parse(mInitialExpense.child("amount").getValue(String.class));
+            amountEdit.setText(amount.getAmount().toString());
+
+            // WARNING Indefinite behavior when the currency code isn't already part of the
+            // spinner's items.
+            Spinner currencySpinner = (Spinner) findViewById(R.id.currencySpinner);
+            int numCurrencies = currencySpinner.getAdapter().getCount();
+            for (int i=0; i < numCurrencies; i++) {
+                String itemCurrency = (String) currencySpinner.getItemAtPosition(i);
+                if (itemCurrency.equals(amount.getCurrency().getCurrencyCode())) {
+                    currencySpinner.setSelection(i);
+                    break;
+                }
+            }
+        }
+    }
+
     private void setupDateEdit() {
         final EditText dateEdit = (EditText) findViewById(R.id.dateEdit);
+
+        if (isEditing()) {
+            try {
+                Date timestamp = mTimestampFormat.parse(mInitialExpense.child("timestamp").getValue(String.class));
+                dateEdit.setText(mUIDateFormat.format(timestamp));
+            } catch (ParseException exc) {
+                // just leave the field empty: invalid date
+                dateEdit.setText("");
+            }
+        } else {
+            Calendar newDate = Calendar.getInstance();
+            dateEdit.setText(mUIDateFormat.format(newDate.getTime()));
+        }
 
         DatePickerDialog.OnDateSetListener dateSetListener = new DatePickerDialog.OnDateSetListener() {
             public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
@@ -98,8 +197,6 @@ public class AddExpenses extends AppCompatActivity {
 
         // Disable future dates
         mDatePickerDialog.getDatePicker().setMaxDate(System.currentTimeMillis());
-        Calendar newDate = Calendar.getInstance();
-        dateEdit.setText(mUIDateFormat.format(newDate.getTime()));
     }
 
     public void setupMembersSpinner() {
@@ -146,20 +243,19 @@ public class AddExpenses extends AppCompatActivity {
                 adapter.clear();
                 for (DataSnapshot child : membersIdsRef.getChildren()) {
                     final String userId = child.getKey();
-                    if (!userId.equals(idOfTheUserLogged)) {
-                        DatabaseReference nameRef = mRoot.child("users").child(userId).child("name");
-                        nameRef.addListenerForSingleValueEvent(new ValueEventListener() {
-                            @Override
-                            public void onDataChange(DataSnapshot nameRef) {
-                                String userName = nameRef.getValue(String.class);
-                                adapter.add(new MemberListItem(userId, userName));
-                            }
+                    final String userName = child.getValue(String.class);
+                    adapter.add(new MemberListItem(userId, userName));
+                }
 
-                            @Override
-                            public void onCancelled(DatabaseError databaseError) {
-                                adapter.add(new MemberListItem(userId, "???"));
-                            }
-                        });
+                spinner.setAdapter(adapter);
+
+                if (isEditing()) {
+                    String currentPayerId = mInitialExpense.child("payer_id").getValue(String.class);
+                    for (int i=0; i < adapter.getCount(); i++) {
+                        if (adapter.getItem(i).id.equals(currentPayerId)) {
+                            spinner.setSelection(i);
+                            break;
+                        }
                     }
                 }
             }
@@ -171,6 +267,7 @@ public class AddExpenses extends AppCompatActivity {
             }
         });
 
+        /// TODO Does this need to get removed?
         spinner.setAdapter(adapter);
     }
 
@@ -187,19 +284,16 @@ public class AddExpenses extends AppCompatActivity {
             public void onDataChange(DataSnapshot membersIdsRef) {
                 for (DataSnapshot child : membersIdsRef.getChildren()) {
                     final String userId = child.getKey();
-                    DatabaseReference nameRef = mRoot.child("users").child(userId).child("name");
-                    nameRef.addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(DataSnapshot nameRef) {
-                            String userName = nameRef.getValue(String.class);
-                            adapter.add(new MemberListItem(userId, userName));
-                        }
+                    String userName = child.getValue(String.class);
+                    adapter.add(new MemberListItem(userId, userName));
+                }
 
-                        @Override
-                        public void onCancelled(DatabaseError databaseError) {
-                            adapter.add(new MemberListItem(userId, "???"));
-                        }
-                    });
+                if (isEditing()) {
+                    for (int i = 0; i < adapter.getCount(); i++) {
+                        MemberListItem item = adapter.getItem(i);
+                        boolean checked = mInitialExpense.child("members_ids").child(item.id).exists();
+                        listView.setItemChecked(i, checked);
+                    }
                 }
             }
 
@@ -234,6 +328,7 @@ public class AddExpenses extends AppCompatActivity {
         });
     }
 
+    /** Save the existing expense or create the new one */
     private void acceptExpense() {
         final View contentView = findViewById(android.R.id.content);
         EditText dateEdit = (EditText) findViewById(R.id.dateEdit);
@@ -241,7 +336,7 @@ public class AddExpenses extends AppCompatActivity {
         EditText amountEdit = (EditText) findViewById(R.id.amountEdit);
         Spinner payerSpinner = (Spinner) findViewById(R.id.payerSpinner);
         ListView membersList = (ListView) findViewById(R.id.membersList);
-        Spinner spinnerMonney = (Spinner) findViewById(R.id.spinnerMonney);
+        Spinner currencySpinner = (Spinner) findViewById(R.id.currencySpinner);
 
         String dateStr = dateEdit.getText().toString();
         Date timestamp;
@@ -256,17 +351,16 @@ public class AddExpenses extends AppCompatActivity {
         String title = titleEdit.getText().toString();
 
         Money amount;
-                String currencyCode = (String) spinnerMonney.getSelectedItem();
+        String currencyCode = (String) currencySpinner.getSelectedItem();
 
         try {
-//amount take the value of price + currencyCode
-            BigDecimal price = BigDecimal.valueOf(Float.parseFloat(amountEdit.getText().toString()));
+            // amount take the value of price + currencyCode
+            BigDecimal price = (BigDecimal) mDecimalFormat.parse(amountEdit.getText().toString());
             Currency cur = Currency.getInstance(currencyCode);
             //Rounding with 2 Numbers After dot
             price = price.divide(new BigDecimal("1.00"),2,RoundingMode.HALF_UP);
             amount = new Money(cur, price);
-            amount.div(new BigDecimal("1.00"));
-        } catch (NoSuchElementException exc) {
+        } catch (NoSuchElementException | ParseException exc) {
             Snackbar.make(contentView, "Invalid money amount!", Snackbar.LENGTH_LONG).show();
             return;
         }
@@ -294,11 +388,21 @@ public class AddExpenses extends AppCompatActivity {
         expense.put("members_ids", memberIds);
 
         /// TODO Refactor database write logic to somewhere else
-        final String expenseId = mRoot.child("groups").child(mGroupId).child("expenses").push().getKey();
+        final String expenseId;
+        if (isEditing())
+            expenseId = mInitialExpense.getKey();
+        else
+            expenseId = mRoot.child("groups").child(mGroupId).child("expenses").push().getKey();
+
         Map<String, Object> update = new HashMap<>();
         update.put("groups/"+mGroupId+"/expenses/"+expenseId, expense);
         update.put("users/"+payerId+"/expenses_ids_as_payer/"+expenseId, title);
         update.put("expenses/"+expenseId, expense);
+        if (isEditing()) {
+            // remove expense from the old payer's expense list
+            String oldPayerId = mInitialExpense.child("payer_id").getValue(String.class);
+            update.put("users/"+oldPayerId+"/expenses_ids_as_payer/"+expenseId, null);
+        }
 
         mRoot.updateChildren(update).addOnCompleteListener(this, new OnCompleteListener<Void>() {
             @Override
@@ -308,10 +412,13 @@ public class AddExpenses extends AppCompatActivity {
                     Snackbar.make(contentView, msg, Snackbar.LENGTH_LONG).show();
                     return;
                 }
-                /// TODO Go to the expense details (with the newly created URI)
-                Intent i = new Intent(getApplicationContext(), ExpenseDetailsActivity.class);
-                i.setData(Utils.getUriFor(Utils.UriType.EXPENSE, expenseId));
-                startActivity(i);
+
+                if (! isEditing()) {
+                    /// TODO Go to the expense details (with the newly created URI)
+                    Intent i = new Intent(getApplicationContext(), ExpenseDetailsActivity.class);
+                    i.setData(Utils.getUriFor(Utils.UriType.EXPENSE, expenseId));
+                    startActivity(i);
+                }
                 finish();
             }
         });

@@ -4,132 +4,128 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    tools:context="it.polito.mad.easysplit.AddExpenses"
+    tools:context="it.polito.mad.easysplit.EditExpenseActivity"
     tools:showIn="@layout/activity_add_expenses">
 
-    <LinearLayout
+    <GridLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:columnCount="3">
 
-        <GridLayout
-            android:layout_width="match_parent"
+        <TextView
+            android:id="@+id/dateLabel"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:columnCount="3">
+            android:layout_gravity="right|center_vertical"
+            android:layout_margin="10dp"
+            android:gravity="right|end"
+            android:text="Date"
+            android:textAlignment="gravity"
+            android:textSize="18sp" />
 
-            <TextView
-                android:id="@+id/dateLabel"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="right|center_vertical"
-                android:layout_margin="10dp"
-                android:gravity="right|end"
-                android:text="Date"
-                android:textAlignment="gravity"
-                android:textSize="18sp" />
-
-            <EditText
-                android:id="@+id/dateEdit"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="fill"
-                android:layout_margin="10dp"
-                android:gravity="fill_horizontal"
-                android:inputType="date"
-                android:textAlignment="textStart" />
-
-            <ImageView
-                android:id="@+id/dateImg"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="10dp"
-                android:layout_weight="0.1"
-                android:src="@drawable/ic_date_range_black_36dp"
-                android:textAlignment="center" />
-
-            <TextView
-                android:id="@+id/titleLabel"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="right|center_vertical"
-                android:layout_margin="10dp"
-                android:gravity="right|end"
-                android:text="Title"
-                android:textAlignment="gravity"
-                android:textSize="18sp" />
-
-            <EditText
-                android:id="@+id/titleEdit"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="fill"
-                android:layout_margin="10dp"
-                android:gravity="fill_horizontal"
-                android:inputType="text"
-                android:textAlignment="textStart" />
-
-            <Space
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
-
-            <TextView
-                android:id="@+id/amountLabel"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="right|center_vertical"
-                android:layout_margin="10dp"
-                android:text="Amount"
-                android:textAlignment="gravity"
-                android:textSize="18sp" />
-
-            <EditText
-                android:id="@+id/amountEdit"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="fill"
-                android:layout_margin="10dp"
-                android:gravity="fill_horizontal"
-                android:inputType="numberDecimal"
-                android:textAlignment="textStart" />
-
-               <Spinner
-                android:id="@+id/spinnerMonney"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:layout_margin="10dp"
-                android:layout_weight="0.1"
-                android:textAlignment="textEnd"
-                android:gravity="end"
-                android:entries="@array/CurrencyListItem"/>
-
-
-            <TextView
-                android:id="@+id/payerLabel"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="right|center_vertical"
-                android:layout_margin="10dp"
-                android:text="Paid by"
-                android:textAlignment="gravity"
-                android:textSize="18sp" />
-
-            <Spinner
-                android:id="@+id/payerSpinner"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="fill"
-                android:layout_margin="10dp"
-                android:entries="@array/countries_dummy_example"
-                android:gravity="fill_horizontal"
-                android:textAlignment="textEnd" />
-
-        </GridLayout>
-
-        <ListView
-            android:id="@+id/membersList"
-            android:layout_width="match_parent"
+        <EditText
+            android:id="@+id/dateEdit"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:choiceMode="multipleChoice" />
-    </LinearLayout>
+            android:layout_gravity="fill"
+            android:layout_margin="10dp"
+            android:gravity="fill_horizontal"
+            android:inputType="date"
+            android:textAlignment="textStart" />
+
+        <ImageView
+            android:id="@+id/dateImg"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:layout_weight="0.1"
+            android:src="@drawable/ic_date_range_black_36dp"
+            android:textAlignment="center" />
+
+        <TextView
+            android:id="@+id/titleLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="right|center_vertical"
+            android:layout_margin="10dp"
+            android:gravity="right|end"
+            android:text="Title"
+            android:textAlignment="gravity"
+            android:textSize="18sp" />
+
+        <EditText
+            android:id="@+id/titleEdit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="fill"
+            android:layout_margin="10dp"
+            android:gravity="fill_horizontal"
+            android:inputType="text"
+            android:textAlignment="textStart" />
+
+        <Space
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <TextView
+            android:id="@+id/amountLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="right|center_vertical"
+            android:layout_margin="10dp"
+            android:text="Amount"
+            android:textAlignment="gravity"
+            android:textSize="18sp" />
+
+        <EditText
+            android:id="@+id/amountEdit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="fill"
+            android:layout_margin="10dp"
+            android:gravity="fill_horizontal"
+            android:inputType="numberDecimal"
+            android:textAlignment="textStart" />
+
+           <Spinner
+            android:id="@+id/currencySpinner"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_margin="10dp"
+            android:layout_weight="0.1"
+            android:textAlignment="textEnd"
+            android:gravity="end"
+            android:entries="@array/CurrencyListItem"/>
+
+
+        <TextView
+            android:id="@+id/payerLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="right|center_vertical"
+            android:layout_margin="10dp"
+            android:text="Paid by"
+            android:textAlignment="gravity"
+            android:textSize="18sp" />
+
+        <Spinner
+            android:id="@+id/payerSpinner"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="fill"
+            android:layout_margin="10dp"
+            android:entries="@array/countries_dummy_example"
+            android:gravity="fill_horizontal"
+            android:textAlignment="textEnd" />
+
+    </GridLayout>
+
+    <ListView
+        android:id="@+id/membersList"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:choiceMode="multipleChoice" />
+
 </LinearLayout>

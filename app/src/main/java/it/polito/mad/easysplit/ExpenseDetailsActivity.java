@@ -12,6 +12,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -47,9 +48,9 @@ public class ExpenseDetailsActivity extends AppCompatActivity {
     private ValueEventListener mListener;
     private IndirectValueEventListener mPayerNameListener;
 
-    Money moneyAmount=new Money(Currency.getInstance("EUR"),new BigDecimal("0.00"));
-    BigDecimal numberOfParticipants=new BigDecimal("0");
-    String payerId="Nobody";
+    Money moneyAmount=new Money(Currency.getInstance("EUR"), BigDecimal.ZERO);
+    BigDecimal numberOfParticipants = BigDecimal.ZERO;
+    String payerId = "Nobody";
 
     final ArrayList<String> participantsIds = new ArrayList<>();
     final ArrayList<Participant> participants = new ArrayList<>();
@@ -71,6 +72,8 @@ public class ExpenseDetailsActivity extends AppCompatActivity {
                 startActivity(new Intent(getApplicationContext(),Group.class));
             }
         });
+
+        final Button editButton = (Button) findViewById(R.id.editButton);
 
         mPayerName = (TextView) findViewById(R.id.payerName);
         mExpenseName = (TextView) findViewById(R.id.expenseName);
@@ -100,21 +103,31 @@ public class ExpenseDetailsActivity extends AppCompatActivity {
                         String rawStringAmount = (String) dataSnapshot.child("amount").getValue();
                         moneyAmount = Money.parse(rawStringAmount);
                         setTitle(moneyAmount.toString());
-                        Log.d(TAG,rawStringAmount.toString());
-                        Log.d(TAG,moneyAmount.toString());
+                        Log.d(TAG, rawStringAmount.toString());
+                        Log.d(TAG, moneyAmount.toString());
                         /// TODO Participants list adapter
                         numberOfParticipants = new BigDecimal(dataSnapshot.child("members_ids").getChildrenCount());
-                        HashMap<String,Object> mapMembers = (HashMap<String,Object>) dataSnapshot.child("members_ids").getValue();
-                        for (Map.Entry<String,Object> entry : mapMembers.entrySet()) {
+                        HashMap<String, Object> mapMembers = (HashMap<String, Object>) dataSnapshot.child("members_ids").getValue();
+                        for (Map.Entry<String, Object> entry : mapMembers.entrySet()) {
                             String participantKey = entry.getKey();
                             String name = entry.getValue().toString();
                             boolean isPayer = false;
                             if (participantKey.equals(payerId)) {
                                 isPayer = true;
                             }
-                            Participant participant = new Participant(participantKey,name,isPayer,moneyAmount,numberOfParticipants);
+                            Participant participant = new Participant(participantKey, name, isPayer, moneyAmount, numberOfParticipants);
                             listOfParticipants.add(participant);
                         }
+
+                        editButton.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                Intent i = new Intent(getApplicationContext(), EditExpenseActivity.class);
+                                i.putExtra("expenseId", dataSnapshot.getKey());
+                                i.putExtra("groupId", dataSnapshot.child("group_id").getValue(String.class));
+                                startActivity(i);
+                            }
+                        });
                         distributeTheRestAmongParticipants(payerId);
                         addParticipantsToAdapter();
                     }
@@ -128,11 +141,11 @@ public class ExpenseDetailsActivity extends AppCompatActivity {
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
-
+                /// TODO
             }
         };
 
-        mRef.addListenerForSingleValueEvent(mListener);
+        mRef.addValueEventListener(mListener);
 
         //mRef.child("payer_id") will be something like "https://easysplit-853e4.firebaseio.com/expenses/-KitTZeY14BFsnsH_rpp/payer_id"
         mPayerNameListener = new IndirectValueEventListener(mRef.child("payer_id")) {

@@ -21,6 +21,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import it.polito.mad.easysplit.EditExpenseActivity;
 import java.util.Comparator;
 
 import it.polito.mad.easysplit.AddExpenses;
@@ -78,7 +79,7 @@ public class ExpenseListFragment extends Fragment {
         btnAdd.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent i = new Intent(getContext(), AddExpenses.class);
+                Intent i = new Intent(getContext(), EditExpenseActivity.class);
                 String groupId = Uri.parse(mGroupUri).getPathSegments().get(1);
                 i.putExtra("groupId", groupId);
                 startActivity(i);
