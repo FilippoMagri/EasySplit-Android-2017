@@ -180,7 +180,7 @@ public class GroupBalanceModel {
                 singleMember.setMemberToGiveBack("Value > 0 Has To Receive");
             }
         }
-
+        new CreditorDebtorModel(membersBalanceInvolved);
     }
 
     private void checkIfThePayerIsFinancierOfTheExpense(HashMap<String,Object> members_ids,String payerId,Money amount) {
@@ -224,7 +224,7 @@ public class GroupBalanceModel {
         membersBalanceInvolved.put(idMember,memberUpdated);
     }
 
-    public class MemberRepresentation {
+    public static class MemberRepresentation {
         String name;
         Money residue;
         String memberToGiveBack="";
