@@ -26,4 +26,10 @@
     <string name="permission_rationale"></string>
     <string name="title_activity_invite_person">Invita una persona</string>
     <string name="title_activity_login">Accedi</string>
+    <string name="action_delete_expense">Cancella</string>
+    <string name="title_confirm">Sei sicuro?</string>
+    <string name="message_confirm_delete_expense">Vuoi cancellare questa spesa?</string>
+    <string name="button_delete">Cancella</string>
+    <string name="button_cancel">Non farlo</string>
+    <string name="title_error_dialog">Errore</string>
 </resources>

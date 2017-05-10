@@ -1,8 +1,11 @@
 package it.polito.mad.easysplit;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -16,6 +19,8 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -27,6 +32,8 @@ import java.util.ArrayList;
 import java.util.Currency;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.Map;
 
 import it.polito.mad.easysplit.models.IndirectValueEventListener;
@@ -48,9 +55,9 @@ public class ExpenseDetailsActivity extends AppCompatActivity {
     private ValueEventListener mListener;
     private IndirectValueEventListener mPayerNameListener;
 
-    Money moneyAmount=new Money(Currency.getInstance("EUR"), BigDecimal.ZERO);
-    BigDecimal numberOfParticipants = BigDecimal.ZERO;
-    String payerId = "Nobody";
+    private Money moneyAmount = new Money(Currency.getInstance("EUR"), BigDecimal.ZERO);
+    private BigDecimal numberOfParticipants = BigDecimal.ZERO;
+    private String mPayerId = null, mGroupId = null;
 
     final ArrayList<String> participantsIds = new ArrayList<>();
     final ArrayList<Participant> participants = new ArrayList<>();
@@ -199,7 +206,7 @@ public class ExpenseDetailsActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_group, menu);
+        getMenuInflater().inflate(R.menu.menu_expense_details, menu);
         return true;
     }
 
@@ -213,9 +220,58 @@ public class ExpenseDetailsActivity extends AppCompatActivity {
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             return true;
+        } else if (id == R.id.action_delete) {
+            AlertDialog dialog = new AlertDialog.Builder(this)
+                    .setTitle(R.string.title_confirm)
+                    .setMessage(R.string.message_confirm_delete_expense)
+                    .setPositiveButton(R.string.button_delete, new AlertDialog.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            deleteExpense();
+                            dialog.dismiss();
+                        }
+                    })
+                    .setNegativeButton(R.string.button_cancel, new AlertDialog.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.cancel();
+                        }
+                    })
+                    .create();
+            dialog.show();
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void deleteExpense() {
+        String expenseId = mRef.getKey();
+        Map<String, Object> update = new HashMap<>();
+        update.put("/expenses/"+expenseId, null);
+        update.put("/users/"+mPayerId+"/expenses_ids_as_payer/"+expenseId, null);
+        update.put("/groups/"+mGroupId+"/expenses/"+expenseId, null);
+        mRef.getRoot().updateChildren(update).addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                if (task.isSuccessful()) {
+                    finish();
+                    return;
+                }
+
+                AlertDialog dialog = new AlertDialog.Builder(ExpenseDetailsActivity.this)
+                        .setTitle(R.string.title_error_dialog)
+                        .setMessage(task.getException().getLocalizedMessage())
+                        .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                                finish();
+                            }
+                        })
+                        .create();
+                dialog.show();
+            }
+        });
     }
 
     class Participant {

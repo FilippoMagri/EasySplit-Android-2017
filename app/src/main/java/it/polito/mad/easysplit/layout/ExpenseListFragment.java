@@ -129,26 +129,9 @@ public class ExpenseListFragment extends Fragment {
             clear();
             for (DataSnapshot child : expenseIdsSnap.getChildren()) {
                 final String expenseId = child.getKey();
-                mRoot.child("expenses/"+expenseId).addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot expenseSnap) {
-                        String name = expenseSnap.child("name").getValue(String.class);
-                        String amount = expenseSnap.child("amount").getValue(String.class);
-                        Long timeStamp_number = expenseSnap.child("timestamp_number").getValue(Long.class);
-                        add(new ListItem(expenseId, name, amount,timeStamp_number));
-                        sort(new Comparator<ListItem>() {
-                            @Override
-                            public int compare(ListItem listItem1, ListItem listItem2) {
-                                return listItem1.timeStamp_number.compareTo(listItem2.timeStamp_number);
-                            }
-                        });
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-                        add(new ListItem(expenseId, "???", "???",new Long("1")));
-                    }
-                });
+                String name = child.child("name").getValue(String.class);
+                String amount = child.child("amount").getValue(String.class);
+                add(new ListItem(expenseId, name, amount));
             }
         }
 
