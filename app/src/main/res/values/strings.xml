@@ -2,6 +2,21 @@
     <string name="app_name" translatable="false">€asySplit</string>
     <string name="action_settings">Settings</string>
     <string name="action_invite">Invite</string>
+
+    <string name="action_leave">Leave group</string>
+    <string name="leave_confirm_title">Leave group?</string>
+    <string name="leave_confirm_message">Are you sure you want to leave this group?</string>
+    <string name="balance_problem_title">Can\'t leave group!</string>
+    <string name="balance_problem_message">Your balance must be zero for you to leave this group!</string>
+
+
+    <string name="unsaved_confirm_title">Unsaved changes</string>
+    <string name="unsaved_confirm_message">There are unsaved changes. Are you sure you want to leave?</string>
+
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="okay">OK</string>
+
     <string name="title_activity_add_expenses">AddExpenses</string>
 
     <string-array name="countries_dummy_example">
