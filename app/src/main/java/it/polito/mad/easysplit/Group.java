@@ -24,6 +24,14 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.math.BigDecimal;
+import java.util.HashMap;
+
+import it.polito.mad.easysplit.layout.MemberListFragment;
+import it.polito.mad.easysplit.models.CreditorDebtorModel;
+import it.polito.mad.easysplit.models.GroupBalanceModel;
+import it.polito.mad.easysplit.models.Money;
+
 
 public class Group extends AppCompatActivity {
     private static String TAG = Group.class.getName();

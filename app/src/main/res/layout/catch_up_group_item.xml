@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    android:id="@+id/linear_layout_catch_up_item"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_marginTop="16dp"
+    android:layout_marginLeft="16dp"
+    android:layout_marginRight="16dp"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp">
+        <TextView
+            android:id="@+id/text_view_catch_up_item"
+            android:text="Flavio has to give Back to Parent Linear Layout"
+            android:textSize="14dp"
+            android:layout_gravity="center"
+            android:layout_weight="0.1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+        <TextView
+            android:layout_gravity="center"
+            android:text="50 EUR"
+            android:textSize="14dp"
+            android:id="@+id/residue_catch_up_item"
+            android:layout_weight="0.3"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+        <ImageView
+            android:id="@+id/ic_next_catch_up_item"
+            android:src="@drawable/ic_next"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            />
+    </LinearLayout>
+    <TextView
+        android:id="@+id/key_catch_up_item"
+        android:visibility="gone"
+        android:textColor="@color/colorBackgroundMaterialLight"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="idInvisible"/>
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_gravity="center"
+        android:background="@color/colorClair" />
+</LinearLayout>
