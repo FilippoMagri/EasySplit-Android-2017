@@ -206,7 +206,6 @@ public class CreationGroup extends AppCompatActivity {
                                 map.put("name", groupName);
                                 map.put("expenses_ids", new HashMap<String,Boolean>());
                                 map.put("members_ids", groupMembers);
-                                //map.put("owner", user.getUid());
 
                                 //ref.child("groups").push().setValue(map);
 
