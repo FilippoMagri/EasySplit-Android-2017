@@ -7,6 +7,7 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.DatePicker;
@@ -17,6 +18,7 @@ import android.widget.Spinner;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -107,7 +109,9 @@ public class AddExpenses extends AppCompatActivity {
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
         DatabaseReference expensesIdsRef = mRoot.child("groups/"+mGroupId+"/members_ids");
-        expensesIdsRef.addListenerForSingleValueEvent(new ValueEventListener() {
+        final String idOfTheUserLogged = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        //Adding first the owner of the phone as first member in the spinner
+        expensesIdsRef.orderByKey().equalTo(idOfTheUserLogged).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot membersIdsRef) {
                 adapter.clear();
@@ -126,6 +130,37 @@ public class AddExpenses extends AppCompatActivity {
                             adapter.add(new MemberListItem(userId, "???"));
                         }
                     });
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                spinner.setEnabled(false);
+                Snackbar.make(spinner, databaseError.getMessage(), Snackbar.LENGTH_LONG).show();
+            }
+        });
+        //Adding all other members to the spinner
+        expensesIdsRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot membersIdsRef) {
+                adapter.clear();
+                for (DataSnapshot child : membersIdsRef.getChildren()) {
+                    final String userId = child.getKey();
+                    if (!userId.equals(idOfTheUserLogged)) {
+                        DatabaseReference nameRef = mRoot.child("users").child(userId).child("name");
+                        nameRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot nameRef) {
+                                String userName = nameRef.getValue(String.class);
+                                adapter.add(new MemberListItem(userId, userName));
+                            }
+
+                            @Override
+                            public void onCancelled(DatabaseError databaseError) {
+                                adapter.add(new MemberListItem(userId, "???"));
+                            }
+                        });
+                    }
                 }
             }
 
