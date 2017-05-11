@@ -55,7 +55,6 @@ public class Group extends AppCompatActivity {
             if (user == null) {
                 listView.setAdapter(null);
                 listView.setOnItemClickListener(null);
-
                 userNameText.setText("(not logged in)");
                 return;
             }
@@ -73,7 +72,6 @@ public class Group extends AppCompatActivity {
             });
 
             listView.setAdapter(adapter);
-
             listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override
                 public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
