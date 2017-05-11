@@ -191,7 +191,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         // Write the new user inside the database
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         DatabaseReference mRoot = database.getReference();
-        final String userId = mRoot.child("users").push().getKey();
+        final String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         Map<String, Object> update = new HashMap<>();
         String email = mEmailView.getText().toString();
         EditText nameUserEditText = (EditText) findViewById(R.id.name_loginUser);
