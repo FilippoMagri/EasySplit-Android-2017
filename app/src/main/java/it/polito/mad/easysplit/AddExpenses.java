@@ -287,6 +287,7 @@ public class AddExpenses extends AppCompatActivity {
         expense.put("name", title);
         /// TODO Decide on a standard, strict format for the timestamp
         expense.put("timestamp", mTimestampFormat.format(timestamp));
+        expense.put("timestamp_number", -1 * timestamp.getTime());
         expense.put("amount", amount.toString());
         expense.put("payer_id", payerId);
         expense.put("group_id", mGroupId);
