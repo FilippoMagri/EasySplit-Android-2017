@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import it.polito.mad.easysplit.ExpenseDetailsActivity;
+import it.polito.mad.easysplit.GroupHandler;
 import it.polito.mad.easysplit.layout.GroupBalanceAdapter;
 
 /**
@@ -27,6 +28,7 @@ public class GroupBalanceModel {
     String thisGroupId = "";
     private Map<String,Object> expensesOfThisGroup = new HashMap<String,Object>();
     private Map<String,Object> usersOfThisGroup = new HashMap<String,Object>();
+    Uri groupUri;
 
     // membersBalanceInvolved
     // is the HashMap created specially to compute the balance among a single group
@@ -39,17 +41,48 @@ public class GroupBalanceModel {
     public GroupBalanceModel(final Uri mGroupUri, final GroupBalanceAdapter groupBalanceAdapter) {
         thisGroupId = mGroupUri.toString().replace("content://it.polito.mad.easysplit/groups/","");
         Log.d(TAG,mGroupUri.toString());
+        if (groupBalanceAdapter != null) {
+            DatabaseReference groupRef = mRoot.child("groups").child(thisGroupId).getRef();
+            groupRef.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    Map<String, Object> entireGroupDB = new HashMap<String, Object>();
+                    entireGroupDB = (Map<String, Object>) dataSnapshot.getValue();
+                    retrieveUsersOfThisGroup((Map<String, Object>) entireGroupDB.get("members_ids"));
+                    retrieveExpensesOfThisGroup((Map<String, Object>) entireGroupDB.get("expenses"));
+                    computeBalance();
+                    printDebugBalances();
+                    updateListItemsOnFragment(groupBalanceAdapter);
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+
+                }
+            });
+        }
+    }
+
+    public interface UserBalanceListener {
+        void onBalanceAvailable(Money money);
+    }
+
+    public void getUserBalance (final String user, final UserBalanceListener listener) {
         DatabaseReference groupRef = mRoot.child("groups").child(thisGroupId).getRef();
-        groupRef.addValueEventListener(new ValueEventListener() {
+        groupRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                Map<String,Object> entireGroupDB = new HashMap<String, Object>();
-                entireGroupDB = (Map<String, Object>)dataSnapshot.getValue();
-                retrieveUsersOfThisGroup((Map<String,Object>)entireGroupDB.get("members_ids"));
-                retrieveExpensesOfThisGroup((Map<String,Object>)entireGroupDB.get("expenses"));
+                Map<String, Object> entireGroupDB = new HashMap<String, Object>();
+                entireGroupDB = (Map<String, Object>) dataSnapshot.getValue();
+                retrieveUsersOfThisGroup((Map<String, Object>) entireGroupDB.get("members_ids"));
+                retrieveExpensesOfThisGroup((Map<String, Object>) entireGroupDB.get("expenses"));
                 computeBalance();
-                printDebugBalances();
-                updateListItemsOnFragment(groupBalanceAdapter);
+                if (membersBalanceInvolved.containsKey(user)) {
+                    listener.onBalanceAvailable(membersBalanceInvolved.get(user).getResidue());
+                }
+                else {
+                    listener.onBalanceAvailable(new Money(new BigDecimal("0.00")));
+                }
             }
 
             @Override
