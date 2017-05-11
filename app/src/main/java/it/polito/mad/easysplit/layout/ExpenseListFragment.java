@@ -21,6 +21,8 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.Comparator;
+
 import it.polito.mad.easysplit.AddExpenses;
 import it.polito.mad.easysplit.ExpenseDetailsActivity;
 import it.polito.mad.easysplit.R;
@@ -59,7 +61,7 @@ public class ExpenseListFragment extends Fragment {
         ListView lv = (ListView) view.findViewById(R.id.expensesList);
 
         ExpenseListAdapter adapter = new ExpenseListAdapter(getContext());
-        mExpenseIdsRef.addValueEventListener(adapter);
+        mExpenseIdsRef.orderByChild("timestamp_number").addValueEventListener(adapter);
         lv.setAdapter(adapter);
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -88,11 +90,13 @@ public class ExpenseListFragment extends Fragment {
 
     private static final class ListItem {
         String id, name, amount;
+        Long timeStamp_number;
 
-        public ListItem(String id, String name, String amount) {
+        public ListItem(String id, String name, String amount, Long timeStamp_number) {
             this.id = id;
             this.name = name;
             this.amount = amount;
+            this.timeStamp_number=timeStamp_number;
         }
     }
 
@@ -129,12 +133,19 @@ public class ExpenseListFragment extends Fragment {
                     public void onDataChange(DataSnapshot expenseSnap) {
                         String name = expenseSnap.child("name").getValue(String.class);
                         String amount = expenseSnap.child("amount").getValue(String.class);
-                        add(new ListItem(expenseId, name, amount));
+                        Long timeStamp_number = expenseSnap.child("timestamp_number").getValue(Long.class);
+                        add(new ListItem(expenseId, name, amount,timeStamp_number));
+                        sort(new Comparator<ListItem>() {
+                            @Override
+                            public int compare(ListItem listItem1, ListItem listItem2) {
+                                return listItem1.timeStamp_number.compareTo(listItem2.timeStamp_number);
+                            }
+                        });
                     }
 
                     @Override
                     public void onCancelled(DatabaseError databaseError) {
-                        add(new ListItem(expenseId, "???", "???"));
+                        add(new ListItem(expenseId, "???", "???",new Long("1")));
                     }
                 });
             }
