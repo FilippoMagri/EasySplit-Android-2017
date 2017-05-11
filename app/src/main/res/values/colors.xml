@@ -4,5 +4,6 @@
     <color name="colorPrimaryDark">#FF6600</color>
     <color name="colorAccent">#FF6600</color>
     <color name="colorClair"> #FFE4CE </color>
+    <color name="colorBackgroundMaterialLight">#FFFAFAFA</color>
 
 </resources>

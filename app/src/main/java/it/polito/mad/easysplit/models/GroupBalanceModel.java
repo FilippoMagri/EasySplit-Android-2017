@@ -11,10 +11,10 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import it.polito.mad.easysplit.ExpenseDetailsActivity;
 import it.polito.mad.easysplit.layout.GroupBalanceAdapter;
 
 /**
@@ -34,11 +34,10 @@ public class GroupBalanceModel {
 
     // The parameter groupBalanceAdapter in the constructor in necessary because we use it at the end of
     // computation in order to update the listItems inside the ListView
-    // (And of course the listView is relative to the Fragment: "MemberListFragment")
+    // (And the listView is relative to the Fragment: "MemberListFragment")
 
     public GroupBalanceModel(final Uri mGroupUri, final GroupBalanceAdapter groupBalanceAdapter) {
         thisGroupId = mGroupUri.toString().replace("content://it.polito.mad.easysplit/groups/","");
-        Log.d(TAG,mGroupUri.toString());
         DatabaseReference groupRef = mRoot.child("groups").child(thisGroupId).getRef();
         groupRef.addValueEventListener(new ValueEventListener() {
             @Override
@@ -48,7 +47,7 @@ public class GroupBalanceModel {
                 retrieveUsersOfThisGroup((Map<String,Object>)entireGroupDB.get("members_ids"));
                 retrieveExpensesOfThisGroup((Map<String,Object>)entireGroupDB.get("expenses"));
                 computeBalance();
-                printDebugBalances();
+                decideWhoHasToGiveBackTo();
                 updateListItemsOnFragment(groupBalanceAdapter);
             }
 
@@ -86,8 +85,9 @@ public class GroupBalanceModel {
             Money residue = member.getResidue();
             String name = member.getName();
             String idMember = entry.getKey();
-            String memberToGiveBack = member.getMemberToGiveBack();
-            GroupBalanceAdapter.ListItem listItem = new GroupBalanceAdapter.ListItem(idMember,name,residue,memberToGiveBack);
+            String memberToGiveBack = member.getTypeOfMember();
+            ArrayList<CreditorDebtorModel.CatchUpGroup> listOfCatchUpGroup = member.getListOfCatchUpGroup();
+            GroupBalanceAdapter.ListItem listItem = new GroupBalanceAdapter.ListItem(idMember,name,residue,memberToGiveBack,listOfCatchUpGroup);
             groupBalanceAdapter.add(listItem);
         }
     }
@@ -100,7 +100,6 @@ public class GroupBalanceModel {
     }
 
     private void computeBalance() {
-        //Log.d(TAG,"MembersInvolved:"+membersBalanceInvolved.toString());
         for (Map.Entry<String,Object> entry : expensesOfThisGroup.entrySet()) {
             Map singleExpense = (Map) entry.getValue();
 
@@ -109,13 +108,10 @@ public class GroupBalanceModel {
             String id = entry.getKey();
             String payerId = (String) singleExpense.get("payer_id");
 
-            Log.d(TAG,"Expenses id:"+id+"amount: "+amount.toString()+"payer_id: "+ payerId);
-
             HashMap<String,Object> members_ids = (HashMap <String,Object>) singleExpense.get("members_ids");
             int numberOfMembersInvolved = members_ids.size();
             for (Map.Entry<String,Object> entry_nested :members_ids.entrySet()) {
                 String idMember = entry_nested.getKey();
-                Log.d(TAG,"Member Nested"+idMember);
                 boolean isPayer=false;
                 if(idMember.equals(payerId)) {
                     isPayer=true;
@@ -125,8 +121,6 @@ public class GroupBalanceModel {
             distributeTheRestAmongParticipants(amount,numberOfMembersInvolved,payerId);
             checkIfThePayerIsFinancierOfTheExpense(members_ids,payerId,amount);
         }
-
-        decideWhoHasToGiveBackTo();
     }
 
     private void distributeTheRestAmongParticipants(Money amount,int numberOfMembersInvolved,String payerId) {
@@ -135,15 +129,12 @@ public class GroupBalanceModel {
         Money singleExpenseRest = new Money(new BigDecimal("0.00"));
         if (totalAmountCalculated.getAmount().compareTo(amount.getAmount())!=0) {
             singleExpenseRest = amount.sub(totalAmountCalculated);
-            Log.d(TAG,"SingleRest: "+singleExpenseRest.toString());
             //TODO Make the distribution onSingleExpense
             BigDecimal d = BigDecimal.valueOf(singleExpenseRest.getAmount().doubleValue());
             BigDecimal result = d.subtract(d.setScale(0, RoundingMode.HALF_UP)).movePointRight(d.scale());
             Integer numberOfIteration = result.abs().intValue();
-            Log.d(TAG,"Number Of Iteration: "+numberOfIteration);
             for (Map.Entry<String,MemberRepresentation> entry: membersBalanceInvolved.entrySet()) {
                 if (numberOfIteration!=0) {
-                    Log.d(TAG,"ITERATO");
                     MemberRepresentation member =entry.getValue();
                     if (entry.getKey().equals(payerId)) {continue;}
                     if (singleExpenseRest.getAmount().compareTo(BigDecimal.ZERO)>0) {
@@ -163,24 +154,21 @@ public class GroupBalanceModel {
     }
 
     private void decideWhoHasToGiveBackTo() {
-        HashMap<String,MemberRepresentation> temporaryMapForComputation = (HashMap<String,MemberRepresentation>) membersBalanceInvolved.clone();
+        CreditorDebtorModel creditorDebtorModel = new CreditorDebtorModel(membersBalanceInvolved);
+        ArrayList<CreditorDebtorModel.CatchUpGroup> listOfCatchUpGroup = creditorDebtorModel.getListOfCatchUpGroup();
 
         for (Map.Entry<String,MemberRepresentation> entry:membersBalanceInvolved.entrySet()) {
             MemberRepresentation singleMember = entry.getValue();
-
             Money residue = singleMember.getResidue();
+            singleMember.setListOfCatchUpGroup(listOfCatchUpGroup);
+
             if (residue.getAmount().compareTo(BigDecimal.ZERO)<0) {
-                //Log.d(TAG,"Value <0");
-                // TODO create a double map with payers and who has to pay
-                singleMember.setMemberToGiveBack("Value < 0 Has To GiveBack");
+                singleMember.setTypeOfMember("Debtor");
             }
             if (residue.getAmount().compareTo(BigDecimal.ZERO)>0) {
-                //Log.d(TAG,"Value >0");
-                // TODO create a double map with payers and who has to pay
-                singleMember.setMemberToGiveBack("Value > 0 Has To Receive");
+                singleMember.setTypeOfMember("Creditor");
             }
         }
-        new CreditorDebtorModel(membersBalanceInvolved);
     }
 
     private void checkIfThePayerIsFinancierOfTheExpense(HashMap<String,Object> members_ids,String payerId,Money amount) {
@@ -208,28 +196,31 @@ public class GroupBalanceModel {
         MemberRepresentation member = membersBalanceInvolved.get(idMember);
         Money residue = member.getResidue();
         Money quote = amount.div(new BigDecimal(numberOfMembersInvolved)).neg();
-        Log.d(TAG,"Quote:"+quote.toString());
-        Log.d(TAG,"IdMember: "+idMember);
         if(isPayer) {
-            Log.d(TAG,"isPayer: "+isPayer);
             Money positiveQuote = quote.neg();
             Money income = amount.sub(positiveQuote);
             residue = residue.add(income);
-            Log.d(TAG,"ResiduePAYER: "+residue);
         } else {
             residue = residue.add(quote);
-            Log.d(TAG,"Residue: "+residue);
         }
         MemberRepresentation memberUpdated = new MemberRepresentation(member.getName(),residue);
         membersBalanceInvolved.put(idMember,memberUpdated);
     }
 
     public static class MemberRepresentation {
+        String id;
         String name;
         Money residue;
-        String memberToGiveBack="";
+        String typeOfMember ="";
+        ArrayList<CreditorDebtorModel.CatchUpGroup> listOfCatchUpGroup= new ArrayList<>();
 
         public MemberRepresentation(String name,Money residue) {
+            this.name = name;
+            this.residue = residue;
+        }
+
+        public MemberRepresentation(String name,Money residue,String id) {
+            this.id = id;
             this.name = name;
             this.residue = residue;
         }
@@ -250,12 +241,28 @@ public class GroupBalanceModel {
             this.residue = residue;
         }
 
-        public String getMemberToGiveBack() {
-            return memberToGiveBack;
+        public String getTypeOfMember() {
+            return typeOfMember;
         }
 
-        public void setMemberToGiveBack(String memberToGiveBack) {
-            this.memberToGiveBack = memberToGiveBack;
+        public void setTypeOfMember(String typeOfMember) {
+            this.typeOfMember = typeOfMember;
+        }
+
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+
+        public ArrayList<CreditorDebtorModel.CatchUpGroup> getListOfCatchUpGroup() {
+            return listOfCatchUpGroup;
+        }
+
+        public void setListOfCatchUpGroup(ArrayList<CreditorDebtorModel.CatchUpGroup> listOfCatchUpGroup) {
+            this.listOfCatchUpGroup = listOfCatchUpGroup;
         }
     }
 }
