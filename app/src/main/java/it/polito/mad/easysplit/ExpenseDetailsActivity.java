@@ -1,14 +1,16 @@
 package it.polito.mad.easysplit;
 
+import android.R.string;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.app.AlertDialog.Builder;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -28,122 +30,97 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.text.DateFormat;
 import java.util.ArrayList;
-import java.util.Currency;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import it.polito.mad.easysplit.R.drawable;
+import it.polito.mad.easysplit.R.id;
+import it.polito.mad.easysplit.R.layout;
 import it.polito.mad.easysplit.models.IndirectValueEventListener;
 import it.polito.mad.easysplit.models.Money;
 
 
 public class ExpenseDetailsActivity extends AppCompatActivity {
-    private static final String TAG = "ExpenseDetailsActivity";
-    private TextView mPayerName;
-    private TextView mExpenseName;
-    private TextView mCreationDate;
-    private ListView mParticipantsListView;
+    private static final DateFormat sUIDateFormat = DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.SHORT);
+
     private Money singleExpenseRest = new Money(new BigDecimal("0.00"));
-    private String idOfThisExpense="";
-    private String idGroupOfThisExpense="";
-    private ArrayList<Participant> listOfParticipants = new ArrayList<>();
+    private final ArrayList<Participant> mParticipants = new ArrayList<>();
 
     private DatabaseReference mRef;
     private ValueEventListener mListener;
     private IndirectValueEventListener mPayerNameListener;
 
-    private Money moneyAmount = new Money(Currency.getInstance("EUR"), BigDecimal.ZERO);
-    private BigDecimal numberOfParticipants = BigDecimal.ZERO;
-    private String mPayerId = null, mGroupId = null;
+    private String mGroupId, mPayerId;
 
-    final ArrayList<String> participantsIds = new ArrayList<>();
-    final ArrayList<Participant> participants = new ArrayList<>();
-
-    ParticipantsAdapter adapter;
+    private final ArrayList<Participant> participants = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_expense_details);
+        setContentView(layout.activity_expense_details);
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = (Toolbar) findViewById(id.toolbar);
         setSupportActionBar(toolbar);
 
-        toolbar.setNavigationIcon(R.drawable.ic_home_white_48dp);
+        toolbar.setNavigationIcon(drawable.ic_home_white_48dp);
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                startActivity(new Intent(getApplicationContext(),Group.class));
+                startActivity(new Intent(getApplicationContext(), Group.class));
             }
         });
 
-        final Button editButton = (Button) findViewById(R.id.editButton);
+        final Button editButton = (Button) findViewById(id.editButton);
+        final TextView payerNameText = (TextView) findViewById(id.payerName);
+        final TextView expenseNameText = (TextView) findViewById(id.expenseName);
+        final TextView creationDateText = (TextView) findViewById(id.expenseCreationDate);
 
-        mPayerName = (TextView) findViewById(R.id.payerName);
-        mExpenseName = (TextView) findViewById(R.id.expenseName);
-        mCreationDate = (TextView) findViewById(R.id.expenseCreationDate);
+        ListView participantsList = (ListView) findViewById(id.participantsList);
+        final ParticipantsAdapter participantsAdapter = new ParticipantsAdapter(ExpenseDetailsActivity.this,participants);
+        participantsList.setAdapter(participantsAdapter);
 
-        mParticipantsListView = (ListView) findViewById(R.id.participantsList);
-        adapter = new ParticipantsAdapter(ExpenseDetailsActivity.this,participants);
-        mParticipantsListView.setAdapter(adapter);
-
-        //mRef will be something like "https://easysplit-853e4.firebaseio.com/expenses/-KitTZeY14BFsnsH_rpp"
-        //It depends on the expense selected
+        // mRef will be something like "https://easysplit-853e4.firebaseio.com/expenses/-KitTZeY14BFsnsH_rpp"
         mRef = Utils.findByUri(getIntent().getData());
-        idOfThisExpense = mRef.toString().replace("https://easysplit-853e4.firebaseio.com/expenses/","");
-
         mListener = new ValueEventListener() {
             @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                idGroupOfThisExpense = dataSnapshot.child("group_id").getValue(String.class);
-                Log.d(TAG,idGroupOfThisExpense);
-                DatabaseReference thisExpenseRef = mRef.getParent().getParent().child("groups").child(idGroupOfThisExpense).child("expenses").child(idOfThisExpense).getRef();
-                thisExpenseRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            public void onDataChange(DataSnapshot expenseSnap) {
+                mGroupId = expenseSnap.child("group_id").getValue(String.class);
+                mPayerId = expenseSnap.child("payer_id").getValue(String.class);
+
+                expenseNameText.setText(expenseSnap.child("name").getValue(String.class));
+                Date timestamp = new Date(expenseSnap.child("timestamp").getValue(Long.class));
+                creationDateText.setText(sUIDateFormat.format(timestamp));
+
+                String rawStringAmount = (String) expenseSnap.child("amount").getValue();
+                Money money = Money.parseOrFail(rawStringAmount);
+                setTitle(money.toString());
+
+                /// TODO Participants list adapter
+                BigDecimal numParticipants = new BigDecimal(expenseSnap.child("members_ids").getChildrenCount());
+                for (DataSnapshot member : expenseSnap.child("members_ids").getChildren()) {
+                    String memberId = member.getKey();
+                    String memberName = member.getValue(String.class);
+                    boolean isPayer = member.getKey().equals(mPayerId);
+                    Participant participant = new Participant(memberId, memberName, isPayer, money, numParticipants);
+                    mParticipants.add(participant);
+                }
+
+                final String expenseId = expenseSnap.getKey();
+                editButton.setOnClickListener(new View.OnClickListener() {
                     @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        mExpenseName.setText(dataSnapshot.child("name").getValue(String.class));
-                        mCreationDate.setText(dataSnapshot.child("timestamp").getValue(String.class));
-                        payerId = (String) dataSnapshot.child("payer_id").getValue();
-                        String rawStringAmount = (String) dataSnapshot.child("amount").getValue();
-                        moneyAmount = Money.parse(rawStringAmount);
-                        setTitle(moneyAmount.toString());
-                        Log.d(TAG, rawStringAmount.toString());
-                        Log.d(TAG, moneyAmount.toString());
-                        /// TODO Participants list adapter
-                        numberOfParticipants = new BigDecimal(dataSnapshot.child("members_ids").getChildrenCount());
-                        HashMap<String, Object> mapMembers = (HashMap<String, Object>) dataSnapshot.child("members_ids").getValue();
-                        for (Map.Entry<String, Object> entry : mapMembers.entrySet()) {
-                            String participantKey = entry.getKey();
-                            String name = entry.getValue().toString();
-                            boolean isPayer = false;
-                            if (participantKey.equals(payerId)) {
-                                isPayer = true;
-                            }
-                            Participant participant = new Participant(participantKey, name, isPayer, moneyAmount, numberOfParticipants);
-                            listOfParticipants.add(participant);
-                        }
-
-                        editButton.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                Intent i = new Intent(getApplicationContext(), EditExpenseActivity.class);
-                                i.putExtra("expenseId", dataSnapshot.getKey());
-                                i.putExtra("groupId", dataSnapshot.child("group_id").getValue(String.class));
-                                startActivity(i);
-                            }
-                        });
-                        distributeTheRestAmongParticipants(payerId);
-                        addParticipantsToAdapter();
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-
+                    public void onClick(View v) {
+                        Intent i = new Intent(getApplicationContext(), EditExpenseActivity.class);
+                        i.putExtra("expenseId", expenseId);
+                        i.putExtra("groupId", mGroupId);
+                        startActivity(i);
                     }
                 });
+
+                distributeTheRestAmongParticipants();
+                participantsAdapter.addAll(mParticipants);
             }
 
             @Override
@@ -163,7 +140,7 @@ public class ExpenseDetailsActivity extends AppCompatActivity {
 
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                mPayerName.setText(dataSnapshot.getValue(String.class));
+                payerNameText.setText(dataSnapshot.getValue(String.class));
             }
 
             @Override
@@ -171,21 +148,17 @@ public class ExpenseDetailsActivity extends AppCompatActivity {
         };
     }
 
-    private void addParticipantsToAdapter() {
-        adapter.addAll(listOfParticipants);
-    }
-
-    private void distributeTheRestAmongParticipants(String payerId) {
+    private void distributeTheRestAmongParticipants() {
         if (singleExpenseRest.getAmount().compareTo(BigDecimal.ZERO)!=0) {
             //extract decimal part of singleExpenseRest to understand how many iterations we need
             //in order to achieve the entire amount of the expense
             BigDecimal d = BigDecimal.valueOf(singleExpenseRest.getAmount().doubleValue());
             BigDecimal result = d.subtract(d.setScale(0, RoundingMode.HALF_UP)).movePointRight(d.scale());
             Integer numberOfIteration = result.abs().intValue();
-            for (int i=0;i<listOfParticipants.size() && numberOfIteration!=0 ;i++, numberOfIteration--) {
-                Log.d(TAG,"ITERATO");
-                Participant participant = listOfParticipants.get(i);
-                if(participant.getId().equals(payerId)) { numberOfIteration++; continue; }
+            for (int i = 0; i< mParticipants.size() && numberOfIteration!=0 ; i++, numberOfIteration--) {
+
+                Participant participant = mParticipants.get(i);
+                if(participant.getId().equals(mPayerId)) { numberOfIteration++; continue; }
                 if(singleExpenseRest.getAmount().compareTo(BigDecimal.ZERO)>0){
                     participant.participationFee = participant.participationFee.add(new Money(new BigDecimal("0.01")));
                 }
@@ -206,7 +179,7 @@ public class ExpenseDetailsActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_expense_details, menu);
+        getMenuInflater().inflate(menu.menu_expense_details, menu);
         return true;
     }
 
@@ -218,10 +191,10 @@ public class ExpenseDetailsActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if (id == id.action_settings) {
             return true;
-        } else if (id == R.id.action_delete) {
-            AlertDialog dialog = new AlertDialog.Builder(this)
+        } else if (id == id.action_delete) {
+            AlertDialog dialog = new Builder(this)
                     .setTitle(R.string.title_confirm)
                     .setMessage(R.string.message_confirm_delete_expense)
                     .setPositiveButton(R.string.button_delete, new AlertDialog.OnClickListener() {
@@ -258,10 +231,10 @@ public class ExpenseDetailsActivity extends AppCompatActivity {
                     return;
                 }
 
-                AlertDialog dialog = new AlertDialog.Builder(ExpenseDetailsActivity.this)
+                AlertDialog dialog = new Builder(ExpenseDetailsActivity.this)
                         .setTitle(R.string.title_error_dialog)
                         .setMessage(task.getException().getLocalizedMessage())
-                        .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                        .setPositiveButton(string.ok, new OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 dialog.dismiss();
@@ -277,7 +250,7 @@ public class ExpenseDetailsActivity extends AppCompatActivity {
     class Participant {
         String id;
         String name;
-        boolean isPayer=false;
+        boolean isPayer;
         Money totalCost;
         BigDecimal numberOfParticipants;
         Money participationFee;
@@ -295,7 +268,6 @@ public class ExpenseDetailsActivity extends AppCompatActivity {
             //we have to consider a global rest of the single Expense
             if (totalCostCalculated.getAmount().compareTo(totalCost.getAmount())!=0) {
                 singleExpenseRest = totalCost.sub(totalCostCalculated);
-                Log.d(TAG,singleExpenseRest.toString());
             }
             if (isPayer) {
                 moneyBackToThePayer = totalCost.sub(participationFee);
@@ -372,11 +344,11 @@ public class ExpenseDetailsActivity extends AppCompatActivity {
             Participant participant = getItem(position);
             // Check if an existing view is being reused, otherwise inflate the view
             if (convertView == null) {
-                convertView = LayoutInflater.from(getContext()).inflate(R.layout.list_item_participant, parent, false);
+                convertView = LayoutInflater.from(getContext()).inflate(layout.list_item_participant, parent, false);
             }
             // Lookup view for data population
-            TextView tvNameParticipant = (TextView) convertView.findViewById(R.id.name_participant);
-            TextView tvResidueParticipant = (TextView) convertView.findViewById(R.id.residue_participant);
+            TextView tvNameParticipant = (TextView) convertView.findViewById(id.name_participant);
+            TextView tvResidueParticipant = (TextView) convertView.findViewById(id.residue_participant);
             // Populate the data into the template view using the data object
             tvNameParticipant.setText(participant.getName());
             tvResidueParticipant.setText(participant.getParticipationFee().toString());

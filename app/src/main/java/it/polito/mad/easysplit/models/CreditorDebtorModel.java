@@ -5,8 +5,10 @@ import android.util.Log;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
+
+import it.polito.mad.easysplit.models.GroupBalanceModel.MemberRepresentation;
 
 /**
  * Created by fil on 07/05/17.
@@ -14,14 +16,14 @@ import java.util.Map;
 
 public class CreditorDebtorModel {
     static String TAG="CreditorDebtorModel";
-    HashMap<String,GroupBalanceModel.MemberRepresentation> creditors = new HashMap<>();
-    HashMap<String,GroupBalanceModel.MemberRepresentation> debtors = new HashMap<>();
+    HashMap<String,MemberRepresentation> creditors = new HashMap<>();
+    HashMap<String,MemberRepresentation> debtors = new HashMap<>();
 
     ArrayList<CatchUpGroup> listOfCatchUpGroup = new ArrayList<>();
 
-    public CreditorDebtorModel (HashMap<String,GroupBalanceModel.MemberRepresentation> membersBalanceInvolved) {
-        for (Map.Entry<String,GroupBalanceModel.MemberRepresentation> entry:membersBalanceInvolved.entrySet()) {
-            GroupBalanceModel.MemberRepresentation member = entry.getValue();
+    public CreditorDebtorModel (HashMap<String,MemberRepresentation> membersBalanceInvolved) {
+        for (Entry<String,MemberRepresentation> entry:membersBalanceInvolved.entrySet()) {
+            MemberRepresentation member = entry.getValue();
             String idMember = entry.getKey();
             String nameMember = member.getName();
             Money residue = member.getResidue();
@@ -37,38 +39,25 @@ public class CreditorDebtorModel {
         elaborateZeroGroups();
     }
 
-    private void printDebugCreditors(HashMap<String, GroupBalanceModel.MemberRepresentation> creditors) {
-        for (Map.Entry<String,GroupBalanceModel.MemberRepresentation> entry : creditors.entrySet()) {
-            GroupBalanceModel.MemberRepresentation member = entry.getValue();
+    private void printDebugCreditors(HashMap<String, MemberRepresentation> creditors) {
+        for (Entry<String,MemberRepresentation> entry : creditors.entrySet()) {
+            MemberRepresentation member = entry.getValue();
             Log.d(TAG,"CreditorName: "+member.getName());
             Log.d(TAG,"CreditorResidue: "+member.getResidue().getAmount().toString());
         }
     }
 
-    private void printDebugDebtors(Map<String,GroupBalanceModel.MemberRepresentation> debtors) {
-        for (Map.Entry<String,GroupBalanceModel.MemberRepresentation> entry : debtors.entrySet()) {
-            GroupBalanceModel.MemberRepresentation member = entry.getValue();
+    private void printDebugDebtors(Map<String,MemberRepresentation> debtors) {
+        for (Entry<String,MemberRepresentation> entry : debtors.entrySet()) {
+            MemberRepresentation member = entry.getValue();
             Log.d(TAG,"DebtorName: "+member.getName());
             Log.d(TAG,"DebtorResidue: "+member.getResidue().getAmount().toString());
         }
     }
 
-    private void printDebugCatchUpGroups() {
-        Iterator<CatchUpGroup> i = listOfCatchUpGroup.iterator();
-        int index =0;
-        while (i.hasNext()) {
-            Log.d(TAG,"CatchUp Group Number:"+(++index));
-            CatchUpGroup catchUpGroup = i.next();
-            Log.d(TAG,"Creditor: "+ catchUpGroup.creditor.getName()+"With: "+ catchUpGroup.creditor.getResidue().toString());
-            for (int in = 0; in< catchUpGroup.listOfDebtors.size(); in++) {
-                Log.d(TAG,"Debtor n°"+(in)+" "+ catchUpGroup.listOfDebtors.get(in).getName()+ "With: "+ catchUpGroup.listOfDebtors.get(in).getResidue());
-            }
-        }
-    }
-
     private void elaborateZeroGroups() {
         //Filling each single catchUpGroup with a Creditor and then with a list of debtors
-        for (Map.Entry<String,GroupBalanceModel.MemberRepresentation> entry:creditors.entrySet()) {
+        for (Entry<String,MemberRepresentation> entry:creditors.entrySet()) {
             CatchUpGroup catchUpGroup = new CatchUpGroup(entry.getValue(),entry.getKey());
             while (!catchUpGroup.isCompleted()) {
                 catchUpGroup.addDebtor();
@@ -78,33 +67,33 @@ public class CreditorDebtorModel {
     }
 
     public class CatchUpGroup {
-        GroupBalanceModel.MemberRepresentation creditor;
+        MemberRepresentation creditor;
         //The catchUpAmount represent something that at the end of the process
         //will be zero in every CatchUpGroup. That means we have finally
         //founded all single creditors associated to a list of debtors
         Money catchUpAmount;
-        ArrayList<GroupBalanceModel.MemberRepresentation> listOfDebtors = new ArrayList<>();
-        public CatchUpGroup(GroupBalanceModel.MemberRepresentation creditor,String idCreditor) {
-            this.creditor = new GroupBalanceModel.MemberRepresentation(creditor.getName(),creditor.getResidue(),idCreditor);
+        ArrayList<MemberRepresentation> listOfDebtors = new ArrayList<>();
+        public CatchUpGroup(MemberRepresentation creditor,String idCreditor) {
+            this.creditor = new MemberRepresentation(creditor.getName(),creditor.getResidue(),idCreditor);
             catchUpAmount = creditor.getResidue();
         }
 
         public void addDebtor() {
-            GroupBalanceModel.MemberRepresentation debtor =
-                                            new GroupBalanceModel.MemberRepresentation("",new Money(new BigDecimal("0.00")));
+            MemberRepresentation debtor =
+                                            new MemberRepresentation("",new Money(new BigDecimal("0.00")));
             String debtorKey="";
-            for (Map.Entry<String,GroupBalanceModel.MemberRepresentation> entry:debtors.entrySet()) {
-                GroupBalanceModel.MemberRepresentation memberRepresentation = entry.getValue();
+            for (Entry<String,MemberRepresentation> entry:debtors.entrySet()) {
+                MemberRepresentation memberRepresentation = entry.getValue();
                 debtorKey = entry.getKey();
-                debtor = new GroupBalanceModel.MemberRepresentation(memberRepresentation.getName(),
+                debtor = new MemberRepresentation(memberRepresentation.getName(),
                                                                     memberRepresentation.getResidue(),debtorKey);
                 break;
             }
             if (debtor.getResidue().getAmount().abs().compareTo(catchUpAmount.getAmount())>0) {
                 //I've to split the residue of the debtor
                 Money residue = catchUpAmount.add(debtor.getResidue());
-                GroupBalanceModel.MemberRepresentation newDebtor =
-                                                new GroupBalanceModel.MemberRepresentation(debtor.getName(), catchUpAmount.neg());
+                MemberRepresentation newDebtor =
+                                                new MemberRepresentation(debtor.getName(), catchUpAmount.neg());
                 this.listOfDebtors.add(newDebtor);
                 catchUpAmount = new Money(new BigDecimal("0.00"));
                 debtor.setResidue(residue);
@@ -119,23 +108,22 @@ public class CreditorDebtorModel {
 
         public boolean isCompleted () {
             //This is the method used to check if a catchUpGroup is completed
-            if (catchUpAmount.getAmount().compareTo(BigDecimal.ZERO)==0) return true;
-            else return false;
+            return catchUpAmount.getAmount().compareTo(BigDecimal.ZERO) == 0;
         }
 
-        public ArrayList<GroupBalanceModel.MemberRepresentation> getListOfDebtors() {
+        public ArrayList<MemberRepresentation> getListOfDebtors() {
             return listOfDebtors;
         }
 
-        public void setListOfDebtors(ArrayList<GroupBalanceModel.MemberRepresentation> listOfDebtors) {
+        public void setListOfDebtors(ArrayList<MemberRepresentation> listOfDebtors) {
             this.listOfDebtors = listOfDebtors;
         }
 
-        public GroupBalanceModel.MemberRepresentation getCreditor() {
+        public MemberRepresentation getCreditor() {
             return creditor;
         }
 
-        public void setCreditor(GroupBalanceModel.MemberRepresentation creditor) {
+        public void setCreditor(MemberRepresentation creditor) {
             this.creditor = creditor;
         }
 

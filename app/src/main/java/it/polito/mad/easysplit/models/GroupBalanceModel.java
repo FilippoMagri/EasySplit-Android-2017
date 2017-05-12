@@ -1,7 +1,6 @@
 package it.polito.mad.easysplit.models;
 
 import android.net.Uri;
-import android.util.Log;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -14,9 +13,11 @@ import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
-import it.polito.mad.easysplit.GroupHandler;
 import it.polito.mad.easysplit.layout.GroupBalanceAdapter;
+import it.polito.mad.easysplit.layout.GroupBalanceAdapter.ListItem;
+import it.polito.mad.easysplit.models.CreditorDebtorModel.CatchUpGroup;
 
 /**
  * Created by fil on 03/05/17.
@@ -39,7 +40,7 @@ public class GroupBalanceModel {
     // computation in order to update the listItems inside the ListView
     // (And the listView is relative to the Fragment: "MemberListFragment")
 
-    public GroupBalanceModel(final Uri mGroupUri, final GroupBalanceAdapter groupBalanceAdapter) {
+    public GroupBalanceModel(Uri mGroupUri, final GroupBalanceAdapter groupBalanceAdapter) {
         thisGroupId = mGroupUri.toString().replace("content://it.polito.mad.easysplit/groups/","");
         if (groupBalanceAdapter != null) {
             DatabaseReference groupRef = mRoot.child("groups").child(thisGroupId).getRef();
@@ -94,10 +95,10 @@ public class GroupBalanceModel {
 
     private void retrieveExpensesOfThisGroup(Map<String, Object> mapOfAllExpenses) {
         if (mapOfAllExpenses!=null) {
-            for (Map.Entry<String, Object> entry : mapOfAllExpenses.entrySet()) {
+            for (Entry<String, Object> entry : mapOfAllExpenses.entrySet()) {
                 Map singleExpense = (Map) entry.getValue();
                 Map<String, Object> involved_balance_members_ids = (Map<String, Object>) singleExpense.get("members_ids");
-                for (Map.Entry<String, Object> entry_nested : involved_balance_members_ids.entrySet()) {
+                for (Entry<String, Object> entry_nested : involved_balance_members_ids.entrySet()) {
                     String involved_balance_member_key = entry_nested.getKey();
                     String involved_balance_member_name = entry_nested.getValue().toString();
                     Money money = new Money(new BigDecimal("0.00"));
@@ -114,37 +115,30 @@ public class GroupBalanceModel {
 
     private void updateListItemsOnFragment(GroupBalanceAdapter groupBalanceAdapter) {
         groupBalanceAdapter.clear();
-        for (Map.Entry<String,MemberRepresentation> entry : membersBalanceInvolved.entrySet()) {
-            MemberRepresentation member = (MemberRepresentation) entry.getValue();
+        for (Entry<String,MemberRepresentation> entry : membersBalanceInvolved.entrySet()) {
+            MemberRepresentation member = entry.getValue();
             Money residue = member.getResidue();
             String name = member.getName();
             String idMember = entry.getKey();
             String memberToGiveBack = member.getTypeOfMember();
-            ArrayList<CreditorDebtorModel.CatchUpGroup> listOfCatchUpGroup = member.getListOfCatchUpGroup();
-            GroupBalanceAdapter.ListItem listItem = new GroupBalanceAdapter.ListItem(idMember,name,residue,memberToGiveBack,listOfCatchUpGroup);
+            ArrayList<CatchUpGroup> listOfCatchUpGroup = member.getListOfCatchUpGroup();
+            ListItem listItem = new ListItem(idMember,name,residue,memberToGiveBack,listOfCatchUpGroup);
             groupBalanceAdapter.add(listItem);
         }
     }
 
-    private void printDebugBalances() {
-        for (Map.Entry<String,MemberRepresentation> entry :membersBalanceInvolved.entrySet()) {
-            MemberRepresentation member = entry.getValue();
-            Log.d(TAG,"Name: "+member.getName().toString()+"Residue: "+member.getResidue().toString());
-        }
-    }
-
     private void computeBalance() {
-        for (Map.Entry<String,Object> entry : expensesOfThisGroup.entrySet()) {
+        for (Entry<String,Object> entry : expensesOfThisGroup.entrySet()) {
             Map singleExpense = (Map) entry.getValue();
 
             String amountTemp = (String) singleExpense.get("amount");
-            Money amount= Money.parse(amountTemp);
+            Money amount = Money.parseOrFail(amountTemp);
             String id = entry.getKey();
             String payerId = (String) singleExpense.get("payer_id");
 
             HashMap<String,Object> members_ids = (HashMap <String,Object>) singleExpense.get("members_ids");
             int numberOfMembersInvolved = members_ids.size();
-            for (Map.Entry<String,Object> entry_nested :members_ids.entrySet()) {
+            for (Entry<String,Object> entry_nested :members_ids.entrySet()) {
                 String idMember = entry_nested.getKey();
                 boolean isPayer=false;
                 if(idMember.equals(payerId)) {
@@ -159,7 +153,7 @@ public class GroupBalanceModel {
 
     private void distributeTheRestAmongParticipants(Money amount,int numberOfMembersInvolved,String payerId) {
         Money quote = amount.div(new BigDecimal(numberOfMembersInvolved));
-        Money totalAmountCalculated = (quote.mul(new BigDecimal(numberOfMembersInvolved)));
+        Money totalAmountCalculated = quote.mul(new BigDecimal(numberOfMembersInvolved));
         Money singleExpenseRest = new Money(new BigDecimal("0.00"));
         if (totalAmountCalculated.getAmount().compareTo(amount.getAmount())!=0) {
             singleExpenseRest = amount.sub(totalAmountCalculated);
@@ -167,7 +161,7 @@ public class GroupBalanceModel {
             BigDecimal d = BigDecimal.valueOf(singleExpenseRest.getAmount().doubleValue());
             BigDecimal result = d.subtract(d.setScale(0, RoundingMode.HALF_UP)).movePointRight(d.scale());
             Integer numberOfIteration = result.abs().intValue();
-            for (Map.Entry<String,MemberRepresentation> entry: membersBalanceInvolved.entrySet()) {
+            for (Entry<String,MemberRepresentation> entry: membersBalanceInvolved.entrySet()) {
                 if (numberOfIteration!=0) {
                     MemberRepresentation member =entry.getValue();
                     if (entry.getKey().equals(payerId)) {continue;}
@@ -189,9 +183,9 @@ public class GroupBalanceModel {
 
     private void decideWhoHasToGiveBackTo() {
         CreditorDebtorModel creditorDebtorModel = new CreditorDebtorModel(membersBalanceInvolved);
-        ArrayList<CreditorDebtorModel.CatchUpGroup> listOfCatchUpGroup = creditorDebtorModel.getListOfCatchUpGroup();
+        ArrayList<CatchUpGroup> listOfCatchUpGroup = creditorDebtorModel.getListOfCatchUpGroup();
 
-        for (Map.Entry<String,MemberRepresentation> entry:membersBalanceInvolved.entrySet()) {
+        for (Entry<String,MemberRepresentation> entry:membersBalanceInvolved.entrySet()) {
             MemberRepresentation singleMember = entry.getValue();
             Money residue = singleMember.getResidue();
             singleMember.setListOfCatchUpGroup(listOfCatchUpGroup);
@@ -246,7 +240,7 @@ public class GroupBalanceModel {
         String name;
         Money residue;
         String typeOfMember ="";
-        ArrayList<CreditorDebtorModel.CatchUpGroup> listOfCatchUpGroup= new ArrayList<>();
+        ArrayList<CatchUpGroup> listOfCatchUpGroup= new ArrayList<>();
 
         public MemberRepresentation(String name,Money residue) {
             this.name = name;
@@ -291,11 +285,11 @@ public class GroupBalanceModel {
             this.id = id;
         }
 
-        public ArrayList<CreditorDebtorModel.CatchUpGroup> getListOfCatchUpGroup() {
+        public ArrayList<CatchUpGroup> getListOfCatchUpGroup() {
             return listOfCatchUpGroup;
         }
 
-        public void setListOfCatchUpGroup(ArrayList<CreditorDebtorModel.CatchUpGroup> listOfCatchUpGroup) {
+        public void setListOfCatchUpGroup(ArrayList<CatchUpGroup> listOfCatchUpGroup) {
             this.listOfCatchUpGroup = listOfCatchUpGroup;
         }
     }

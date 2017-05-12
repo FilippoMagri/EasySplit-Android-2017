@@ -31,6 +31,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="fill"
             android:layout_margin="10dp"
+            android:editable="false"
             android:gravity="fill_horizontal"
             android:inputType="date"
             android:textAlignment="textStart" />
@@ -85,19 +86,19 @@
             android:layout_height="wrap_content"
             android:layout_gravity="fill"
             android:layout_margin="10dp"
+            android:digits="0123456789.,"
             android:gravity="fill_horizontal"
             android:inputType="numberDecimal"
             android:textAlignment="textStart" />
 
-           <Spinner
+        <Spinner
             android:id="@+id/currencySpinner"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:layout_margin="10dp"
-            android:layout_weight="0.1"
-            android:textAlignment="textEnd"
-            android:gravity="end"
-            android:entries="@array/CurrencyListItem"/>
+            android:layout_gravity="center_vertical"
+            android:entries="@array/CurrencyListItem"
+            android:gravity="center_vertical|end"
+            android:textAlignment="textEnd" />
 
 
         <TextView

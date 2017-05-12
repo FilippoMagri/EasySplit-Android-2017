@@ -9,8 +9,10 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -22,12 +24,12 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import it.polito.mad.easysplit.EditExpenseActivity;
-import java.util.Comparator;
-
-import it.polito.mad.easysplit.AddExpenses;
 import it.polito.mad.easysplit.ExpenseDetailsActivity;
-import it.polito.mad.easysplit.R;
+import it.polito.mad.easysplit.R.id;
+import it.polito.mad.easysplit.R.layout;
 import it.polito.mad.easysplit.Utils;
+import it.polito.mad.easysplit.Utils.UriType;
+import it.polito.mad.easysplit.models.Money;
 
 public class ExpenseListFragment extends Fragment {
     public static ExpenseListFragment newInstance(Uri groupUri) {
@@ -58,25 +60,25 @@ public class ExpenseListFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.content_expenses_list, container, false);
-        ListView lv = (ListView) view.findViewById(R.id.expensesList);
+        View view = inflater.inflate(layout.content_expenses_list, container, false);
+        ListView lv = (ListView) view.findViewById(id.expensesList);
 
         ExpenseListAdapter adapter = new ExpenseListAdapter(getContext());
         mExpenseIdsRef.orderByChild("timestamp_number").addValueEventListener(adapter);
         lv.setAdapter(adapter);
-        lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        lv.setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 ListItem expense = (ListItem) parent.getItemAtPosition(position);
                 Intent showExpense = new Intent(getContext(), ExpenseDetailsActivity.class);
-                showExpense.setData(Utils.getUriFor(Utils.UriType.EXPENSE, expense.id));
+                showExpense.setData(Utils.getUriFor(UriType.EXPENSE, expense.id));
                 startActivity(showExpense);
             }
         });
 
         /// TODO Support multiple groups
-        View btnAdd = view.findViewById(R.id.add_button_expense);
-        btnAdd.setOnClickListener(new View.OnClickListener() {
+        View btnAdd = view.findViewById(id.add_button_expense);
+        btnAdd.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent i = new Intent(getContext(), EditExpenseActivity.class);
@@ -103,7 +105,7 @@ public class ExpenseListFragment extends Fragment {
 
     private class ExpenseListAdapter extends ArrayAdapter<ListItem> implements ValueEventListener {
         public ExpenseListAdapter(Context ctx) {
-            super(ctx, R.layout.expense_item);
+            super(ctx, layout.expense_item);
         }
 
         @NonNull
@@ -111,11 +113,11 @@ public class ExpenseListFragment extends Fragment {
         public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
             if (convertView == null) {
                 LayoutInflater inflater = LayoutInflater.from(getContext());
-                convertView = inflater.inflate(R.layout.expense_item, parent, false);
+                convertView = inflater.inflate(layout.expense_item, parent, false);
             }
 
-            TextView nameText = (TextView) convertView.findViewById(R.id.name);
-            TextView amountText = (TextView) convertView.findViewById(R.id.amount);
+            TextView nameText = (TextView) convertView.findViewById(id.name);
+            TextView amountText = (TextView) convertView.findViewById(id.amount);
 
             ListItem item = getItem(position);
             nameText.setText(item.name);
@@ -128,10 +130,12 @@ public class ExpenseListFragment extends Fragment {
         public synchronized void onDataChange(DataSnapshot expenseIdsSnap) {
             clear();
             for (DataSnapshot child : expenseIdsSnap.getChildren()) {
-                final String expenseId = child.getKey();
+                String expenseId = child.getKey();
                 String name = child.child("name").getValue(String.class);
-                String amount = child.child("amount").getValue(String.class);
-                add(new ListItem(expenseId, name, amount));
+                String amountStdStr = child.child("amount").getValue(String.class);
+                Money amount = Money.parseOrFail(amountStdStr);
+                Long timestampNumber = child.child("timestamp_number").getValue(Long.class);
+                add(new ListItem(expenseId, name, amount.toString(), timestampNumber));
             }
         }
 

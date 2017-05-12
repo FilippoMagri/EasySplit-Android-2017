@@ -32,4 +32,14 @@
     <string name="button_delete">Cancella</string>
     <string name="button_cancel">Non farlo</string>
     <string name="title_error_dialog">Errore</string>
+    <string name="action_leave">Abbandona il gruppo</string>
+    <string name="balance_problem_message">Il tuo bilancio deve essere pareggiato!</string>
+    <string name="balance_problem_title">Non puoi lasciare il gruppo!</string>
+    <string name="leave_confirm_message">Sei sicuro di voler abbandonare il gruppo?</string>
+    <string name="leave_confirm_title">Conferma</string>
+    <string name="no">No</string>
+    <string name="okay">OK</string>
+    <string name="unsaved_confirm_message">Ci sono cambiamenti non salvati. Sei sicuro di voler uscire?</string>
+    <string name="unsaved_confirm_title">Cambiamenti non salvati</string>
+    <string name="yes">Sì</string>
 </resources>

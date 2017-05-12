@@ -1,16 +1,20 @@
 package it.polito.mad.easysplit;
 
+import android.R.layout;
+import android.R.string;
 import android.app.DatePickerDialog;
+import android.app.DatePickerDialog.OnDateSetListener;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.app.AlertDialog.Builder;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.DatePicker;
 import android.widget.EditText;
@@ -40,6 +44,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
+import it.polito.mad.easysplit.R.id;
+import it.polito.mad.easysplit.Utils.UriType;
 import it.polito.mad.easysplit.models.Money;
 
 
@@ -49,6 +55,15 @@ import it.polito.mad.easysplit.models.Money;
  * otherwise, a new one will be created. In both cases, the "groupId" extra is mandatory.
  */
 public class EditExpenseActivity extends AppCompatActivity {
+    private static final DecimalFormat mDecimalFormat = new DecimalFormat("#,##0.00");
+    static {
+        DecimalFormatSymbols symbols = DecimalFormatSymbols.getInstance();
+        symbols.setGroupingSeparator('\'');
+        mDecimalFormat.setDecimalFormatSymbols(symbols);
+        mDecimalFormat.setParseBigDecimal(true);
+    }
+
+
     // Used for both the spinner and the checklist
     private final class MemberListItem {
         String id, name;
@@ -66,27 +81,18 @@ public class EditExpenseActivity extends AppCompatActivity {
 
     private final DatabaseReference mRoot = FirebaseDatabase.getInstance().getReference();
     private final DateFormat mUIDateFormat = DateFormat.getDateInstance();
-    private static final DecimalFormat mDecimalFormat = new DecimalFormat("#,##0.00");
     private DatePickerDialog mDatePickerDialog;
-    private DateFormat mTimestampFormat;
     private String mGroupId;
     private DataSnapshot mInitialExpense;
     private View mProgressBarOverlay;
     private UnsavedChangesNotifier mNotifier;
-
-    static {
-        DecimalFormatSymbols symbols = DecimalFormatSymbols.getInstance();
-        symbols.setGroupingSeparator('\'');
-        mDecimalFormat.setDecimalFormatSymbols(symbols);
-        mDecimalFormat.setParseBigDecimal(true);
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_expenses);
 
-        mProgressBarOverlay = findViewById(R.id.progress_bar_overlay);
+        mProgressBarOverlay = findViewById(id.progress_bar_overlay);
 
         Intent i = getIntent();
         mGroupId = getIntent().getStringExtra("groupId");
@@ -100,8 +106,6 @@ public class EditExpenseActivity extends AppCompatActivity {
             mProgressBarOverlay.setVisibility(View.GONE);
             setupView();
         }
-
-        mTimestampFormat = android.text.format.DateFormat.getLongDateFormat(this);
 
         mNotifier = new UnsavedChangesNotifier(this, this); // prepare unsaved changes notifier
         /// TODO Add calls to mNotifier.setChanged() where relevant
@@ -124,10 +128,10 @@ public class EditExpenseActivity extends AppCompatActivity {
                     EditExpenseActivity.this.finish();
                 }
             };
-            AlertDialog dialog = new AlertDialog.Builder(EditExpenseActivity.this)
+            AlertDialog dialog = new Builder(EditExpenseActivity.this)
                     .setTitle("Error")
                     .setMessage(databaseError.getMessage())
-                    .setNegativeButton(android.R.string.cancel, onClickGoBack)
+                    .setNegativeButton(string.cancel, onClickGoBack)
                     .create();
             dialog.show();
         }
@@ -144,16 +148,16 @@ public class EditExpenseActivity extends AppCompatActivity {
         setupMembersChecklist();
 
         if (isEditing()) {
-            EditText titleEdit = (EditText) findViewById(R.id.titleEdit);
+            EditText titleEdit = (EditText) findViewById(id.titleEdit);
             titleEdit.setText(mInitialExpense.child("name").getValue(String.class));
 
-            EditText amountEdit = (EditText) findViewById(R.id.amountEdit);
-            Money amount = Money.parse(mInitialExpense.child("amount").getValue(String.class));
+            EditText amountEdit = (EditText) findViewById(id.amountEdit);
+            Money amount = Money.parseOrFail(mInitialExpense.child("amount").getValue(String.class));
             amountEdit.setText(amount.getAmount().toString());
 
             // WARNING Indefinite behavior when the currency code isn't already part of the
             // spinner's items.
-            Spinner currencySpinner = (Spinner) findViewById(R.id.currencySpinner);
+            Spinner currencySpinner = (Spinner) findViewById(id.currencySpinner);
             int numCurrencies = currencySpinner.getAdapter().getCount();
             for (int i=0; i < numCurrencies; i++) {
                 String itemCurrency = (String) currencySpinner.getItemAtPosition(i);
@@ -166,22 +170,17 @@ public class EditExpenseActivity extends AppCompatActivity {
     }
 
     private void setupDateEdit() {
-        final EditText dateEdit = (EditText) findViewById(R.id.dateEdit);
+        final EditText dateEdit = (EditText) findViewById(id.dateEdit);
 
         if (isEditing()) {
-            try {
-                Date timestamp = mTimestampFormat.parse(mInitialExpense.child("timestamp").getValue(String.class));
-                dateEdit.setText(mUIDateFormat.format(timestamp));
-            } catch (ParseException exc) {
-                // just leave the field empty: invalid date
-                dateEdit.setText("");
-            }
+            Date timestamp = new Date(mInitialExpense.child("timestamp").getValue(Long.class).longValue());
+            dateEdit.setText(mUIDateFormat.format(timestamp));
         } else {
-            Calendar newDate = Calendar.getInstance();
-            dateEdit.setText(mUIDateFormat.format(newDate.getTime()));
+            Date newDate = new Date(System.currentTimeMillis());
+            dateEdit.setText(mUIDateFormat.format(newDate));
         }
 
-        DatePickerDialog.OnDateSetListener dateSetListener = new DatePickerDialog.OnDateSetListener() {
+        OnDateSetListener dateSetListener = new OnDateSetListener() {
             public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
                 Calendar cal = Calendar.getInstance();
                 cal.set(year, monthOfYear, dayOfMonth);
@@ -200,13 +199,13 @@ public class EditExpenseActivity extends AppCompatActivity {
     }
 
     public void setupMembersSpinner() {
-        final Spinner spinner = (Spinner) findViewById(R.id.payerSpinner);
+        final Spinner spinner = (Spinner) findViewById(id.payerSpinner);
         final ArrayAdapter<MemberListItem> adapter =
-                new ArrayAdapter<>(this, android.R.layout.simple_spinner_item);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                new ArrayAdapter<>(this, layout.simple_spinner_item);
+        adapter.setDropDownViewResource(layout.simple_spinner_dropdown_item);
 
         DatabaseReference expensesIdsRef = mRoot.child("groups/"+mGroupId+"/members_ids");
-        final String idOfTheUserLogged = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        String idOfTheUserLogged = FirebaseAuth.getInstance().getCurrentUser().getUid();
         //Adding first the owner of the phone as first member in the spinner
         expensesIdsRef.orderByKey().equalTo(idOfTheUserLogged).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -242,8 +241,8 @@ public class EditExpenseActivity extends AppCompatActivity {
             public void onDataChange(DataSnapshot membersIdsRef) {
                 adapter.clear();
                 for (DataSnapshot child : membersIdsRef.getChildren()) {
-                    final String userId = child.getKey();
-                    final String userName = child.getValue(String.class);
+                    String userId = child.getKey();
+                    String userName = child.getValue(String.class);
                     adapter.add(new MemberListItem(userId, userName));
                 }
 
@@ -272,9 +271,9 @@ public class EditExpenseActivity extends AppCompatActivity {
     }
 
     public void setupMembersChecklist() {
-        final ListView listView = (ListView) findViewById(R.id.membersList);
+        final ListView listView = (ListView) findViewById(id.membersList);
         final ArrayAdapter<MemberListItem> adapter =
-                new ArrayAdapter<MemberListItem>(this, android.R.layout.simple_list_item_multiple_choice);
+                new ArrayAdapter<MemberListItem>(this, layout.simple_list_item_multiple_choice);
 
         listView.setAdapter(adapter);
 
@@ -283,7 +282,7 @@ public class EditExpenseActivity extends AppCompatActivity {
             @Override
             public void onDataChange(DataSnapshot membersIdsRef) {
                 for (DataSnapshot child : membersIdsRef.getChildren()) {
-                    final String userId = child.getKey();
+                    String userId = child.getKey();
                     String userName = child.getValue(String.class);
                     adapter.add(new MemberListItem(userId, userName));
                 }
@@ -306,21 +305,21 @@ public class EditExpenseActivity extends AppCompatActivity {
     }
 
     public void setActionOnButtons() {
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = (Toolbar) findViewById(id.toolbar);
         setSupportActionBar(toolbar);
 
         /// TODO Setup back/up navigation
 
-        ImageView dateImg = (ImageView) findViewById(R.id.dateImg);
-        dateImg.setOnClickListener(new View.OnClickListener() {
+        ImageView dateImg = (ImageView) findViewById(id.dateImg);
+        dateImg.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
                 mDatePickerDialog.show();
             }
         });
 
-        ImageView confirmBtn = (ImageView) findViewById(R.id.img_confirm_add_expenses);
-        confirmBtn.setOnClickListener(new View.OnClickListener() {
+        ImageView confirmBtn = (ImageView) findViewById(id.img_confirm_add_expenses);
+        confirmBtn.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
                 acceptExpense();
@@ -331,12 +330,12 @@ public class EditExpenseActivity extends AppCompatActivity {
     /** Save the existing expense or create the new one */
     private void acceptExpense() {
         final View contentView = findViewById(android.R.id.content);
-        EditText dateEdit = (EditText) findViewById(R.id.dateEdit);
-        EditText titleEdit = (EditText) findViewById(R.id.titleEdit);
-        EditText amountEdit = (EditText) findViewById(R.id.amountEdit);
-        Spinner payerSpinner = (Spinner) findViewById(R.id.payerSpinner);
-        ListView membersList = (ListView) findViewById(R.id.membersList);
-        Spinner currencySpinner = (Spinner) findViewById(R.id.currencySpinner);
+        EditText dateEdit = (EditText) findViewById(id.dateEdit);
+        EditText titleEdit = (EditText) findViewById(id.titleEdit);
+        EditText amountEdit = (EditText) findViewById(id.amountEdit);
+        Spinner payerSpinner = (Spinner) findViewById(id.payerSpinner);
+        ListView membersList = (ListView) findViewById(id.membersList);
+        Spinner currencySpinner = (Spinner) findViewById(id.currencySpinner);
 
         String dateStr = dateEdit.getText().toString();
         Date timestamp;
@@ -380,9 +379,9 @@ public class EditExpenseActivity extends AppCompatActivity {
         Map<String, Object> expense = new HashMap<>();
         expense.put("name", title);
         /// TODO Decide on a standard, strict format for the timestamp
-        expense.put("timestamp", mTimestampFormat.format(timestamp));
+        expense.put("timestamp", timestamp.getTime());
         expense.put("timestamp_number", -1 * timestamp.getTime());
-        expense.put("amount", amount.toString());
+        expense.put("amount", amount.toStandardFormat());
         expense.put("payer_id", payerId);
         expense.put("group_id", mGroupId);
         expense.put("members_ids", memberIds);
@@ -416,7 +415,7 @@ public class EditExpenseActivity extends AppCompatActivity {
                 if (! isEditing()) {
                     /// TODO Go to the expense details (with the newly created URI)
                     Intent i = new Intent(getApplicationContext(), ExpenseDetailsActivity.class);
-                    i.setData(Utils.getUriFor(Utils.UriType.EXPENSE, expenseId));
+                    i.setData(Utils.getUriFor(UriType.EXPENSE, expenseId));
                     startActivity(i);
                 }
                 finish();
