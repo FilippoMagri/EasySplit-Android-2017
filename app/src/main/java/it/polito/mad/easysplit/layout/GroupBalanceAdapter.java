@@ -67,6 +67,8 @@ public class GroupBalanceAdapter extends ArrayAdapter<GroupBalanceAdapter.ListIt
 
         // access to nested linear layout, in order to attach the list of creditors or debtors
         LinearLayout layout = (LinearLayout)convertView.findViewById(R.id.linearLayout_catch_up_list);
+        if((layout).getChildCount() > 0)
+            (layout).removeAllViews();
 
         //Retrieve all listOfCatchUpGroups
         ArrayList<CreditorDebtorModel.CatchUpGroup> listOfCatchUpGroup= item.listOfCatchUpGroup;
