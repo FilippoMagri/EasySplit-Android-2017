@@ -179,7 +179,7 @@ public class ExpenseDetailsActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(menu.menu_expense_details, menu);
+        getMenuInflater().inflate(R.menu.menu_expense_details, menu);
         return true;
     }
 
@@ -191,9 +191,9 @@ public class ExpenseDetailsActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == id.action_settings) {
+        if (id == R.id.action_settings) {
             return true;
-        } else if (id == id.action_delete) {
+        } else if (id == R.id.action_delete) {
             AlertDialog dialog = new Builder(this)
                     .setTitle(R.string.title_confirm)
                     .setMessage(R.string.message_confirm_delete_expense)
@@ -344,11 +344,11 @@ public class ExpenseDetailsActivity extends AppCompatActivity {
             Participant participant = getItem(position);
             // Check if an existing view is being reused, otherwise inflate the view
             if (convertView == null) {
-                convertView = LayoutInflater.from(getContext()).inflate(layout.list_item_participant, parent, false);
+                convertView = LayoutInflater.from(getContext()).inflate(R.layout.list_item_participant, parent, false);
             }
             // Lookup view for data population
-            TextView tvNameParticipant = (TextView) convertView.findViewById(id.name_participant);
-            TextView tvResidueParticipant = (TextView) convertView.findViewById(id.residue_participant);
+            TextView tvNameParticipant = (TextView) convertView.findViewById(R.id.name_participant);
+            TextView tvResidueParticipant = (TextView) convertView.findViewById(R.id.residue_participant);
             // Populate the data into the template view using the data object
             tvNameParticipant.setText(participant.getName());
             tvResidueParticipant.setText(participant.getParticipationFee().toString());

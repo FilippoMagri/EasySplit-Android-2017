@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
+import it.polito.mad.easysplit.R;
 import it.polito.mad.easysplit.R.id;
 import it.polito.mad.easysplit.R.layout;
 import it.polito.mad.easysplit.layout.GroupBalanceAdapter.ListItem;
@@ -104,10 +105,10 @@ public class GroupBalanceAdapter extends ArrayAdapter<ListItem> {
                     String idOfDebtor = listOfDebtors.get(i).getId();
                     Money residueOfDebtor = listOfDebtors.get(i).getResidue();
                     //Populate the child with the correct information about debtor
-                    View child = LayoutInflater.from(getContext()).inflate(layout.catch_up_group_item,parent,false);
-                    TextView message = (TextView)  child.findViewById(id.text_view_catch_up_item);
-                    TextView residue_catch_up_item = (TextView) child.findViewById(id.residue_catch_up_item);
-                    TextView keyOfDebtor = (TextView) child.findViewById(id.key_catch_up_item);
+                    View child = LayoutInflater.from(getContext()).inflate(R.layout.catch_up_group_item, parent, false);
+                    TextView message = (TextView)  child.findViewById(R.id.text_view_catch_up_item);
+                    TextView residue_catch_up_item = (TextView) child.findViewById(R.id.residue_catch_up_item);
+                    TextView keyOfDebtor = (TextView) child.findViewById(R.id.key_catch_up_item);
                     message.setText("This member has to receive from "+nameOfDebtor+": ");
                     residue_catch_up_item.setText(residueOfDebtor.toString());
                     keyOfDebtor.setText(idOfDebtor);
@@ -126,10 +127,10 @@ public class GroupBalanceAdapter extends ArrayAdapter<ListItem> {
                     for (int i=0;i<listOfDebtors.size();i++) {
                         if (listOfDebtors.get(i).getName().equals(item.name)) {
                             //Element Present , retrieve the creditor Information and populate the child
-                            View child = LayoutInflater.from(getContext()).inflate(layout.catch_up_group_item,parent,false);
-                            TextView message = (TextView)  child.findViewById(id.text_view_catch_up_item);
-                            TextView residue_catch_up_item = (TextView) child.findViewById(id.residue_catch_up_item);
-                            TextView keyOfCreditor_tv = (TextView) child.findViewById(id.key_catch_up_item);
+                            View child = LayoutInflater.from(getContext()).inflate(R.layout.catch_up_group_item,parent,false);
+                            TextView message = (TextView)  child.findViewById(R.id.text_view_catch_up_item);
+                            TextView residue_catch_up_item = (TextView) child.findViewById(R.id.residue_catch_up_item);
+                            TextView keyOfCreditor_tv = (TextView) child.findViewById(R.id.key_catch_up_item);
                             Money residueOfDebtorInsideCatchUpGroup = listOfDebtors.get(i).getResidue();
                             message.setText("This member has to give back to "+creditorName+":");
                             residue_catch_up_item.setText(residueOfDebtorInsideCatchUpGroup.toString());
