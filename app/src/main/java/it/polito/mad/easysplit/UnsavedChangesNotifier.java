@@ -31,16 +31,16 @@ public class UnsavedChangesNotifier {
     public void handleBackButton () {
         if (changed == true) {
             new AlertDialog.Builder(ctx)
-                    .setTitle("Unsaved changes")
-                    .setMessage("There are unsaved changes. Are you sure you want to leave?")
+                    .setTitle(R.string.unsaved_confirm_title)
+                    .setMessage(R.string.unsaved_confirm_message)
                     .setCancelable(false)
-                    .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    .setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             currentActivity.finish();
                         }
                     })
-                    .setNegativeButton("No", null)
+                    .setNegativeButton(R.string.no, null)
                     .show();
         }
         else {
