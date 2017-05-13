@@ -1,28 +1,20 @@
 package it.polito.mad.easysplit.layout;
 
-import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
 
-import java.util.ArrayList;
-
 import it.polito.mad.easysplit.R;
 import it.polito.mad.easysplit.models.GroupBalanceModel;
 
-/**
- * Created by fil on 03/05/17.
- */
-
 public class MemberListFragment extends Fragment {
-    static String TAG="MemberListFragment";
-    Uri mGroupUri;
+    private Uri mGroupUri;
+    private GroupBalanceAdapter mAdapter;
 
     public static MemberListFragment newInstance(Uri groupUri) {
         MemberListFragment frag = new MemberListFragment();
@@ -45,15 +37,12 @@ public class MemberListFragment extends Fragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_member_list, container, false);
 
-        // Set the adapter
         if (view instanceof ListView) {
-            Context context = view.getContext();
             ListView listView = (ListView) view;
-            Log.d(TAG,"Inside onCreateView");
-            ArrayList<GroupBalanceAdapter.ListItem> members= new ArrayList<GroupBalanceAdapter.ListItem>();
-            GroupBalanceAdapter groupBalanceAdapter = new GroupBalanceAdapter(context, members);
-            GroupBalanceModel groupBalanceModel = new GroupBalanceModel(mGroupUri, groupBalanceAdapter);
-            listView.setAdapter(groupBalanceAdapter);
+
+            GroupBalanceModel model = GroupBalanceModel.forGroup(mGroupUri);
+            mAdapter = new GroupBalanceAdapter(getContext(), model);
+            listView.setAdapter(mAdapter);
         }
         return view;
     }

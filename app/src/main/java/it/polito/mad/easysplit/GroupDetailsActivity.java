@@ -1,7 +1,6 @@
 package it.polito.mad.easysplit;
 
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
@@ -25,7 +24,8 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.Map;
 
 import it.polito.mad.easysplit.layout.ExpenseListFragment;
 import it.polito.mad.easysplit.layout.MemberListFragment;
@@ -35,8 +35,8 @@ import it.polito.mad.easysplit.models.Money;
 
 public class GroupDetailsActivity extends AppCompatActivity {
     private final DatabaseReference mRoot = FirebaseDatabase.getInstance().getReference();
+
     private Uri mGroupUri;
-    private final Context ctx = this;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -118,46 +118,58 @@ public class GroupDetailsActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        switch (id) {
-            case R.id.action_invite:
-                Intent i = new Intent(getApplicationContext(),InvitePerson.class);
-                i.putExtra("Group Name",getTitle());
-                startActivity(i);
-                return true;
-            case R.id.action_leave:
-                 new AlertDialog.Builder(this)
-                        .setTitle(R.string.leave_confirm_title)
-                        .setMessage(R.string.leave_confirm_message)
-                        .setCancelable(false)
-                        .setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                // delete user from group, and group from user
-                                final FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-                                final GroupHandler handler = new GroupHandler(mGroupUri);
-                                handler.getUserBalance(user.getUid(), new GroupBalanceModel.UserBalanceListener() {
-                                    @Override
-                                    public void onBalanceAvailable(Money money) {
-                                        if (money.getAmount().equals(new BigDecimal("0.00"))) {
-                                            handler.deleteUser(user.getUid());
-                                            Intent i = new Intent(getApplicationContext(), Group.class);
-                                            startActivity(i);
-                                        }
-                                        else {
-                                            new AlertDialog.Builder(ctx)
-                                                    .setTitle(R.string.balance_problem_title)
-                                                    .setMessage(R.string.balance_problem_message)
-                                                    .setPositiveButton(R.string.okay, null).show();
-                                        }
-                                    }
-                                });
+        if (id == R.id.action_invite) {
+            Intent i = new Intent(getApplicationContext(), InvitePerson.class);
+            i.putExtra("Group Name", getTitle());
+            startActivity(i);
+            return true;
+        } else if (id == R.id.action_leave) {
+            new AlertDialog.Builder(this)
+                    .setTitle(R.string.leave_confirm_title)
+                    .setMessage(R.string.leave_confirm_message)
+                    .setCancelable(false)
+                    .setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            Map<String, GroupBalanceModel.MemberRepresentation> balance =
+                                    GroupBalanceModel.forGroup(mGroupUri).getBalanceSnapshot();
+
+                            final FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+                            Money residue = balance.get(user.getUid()).getResidue();
+
+                            // delete user from group, and group from user
+                            if (residue.isZero()) {
+                                removeUserFromGroup(user.getUid());
+                                Intent i = new Intent(GroupDetailsActivity.this, Group.class);
+                                startActivity(i);
+                            } else {
+                                new AlertDialog.Builder(GroupDetailsActivity.this)
+                                        .setTitle(R.string.balance_problem_title)
+                                        .setMessage(R.string.balance_problem_message)
+                                        .setPositiveButton(R.string.okay, null).show();
                             }
-                        })
-                        .setNegativeButton(R.string.no, null)
-                        .show();
-                return true;
+                        }
+                    })
+                    .setNegativeButton(R.string.no, null)
+                    .show();
+            return true;
         }
 
         return super.onOptionsItemSelected(item);
     }
+
+    private void removeUserFromGroup(String userId) {
+        String userPath = Utils.getPathFor(Utils.UriType.USER, userId);
+        String groupPath = Utils.getPathFor(mGroupUri);
+        String groupId = Utils.getIdFor(Utils.UriType.GROUP, mGroupUri);
+
+        HashMap<String, Object> updates = new HashMap<>();
+        // remove group from user
+        updates.put(userPath + "/groups_ids/" + groupId, null);
+        // remove user from group
+        updates.put(groupPath + "/members_ids/" + userId, null);
+
+        mRoot.updateChildren(updates);
+    }
+
 }

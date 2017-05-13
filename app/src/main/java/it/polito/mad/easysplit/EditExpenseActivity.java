@@ -365,7 +365,6 @@ public class EditExpenseActivity extends AppCompatActivity {
         }
 
         MemberListItem payerItem = (MemberListItem) payerSpinner.getSelectedItem();
-        String payerId = payerItem.id;
 
         Map<String, String> memberIds = new HashMap<>();
         int numMembers = membersList.getAdapter().getCount();
@@ -382,7 +381,8 @@ public class EditExpenseActivity extends AppCompatActivity {
         expense.put("timestamp", timestamp.getTime());
         expense.put("timestamp_number", -1 * timestamp.getTime());
         expense.put("amount", amount.toStandardFormat());
-        expense.put("payer_id", payerId);
+        expense.put("payer_id", payerItem.id);
+        expense.put("payer_name", payerItem.name);
         expense.put("group_id", mGroupId);
         expense.put("members_ids", memberIds);
 
@@ -395,7 +395,7 @@ public class EditExpenseActivity extends AppCompatActivity {
 
         Map<String, Object> update = new HashMap<>();
         update.put("groups/"+mGroupId+"/expenses/"+expenseId, expense);
-        update.put("users/"+payerId+"/expenses_ids_as_payer/"+expenseId, title);
+        update.put("users/"+payerItem.id+"/expenses_ids_as_payer/"+expenseId, title);
         update.put("expenses/"+expenseId, expense);
         if (isEditing()) {
             // remove expense from the old payer's expense list

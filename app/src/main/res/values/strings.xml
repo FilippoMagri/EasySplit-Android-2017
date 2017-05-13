@@ -63,4 +63,9 @@
     <string name="button_delete">Delete</string>
     <string name="button_cancel">Cancel</string>
     <string name="title_error_dialog">Error</string>
+    <string name="balance_debtor">Debtor</string>
+    <string name="balance_creditor">Creditor</string>
+    <string name="caught_up">Caught up</string>
+    <string name="balance_debtor_message">This member has to receive from %s:</string>
+    <string name="balance_creditor_message">This member has to give back to %s:</string>
 </resources>

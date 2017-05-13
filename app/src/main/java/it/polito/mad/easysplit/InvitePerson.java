@@ -28,7 +28,7 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.HashMap;
 import java.util.Map;
 
-import it.polito.mad.easysplit.Email.GMailSender;
+import it.polito.mad.easysplit.email.GMailSender;
 
 public class InvitePerson extends AppCompatActivity implements View.OnClickListener{
     private static final String TAG = "InvitePersonActivity";
