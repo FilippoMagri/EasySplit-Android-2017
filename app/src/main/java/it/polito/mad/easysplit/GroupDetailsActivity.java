@@ -124,7 +124,8 @@ public class GroupDetailsActivity extends AppCompatActivity {
             startActivity(i);
             return true;
         } else if (id == R.id.action_leave) {
-            new AlertDialog.Builder(this)
+
+            AlertDialog dialog = new AlertDialog.Builder(this)
                     .setTitle(R.string.leave_confirm_title)
                     .setMessage(R.string.leave_confirm_message)
                     .setCancelable(false)
@@ -151,7 +152,8 @@ public class GroupDetailsActivity extends AppCompatActivity {
                         }
                     })
                     .setNegativeButton(R.string.no, null)
-                    .show();
+                    .create();
+            dialog.show();
             return true;
         }
 

@@ -29,15 +29,28 @@ public final class Utils {
         }
     }
 
+    public static class InvalidUriException extends RuntimeException {
+        private Uri mUri;
+
+        InvalidUriException(Uri uri) {
+            super("Invalid content URI");
+            mUri = uri;
+        }
+
+        public Uri getUri() {
+            return mUri;
+        }
+    }
+
     @Nullable
-    static List<String> splitUri(Uri uri) {
+    static List<String> splitUri(Uri uri) throws InvalidUriException {
         if (! uri.getScheme().equals("content") ||
                 ! uri.getHost().equals(CANONICAL_HOSTNAME))
-            return null;
+            throw new InvalidUriException(uri);
 
         List<String> path = uri.getPathSegments();
         if (path.size() < 2)
-            return null;
+            throw new InvalidUriException(uri);
 
         return path;
     }
@@ -48,8 +61,6 @@ public final class Utils {
 
     public static DatabaseReference findByUri(Uri uri, DatabaseReference root) {
         List<String> path = splitUri(uri);
-        if (path == null)
-            return null;
 
         String tag = path.get(0);
         String id = path.get(1);
@@ -78,7 +89,7 @@ public final class Utils {
 
     public static String getIdFor(UriType uriType, Uri uri) {
         List<String> path = splitUri(uri);
-        if (path == null || uriType.getTag() != path.get(0))
+        if (! uriType.getTag().equals(path.get(0)))
             return null;
         return path.get(1);
     }
