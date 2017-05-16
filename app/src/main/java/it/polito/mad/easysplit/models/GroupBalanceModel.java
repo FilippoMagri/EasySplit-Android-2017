@@ -51,7 +51,7 @@ public class GroupBalanceModel {
         groupRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot groupSnap) {
-                updateBalance(groupSnap.child("expenses"));
+                updateBalance(groupSnap);
                 decideWhoHasToGiveBackTo();
                 notifyListeners();
             }
@@ -79,32 +79,40 @@ public class GroupBalanceModel {
         return new HashMap<>(mBalance);
     }
 
-    private synchronized void resetBalance(@NonNull DataSnapshot expensesSnap) {
+    private void addMember(String memberId, String memberName) {
+        if (mBalance.containsKey(memberId))
+            return;
+        mBalance.put(memberId, new MemberRepresentation(memberId, memberName));
+    }
+
+    private synchronized void resetBalance(@NonNull DataSnapshot groupSnap) {
         mBalance.clear();
 
-        for (DataSnapshot expense : expensesSnap.getChildren()) {
-            expense.child("members_ids").getChildren();
-            for (DataSnapshot member : expense.child("members_ids").getChildren()) {
-                String memberId = member.getKey();
-                if (! mBalance.containsKey(memberId)) {
-                    String memberName = member.getValue(String.class);
-                    mBalance.put(memberId, new MemberRepresentation(memberId, memberName));
-                }
-            }
+        // There is a slight difference between getting the members of the group
+        // and the union of the members of all expenses: it's possible that a
+        // person is part of the group but not a member of any expense (i.e. hasn't
+        // participated in any expense yet), and viceversa it's possible that a person
+        // is part of one or more expenses but not of the group (e.g. has left the group
+        // at some point)
 
-            // Also add the payers, as they may be "financiers" (they have credit but no debit)
+        for (DataSnapshot member : groupSnap.child("members_ids").getChildren())
+            addMember(member.getKey(), member.getValue(String.class));
+
+        for (DataSnapshot expense : groupSnap.child("expenses").getChildren()) {
+            for (DataSnapshot member : expense.child("members_ids").getChildren())
+                addMember(member.getKey(), member.getValue(String.class));
+
+            // Also add the payer, as he/she may be a "financier" (they have credit but no debit)
             String payerId = expense.child("payer_id").getValue(String.class);
-            if (! mBalance.containsKey(payerId)) {
-                String payerName = expense.child("payer_name").getValue(String.class);
-                mBalance.put(payerId, new MemberRepresentation(payerId, payerName));
-            }
+            String payerName = expense.child("payer_name").getValue(String.class);
+            addMember(payerId, payerName);
         }
     }
 
-    private synchronized void updateBalance(DataSnapshot expensesSnap) {
-        resetBalance(expensesSnap);
+    private synchronized void updateBalance(DataSnapshot groupSnap) {
+        resetBalance(groupSnap);
 
-        for (DataSnapshot expense : expensesSnap.getChildren()) {
+        for (DataSnapshot expense : groupSnap.child("expenses").getChildren()) {
             String payerId = expense.child("payer_id").getValue(String.class);
             String amountStr = expense.child("amount").getValue(String.class);
             Money amount = Money.parseOrFail(amountStr);
@@ -141,9 +149,6 @@ public class GroupBalanceModel {
             return;
 
         Money rest = amount.sub(totalAmountCalculated);
-
-        // TODO Clarify following comment ("expense" used to be "singleExpense")
-        // TODO Make the distribution onSingleExpense
 
         BigDecimal d = rest.getAmount();
         int numberOfIteration = d.subtract(d.setScale(0, RoundingMode.HALF_UP))
