@@ -188,7 +188,7 @@ public class GroupBalanceModel {
         for (MemberRepresentation member : mBalance.values()) {
             if (member.getResidue().cmpZero() > 0)
                 creditors.add(member);
-            else
+            else if (member.getResidue().cmpZero() < 0)
                 availableDebit.put(member, member.getResidue());
         }
 
