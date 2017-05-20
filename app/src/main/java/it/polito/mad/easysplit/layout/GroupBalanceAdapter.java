@@ -1,7 +1,7 @@
 package it.polito.mad.easysplit.layout;
 
 import android.content.Context;
-import android.graphics.Color;
+import android.content.res.Resources;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
@@ -11,46 +11,26 @@ import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map.Entry;
+import java.util.Map;
 
 import it.polito.mad.easysplit.R;
 import it.polito.mad.easysplit.R.id;
 import it.polito.mad.easysplit.R.layout;
-import it.polito.mad.easysplit.layout.GroupBalanceAdapter.ListItem;
-import it.polito.mad.easysplit.models.CreditorDebtorModel.CatchUpGroup;
+import it.polito.mad.easysplit.models.GroupBalanceModel;
 import it.polito.mad.easysplit.models.GroupBalanceModel.MemberRepresentation;
 import it.polito.mad.easysplit.models.Money;
 
-/**
- * Created by fil on 03/05/17.
- */
+class GroupBalanceAdapter extends ArrayAdapter<MemberRepresentation> implements GroupBalanceModel.Listener {
 
-public class GroupBalanceAdapter extends ArrayAdapter<ListItem> {
-
-    static String TAG="GroupBalanceAdapter";
-
-    public static final class ListItem {
-        public String id;
-        public String name;
-        public Money residue;
-        public String typeOfMember;
-        ArrayList<CatchUpGroup> listOfCatchUpGroup= new ArrayList<>();
-
-        public ListItem(String id, String name, Money residue,String typeOfMember,ArrayList<CatchUpGroup> listOfCatchUpGroup) {
-            this.id = id;
-            this.name = name;
-            this.residue = residue;
-            this.typeOfMember = typeOfMember;
-            this.listOfCatchUpGroup = listOfCatchUpGroup;
-        }
+    GroupBalanceAdapter(Context ctx, GroupBalanceModel balanceModel) {
+        super(ctx, 0);
+        balanceModel.addListener(this);
     }
 
-    public GroupBalanceAdapter(Context ctx, ArrayList<ListItem> members) {
-        super(ctx, 0, members);
+    @Override
+    public void onBalanceChanged(Map<String, MemberRepresentation> balance) {
+        clear();
+        addAll(balance.values());
     }
 
     @NonNull
@@ -61,90 +41,57 @@ public class GroupBalanceAdapter extends ArrayAdapter<ListItem> {
             convertView = inflater.inflate(layout.list_item_member, parent, false);
         }
 
-        ListItem item = getItem(position);
+        MemberRepresentation memberRepr = getItem(position);
         TextView name = (TextView) convertView.findViewById(id.name);
-        TextView residue = (TextView) convertView.findViewById(id.residue);
+        TextView residueText = (TextView) convertView.findViewById(id.residue);
         TextView typeOfMember = (TextView) convertView.findViewById(id.typeOfMember);
         TextView keyItemMember = (TextView) convertView.findViewById(id.key_item_member);
 
         // access to nested linear layout, in order to attach the list of creditors or debtors
-        LinearLayout layout = (LinearLayout)convertView.findViewById(id.linearLayout_catch_up_list);
-        if(layout.getChildCount() > 0)
-            layout.removeAllViews();
-
-        //Retrieve all listOfCatchUpGroups
-        ArrayList<CatchUpGroup> listOfCatchUpGroup= item.listOfCatchUpGroup;
-
-        //Retrieve each single catchUpGroup And create a Map like this <idOfTheCreditor,CatchUpGroup_n0> and so on
-        //Because basically every single creditor will be part of only one CatchUpGroup
-        HashMap<String,CatchUpGroup> mapCreditors_CatchUpGroup = new HashMap<>();
-        Iterator<CatchUpGroup> iterator = listOfCatchUpGroup.iterator();
-        while (iterator.hasNext()) {
-            CatchUpGroup element = iterator.next();
-            mapCreditors_CatchUpGroup.put(element.getCreditor().getId(),element);
-        }
+        LinearLayout layout = (LinearLayout) convertView.findViewById(id.linearLayout_catch_up_list);
+        layout.removeAllViews();
 
         //TODO implement general Version For All Currencies
-        name.setText(item.name);
-        keyItemMember.setText(item.id);
+        name.setText(memberRepr.getName());
+        keyItemMember.setText(memberRepr.getId());
 
-        if (!item.residue.toStandardFormat().equals("0.00 EUR")) {
-            residue.setText(item.residue.toString());
-            if(item.residue.getAmount().compareTo(new BigDecimal("0.00"))>0) {
-                //Case in which this member is a creditor
-                residue.setTextColor(Color.GREEN);
-                typeOfMember.setText(item.typeOfMember);
-                //Retrieve its catch_up_group
-                CatchUpGroup catchUpGroup = mapCreditors_CatchUpGroup.get(item.id);
-                //Retrieve its list of debtors
-                ArrayList<MemberRepresentation> listOfDebtors = catchUpGroup.getListOfDebtors();
-                int number_of_Debtors = listOfDebtors.size();
-                for (int i=0;i<number_of_Debtors;i++) {
-                    //Retrieve Info about single Debtor
-                    String nameOfDebtor = listOfDebtors.get(i).getName();
-                    String idOfDebtor = listOfDebtors.get(i).getId();
-                    Money residueOfDebtor = listOfDebtors.get(i).getResidue();
-                    //Populate the child with the correct information about debtor
-                    View child = LayoutInflater.from(getContext()).inflate(R.layout.catch_up_group_item, parent, false);
-                    TextView message = (TextView)  child.findViewById(R.id.text_view_catch_up_item);
-                    TextView residue_catch_up_item = (TextView) child.findViewById(R.id.residue_catch_up_item);
-                    TextView keyOfDebtor = (TextView) child.findViewById(R.id.key_catch_up_item);
-                    message.setText("This member has to receive from "+nameOfDebtor+": ");
-                    residue_catch_up_item.setText(residueOfDebtor.toString());
-                    keyOfDebtor.setText(idOfDebtor);
-                    layout.addView(child);
-                }
-             } else {
-                //Case in which this member is a debtor
-                residue.setTextColor(Color.RED);
-                typeOfMember.setText(item.typeOfMember);
-                //Retrieve its list of Creditors
-                for (Entry<String,CatchUpGroup> entry: mapCreditors_CatchUpGroup.entrySet()) {
-                    CatchUpGroup catchUpGroup = entry.getValue();
-                    String creditorName = catchUpGroup.getCreditor().getName();
-                    String keyOfCreditor = catchUpGroup.getCreditor().getId();
-                    ArrayList<MemberRepresentation> listOfDebtors = catchUpGroup.getListOfDebtors();
-                    for (int i=0;i<listOfDebtors.size();i++) {
-                        if (listOfDebtors.get(i).getName().equals(item.name)) {
-                            //Element Present , retrieve the creditor Information and populate the child
-                            View child = LayoutInflater.from(getContext()).inflate(R.layout.catch_up_group_item,parent,false);
-                            TextView message = (TextView)  child.findViewById(R.id.text_view_catch_up_item);
-                            TextView residue_catch_up_item = (TextView) child.findViewById(R.id.residue_catch_up_item);
-                            TextView keyOfCreditor_tv = (TextView) child.findViewById(R.id.key_catch_up_item);
-                            Money residueOfDebtorInsideCatchUpGroup = listOfDebtors.get(i).getResidue();
-                            message.setText("This member has to give back to "+creditorName+":");
-                            residue_catch_up_item.setText(residueOfDebtorInsideCatchUpGroup.toString());
-                            keyOfCreditor_tv.setText(keyOfCreditor);
-                            layout.addView(child);
-                        }
-                    }
-                }
-            }
-        } else {
-            //Case in which this memeber is catch-up
-            residue.setText("Catch up");
-            residue.setTextColor(Color.GREEN);
+        Resources res = getContext().getResources();
+
+        if (memberRepr.getResidue().isZero()) {
+            residueText.setText(R.string.caught_up);
+            residueText.setTextColor(res.getColor(R.color.balance_caught_up));
+            return convertView;
         }
+
+        residueText.setText(memberRepr.getResidue().toString());
+        int cmp = memberRepr.getResidue().cmpZero();
+        if (cmp > 0) {
+            // This member is a creditor
+            residueText.setTextColor(res.getColor(R.color.balance_creditor));
+            typeOfMember.setText(R.string.balance_creditor);
+        } else {
+            // Member is a debtor
+            residueText.setTextColor(res.getColor(R.color.balance_debtor));
+            typeOfMember.setText(R.string.balance_debtor);
+        }
+
+        for (Map.Entry<MemberRepresentation, Money> entry : memberRepr.getAssignments().entrySet()) {
+            MemberRepresentation debtor = entry.getKey();
+            Money debt = entry.getValue();
+
+            View child = LayoutInflater.from(getContext()).inflate(R.layout.catch_up_group_item, parent, false);
+            TextView messageText = (TextView) child.findViewById(R.id.text_view_catch_up_item);
+            TextView debtText = (TextView) child.findViewById(R.id.residue_catch_up_item);
+
+            int messageRes = cmp > 0 ? R.string.balance_debtor_message : R.string.balance_creditor_message;
+            String messageFmt = getContext().getResources().getString(messageRes);
+            String message = String.format(messageFmt, debtor.getName());
+            messageText.setText(message);
+
+            debtText.setText(debt.abs().toString());
+            layout.addView(child);
+        }
+
         return convertView;
     }
 }

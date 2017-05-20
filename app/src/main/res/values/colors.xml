@@ -6,4 +6,7 @@
     <color name="colorClair"> #FFE4CE </color>
     <color name="colorBackgroundMaterialLight">#FFFAFAFA</color>
     <color name="progress_bar_overlay_background">#1e000000</color>
+    <color name="balance_creditor">#ff00aa00</color>
+    <color name="balance_debtor">#ffff0000</color>
+    <color name="balance_caught_up">#ff000000</color>
 </resources>

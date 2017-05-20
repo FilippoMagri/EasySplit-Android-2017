@@ -1,4 +1,4 @@
-package it.polito.mad.easysplit.Email;
+package it.polito.mad.easysplit.email;
 
 import java.security.AccessController;
 import java.security.Provider;

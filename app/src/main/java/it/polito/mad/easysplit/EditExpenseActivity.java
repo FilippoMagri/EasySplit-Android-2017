@@ -37,6 +37,7 @@ import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Currency;
 import java.util.Date;
@@ -144,7 +145,7 @@ public class EditExpenseActivity extends AppCompatActivity {
     public void setupView() {
         setupDateEdit();
         setActionOnButtons();
-        setupMembersSpinner();
+        setupPayerSpinner();
         setupMembersChecklist();
 
         if (isEditing()) {
@@ -198,65 +199,48 @@ public class EditExpenseActivity extends AppCompatActivity {
         mDatePickerDialog.getDatePicker().setMaxDate(System.currentTimeMillis());
     }
 
-    public void setupMembersSpinner() {
+    public void setupPayerSpinner() {
         final Spinner spinner = (Spinner) findViewById(id.payerSpinner);
         final ArrayAdapter<MemberListItem> adapter =
                 new ArrayAdapter<>(this, layout.simple_spinner_item);
         adapter.setDropDownViewResource(layout.simple_spinner_dropdown_item);
 
-        DatabaseReference expensesIdsRef = mRoot.child("groups/"+mGroupId+"/members_ids");
-        String idOfTheUserLogged = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        //Adding first the owner of the phone as first member in the spinner
-        expensesIdsRef.orderByKey().equalTo(idOfTheUserLogged).addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot membersIdsRef) {
-                adapter.clear();
-                for (DataSnapshot child : membersIdsRef.getChildren()) {
-                    final String userId = child.getKey();
-                    DatabaseReference nameRef = mRoot.child("users").child(userId).child("name");
-                    nameRef.addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(DataSnapshot nameRef) {
-                            String userName = nameRef.getValue(String.class);
-                            adapter.add(new MemberListItem(userId, userName));
-                        }
+        final String currentUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
-                        @Override
-                        public void onCancelled(DatabaseError databaseError) {
-                            adapter.add(new MemberListItem(userId, "???"));
-                        }
-                    });
-                }
-            }
-
+        final DatabaseReference membersIdsRef = mRoot.child("groups/"+mGroupId+"/members_ids");
+        membersIdsRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onCancelled(DatabaseError databaseError) {
-                spinner.setEnabled(false);
-                Snackbar.make(spinner, databaseError.getMessage(), Snackbar.LENGTH_LONG).show();
-            }
-        });
-        //Adding all other members to the spinner
-        expensesIdsRef.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot membersIdsRef) {
+            public void onDataChange(DataSnapshot membersIdsSnap) {
                 adapter.clear();
-                for (DataSnapshot child : membersIdsRef.getChildren()) {
+
+                // Make the owner of the phone the first member in the spinner
+                ArrayList<String> keys = new ArrayList<>();
+                for (DataSnapshot child : membersIdsSnap.getChildren())
+                    keys.add(child.getKey());
+
+                String currentUserName = membersIdsSnap.child(currentUid).getValue(String.class);
+                adapter.add(new MemberListItem(currentUid, currentUserName));
+
+                String currentPayerId = null;
+                if (isEditing())
+                    currentPayerId = mInitialExpense.child("payer_id").getValue(String.class);
+
+                int index = 0;
+                for (DataSnapshot child : membersIdsSnap.getChildren()) {
                     String userId = child.getKey();
                     String userName = child.getValue(String.class);
+
+                    if (userId.equals(currentUid))
+                        continue;
+
                     adapter.add(new MemberListItem(userId, userName));
+                    if (userId.equals(currentPayerId))
+                        spinner.setSelection(index);
+
+                    index++;
                 }
 
                 spinner.setAdapter(adapter);
-
-                if (isEditing()) {
-                    String currentPayerId = mInitialExpense.child("payer_id").getValue(String.class);
-                    for (int i=0; i < adapter.getCount(); i++) {
-                        if (adapter.getItem(i).id.equals(currentPayerId)) {
-                            spinner.setSelection(i);
-                            break;
-                        }
-                    }
-                }
             }
 
             @Override
@@ -265,9 +249,6 @@ public class EditExpenseActivity extends AppCompatActivity {
                 Snackbar.make(spinner, databaseError.getMessage(), Snackbar.LENGTH_LONG).show();
             }
         });
-
-        /// TODO Does this need to get removed?
-        spinner.setAdapter(adapter);
     }
 
     public void setupMembersChecklist() {
@@ -365,7 +346,6 @@ public class EditExpenseActivity extends AppCompatActivity {
         }
 
         MemberListItem payerItem = (MemberListItem) payerSpinner.getSelectedItem();
-        String payerId = payerItem.id;
 
         Map<String, String> memberIds = new HashMap<>();
         int numMembers = membersList.getAdapter().getCount();
@@ -382,7 +362,8 @@ public class EditExpenseActivity extends AppCompatActivity {
         expense.put("timestamp", timestamp.getTime());
         expense.put("timestamp_number", -1 * timestamp.getTime());
         expense.put("amount", amount.toStandardFormat());
-        expense.put("payer_id", payerId);
+        expense.put("payer_id", payerItem.id);
+        expense.put("payer_name", payerItem.name);
         expense.put("group_id", mGroupId);
         expense.put("members_ids", memberIds);
 
@@ -395,7 +376,7 @@ public class EditExpenseActivity extends AppCompatActivity {
 
         Map<String, Object> update = new HashMap<>();
         update.put("groups/"+mGroupId+"/expenses/"+expenseId, expense);
-        update.put("users/"+payerId+"/expenses_ids_as_payer/"+expenseId, title);
+        update.put("users/"+payerItem.id+"/expenses_ids_as_payer/"+expenseId, title);
         update.put("expenses/"+expenseId, expense);
         if (isEditing()) {
             // remove expense from the old payer's expense list
