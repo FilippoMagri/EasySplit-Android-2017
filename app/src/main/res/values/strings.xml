@@ -68,4 +68,7 @@
     <string name="caught_up">Caught up</string>
     <string name="balance_debtor_message">This member has to receive from %s:</string>
     <string name="balance_creditor_message">This member has to give back to %s:</string>
+
+    <!--Strings related to creation Group-->
+    <string name="creation_group_title">Creation Group</string>
 </resources>

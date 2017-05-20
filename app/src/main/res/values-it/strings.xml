@@ -44,4 +44,5 @@
     <string name="yes">Sì</string>
     <string name="caught_up">In pari</string>
     <string name="balance_debtor_message">This member has to receive from %s:</string>
+    <string name="creation_group_title">Creazione Gruppo</string>
 </resources>
