@@ -14,10 +14,9 @@ import android.text.style.BackgroundColorSpan;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.Spinner;
 
-import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
-import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -28,23 +27,20 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Currency;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
 
 public class CreationGroup extends AppCompatActivity {
     private static final DatabaseReference mRoot = FirebaseDatabase.getInstance().getReference();
 
+    private static CurrencySpinnerAdapter mCurrenciesAdapter;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         setContentView(R.layout.activity_creation_group);
-
-        final EditText groupNameEdit = (EditText) findViewById(R.id.nameGroup);
-        final EditText participantsListEdit = (EditText) findViewById(R.id.newGroupParticipantsList);
-        ImageView submit = (ImageView) findViewById(R.id.valid);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -57,7 +53,16 @@ public class CreationGroup extends AppCompatActivity {
             }
         });
 
-        setTitle("Group Creation");
+        setTitle(getString(R.string.title_new_group));
+
+        final EditText groupNameEdit = (EditText) findViewById(R.id.nameGroup);
+        final EditText participantsListEdit = (EditText) findViewById(R.id.newGroupParticipantsList);
+        final Spinner currencySpinner = (Spinner) findViewById(R.id.currencySpinner);
+        ImageView submit = (ImageView) findViewById(R.id.valid);
+
+        mCurrenciesAdapter = new CurrencySpinnerAdapter(this);
+        currencySpinner.setAdapter(mCurrenciesAdapter);
+
         TextWatcher tw = new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -111,11 +116,12 @@ public class CreationGroup extends AppCompatActivity {
                         String participantsStr = participantsListEdit.getText().toString();
                         final List<String> participants = Arrays.asList(participantsStr.split("\\s+"));
                         final String groupName = groupNameEdit.getText().toString();
+                        final Currency currency = (Currency) currencySpinner.getSelectedItem();
 
                         Tasks.call(new Callable<Void>() {
                             @Override
                             public Void call() throws Exception {
-                                createGroup(groupName, participants, usersSnap);
+                                createGroup(groupName, currency.getCurrencyCode(), participants);
                                 return null;
                             }
                         });
@@ -136,69 +142,15 @@ public class CreationGroup extends AppCompatActivity {
         return str.matches("^[\\w\\.]+@[\\w\\.]+\\.[a-z]+$");
     }
 
-    private void createGroup(String groupName, List<String> emails, DataSnapshot usersSnap) {
+    private void createGroup(String groupName, String currencyCode, List<String> emails) {
         ArrayList<String> externalEmails = new ArrayList<>(emails);
         HashMap<String, String> groupMembers = new HashMap<>();
         HashMap<String, Object> childUpdates = new HashMap<>();
 
         String groupKey = mRoot.child("groups").push().getKey();
 
-        // create an internal mapping email -> uid
-        for (DataSnapshot user : usersSnap.getChildren()) {
-            if (!user.hasChild("email"))
-                continue;
-
-            String emailAddr = user.child("email").getValue(String.class);
-            if (!emails.contains(emailAddr))
-                continue;
-
-            // Okay, email required by the user! include it
-            // (UID used as key, not the email!)
-            String userName = user.child("name").getValue().toString();
-            groupMembers.put(user.getKey(), userName);
-            childUpdates.put("/users/" + user.getKey() + "/groups_ids/" + groupKey, groupName);
-            externalEmails.remove(emailAddr); // user found, no need to register it
-        }
-
-        // proceed with the registration of the new email accounts!
-        for (String email : externalEmails) {
-            if (isValidEmail(email))
-                continue;
-
-            FirebaseAuth auth = FirebaseAuth.getInstance();
-            Task<AuthResult> task = auth.createUserWithEmailAndPassword(email, InvitePerson.defaultTemporaryUserRegistrationPassword);
-            try {
-                Tasks.await(task);
-            } catch (InterruptedException | ExecutionException e) {
-                throw new RuntimeException(e);
-            }
-
-            FirebaseUser user = task.getResult().getUser();
-            String userId = user.getUid();
-
-            HashMap<String, String> groupsMap = new HashMap<>();
-            groupsMap.put(groupKey, groupName); // add group to the user
-
-            HashMap<String, Object> newUser = new HashMap<>();
-            newUser.put("email", email);
-            newUser.put("name", email); // use email as the name (until specified by the user upon registration)
-            newUser.put("groups_ids", groupsMap);
-
-            childUpdates.put("/users/" + userId, newUser); // add new user to database
-            groupMembers.put(userId, email); // add user to the group
-            // TODO Because in this case Flavio has expected the functionality of invite a new user by just the email, we'll have to introduce also here the invitation-mail. (Later on)
-        }
-
         SharedPreferences sharedPref = getSharedPreferences("MyPreferences", Context.MODE_PRIVATE);
-        String signin_email = sharedPref.getString("signin_email", null);
-        String signin_password = sharedPref.getString("signin_password", null);
         String signin_complete_name = sharedPref.getString("signin_complete_name", null);
-        FirebaseAuth auth = FirebaseAuth.getInstance();
-        try {
-            Tasks.await(auth.signInWithEmailAndPassword(signin_email, signin_password));
-        } catch (ExecutionException | InterruptedException e) {
-            e.printStackTrace();
-        }
 
         // Finally, add current user
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
@@ -207,6 +159,7 @@ public class CreationGroup extends AppCompatActivity {
 
         HashMap<String, Object> map = new HashMap<>();
         map.put("name", groupName);
+        map.put("currency", currencyCode);
         map.put("expenses_ids", new HashMap<String, Boolean>());
         map.put("members_ids", groupMembers);
 

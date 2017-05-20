@@ -132,10 +132,18 @@ public class ExpenseListFragment extends Fragment {
             for (DataSnapshot child : expenseIdsSnap.getChildren()) {
                 String expenseId = child.getKey();
                 String name = child.child("name").getValue(String.class);
-                String amountStdStr = child.child("amount").getValue(String.class);
-                Money amount = Money.parseOrFail(amountStdStr);
+                String origAmountStdStr = child.child("amount_original").getValue(String.class);
+                String convAmountStdStr = child.child("amount_converted").getValue(String.class);
+
+                Money amountOriginal = Money.parseOrFail(origAmountStdStr);
+                Money amountConverted = Money.parseOrFail(convAmountStdStr);
+                String amountText = amountConverted.toString();
+                if (! amountOriginal.getCurrency().equals(amountConverted.getCurrency()))
+                    amountText += " (" + amountOriginal.toString() + ")";
+
                 Long timestampNumber = child.child("timestamp_number").getValue(Long.class);
-                add(new ListItem(expenseId, name, amount.toString(), timestampNumber));
+
+                add(new ListItem(expenseId, name, amountText, timestampNumber));
             }
         }
 

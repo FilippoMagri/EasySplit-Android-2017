@@ -49,6 +49,23 @@
             android:hint="Trip, Flat"
             android:drawableRight="@drawable/ic_write"
             android:textSize="18sp"/>
+
+        <TextView
+            android:id="@+id/textView2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="What currency will you use?"
+            android:textSize="18sp" />
+
+        <Spinner
+            android:id="@+id/currencySpinner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:gravity="end"
+            android:minHeight="40sp"
+            android:spinnerMode="dialog" />
+
         <TextView
             android:id="@+id/participantsListLabel"
             android:layout_width="wrap_content"
