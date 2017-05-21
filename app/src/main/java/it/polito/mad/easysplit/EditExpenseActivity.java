@@ -377,7 +377,6 @@ public class EditExpenseActivity extends AppCompatActivity {
                     // amount take the value of price + currencyCode
                     String codeCountry = Locale.getDefault().getDisplayLanguage();
                     String amountEditString = amountEdit.getText().toString();
-                    Log.d("EditExpenseActivity",codeCountry);
                     if (codeCountry.equals("italiano")) {
                         amountEditString = amountEditString.replace(".",",");
                     } else if (codeCountry.equals("English")) {
