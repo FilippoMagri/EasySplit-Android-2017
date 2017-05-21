@@ -43,6 +43,7 @@ import java.util.Calendar;
 import java.util.Currency;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.concurrent.TimeUnit;
@@ -62,6 +63,11 @@ public class EditExpenseActivity extends AppCompatActivity {
     static {
         DecimalFormatSymbols symbols = DecimalFormatSymbols.getInstance();
         symbols.setGroupingSeparator('\'');
+        if (Locale.getDefault().getDisplayLanguage().equals("italiano")) {
+            symbols.setDecimalSeparator(',');
+        } else if (Locale.getDefault().getDisplayLanguage().equals("English")) {
+            symbols.setDecimalSeparator('.');
+        }
         mDecimalFormat.setDecimalFormatSymbols(symbols);
         mDecimalFormat.setParseBigDecimal(true);
     }
@@ -369,7 +375,15 @@ public class EditExpenseActivity extends AppCompatActivity {
                 Currency currency = (Currency) currencySpinner.getSelectedItem();
                 try {
                     // amount take the value of price + currencyCode
-                    BigDecimal price = (BigDecimal) mDecimalFormat.parse(amountEdit.getText().toString());
+                    String codeCountry = Locale.getDefault().getDisplayLanguage();
+                    String amountEditString = amountEdit.getText().toString();
+                    Log.d("EditExpenseActivity",codeCountry);
+                    if (codeCountry.equals("italiano")) {
+                        amountEditString = amountEditString.replace(".",",");
+                    } else if (codeCountry.equals("English")) {
+                        amountEditString = amountEditString.replace(",",".");
+                    }
+                    BigDecimal price = (BigDecimal) mDecimalFormat.parse(amountEditString);
                     //Rounding with 2 Numbers After dot
                     price = price.divide(new BigDecimal("1.00"), 2, RoundingMode.HALF_UP);
                     amountOriginal = new Money(currency, price);
