@@ -71,4 +71,5 @@
 
     <!--Strings related to creation Group-->
     <string name="creation_group_title">Creation Group</string>
+    <string name="permission_imei">Accept for receiving notifications</string>
 </resources>

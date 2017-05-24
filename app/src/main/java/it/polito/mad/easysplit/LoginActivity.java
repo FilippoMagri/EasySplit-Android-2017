@@ -1,12 +1,12 @@
 package it.polito.mad.easysplit;
 
+import android.Manifest;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.app.LoaderManager.LoaderCallbacks;
 import android.content.Context;
 import android.content.CursorLoader;
-import android.content.Intent;
 import android.content.Loader;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -16,8 +16,8 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -29,13 +29,13 @@ import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
@@ -44,7 +44,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import it.polito.mad.easysplit.cloudMessaging.MyFirebaseInstanceIdService;
+
 import static android.Manifest.permission.READ_CONTACTS;
+import static android.Manifest.permission.READ_PHONE_STATE;
 
 /**
  * A login screen that offers login via email/password.
@@ -56,6 +59,8 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
      */
     private static final int REQUEST_READ_CONTACTS = 0;
     private static final String TAG = "LoginActivity";
+    private static final int REQUEST_READ_PHONE_STATE = 1;
+    private static boolean READ_PHONE_STATE_GUARANTEED =false;
 
     /// TODO Allow to cancel the login currently in progress
 
@@ -64,12 +69,15 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     private EditText mPasswordView;
     private View mProgressView;
     private View mLoginFormView;
+    private LinearLayout mLinearLayout;
     final String defaultTemporaryUserRegistrationPassword = "CA_FI_SE_FL_AN_MAD_2017";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+        //retrieve LinearLayout
+        mLinearLayout = (LinearLayout) findViewById(R.id.login_activity_ll);
         // Set up the login form.
         mEmailView = (AutoCompleteTextView) findViewById(R.id.email);
         populateAutoComplete();
@@ -105,6 +113,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         mLoginFormView = findViewById(R.id.login_form);
         mProgressView = findViewById(R.id.login_progress);
     }
+
     /**
      * Attempts to create the account specified by the login form.
      * If there are form errors (invalid email, missing fields, etc.), the
@@ -250,7 +259,10 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                     editor.putString("signin_email",mEmailView.getText().toString());
                     editor.putString("signin_password",mPasswordView.getText().toString());
                     editor.commit();
-
+                    if (READ_PHONE_STATE_GUARANTEED) {
+                        new MyFirebaseInstanceIdService(getApplicationContext())
+                                .sendFCMRegistrationToServer();
+                    }
                     LoginActivity.this.finish();
                 } else {
                     authResult.getUser().sendEmailVerification();
@@ -309,14 +321,31 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         }
     }
 
-
-
     private void populateAutoComplete() {
         if (!mayRequestContacts()) {
             return;
         }
-
+        if(!mayRequestPhoneState()) {
+            return;
+        }
         getLoaderManager().initLoader(0, null, this);
+    }
+
+    private boolean mayRequestPhoneState() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            return true;
+        }
+        if (checkSelfPermission(READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
+            return true;
+        }
+        if (checkSelfPermission(READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+            //Ask Permission First Time
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.READ_PHONE_STATE}, REQUEST_READ_PHONE_STATE);
+        }
+
+        return false;
+
     }
 
     private boolean mayRequestContacts() {
@@ -350,6 +379,30 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         if (requestCode == REQUEST_READ_CONTACTS) {
             if (grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 populateAutoComplete();
+            }
+        }
+
+        if (requestCode == REQUEST_READ_PHONE_STATE) {
+            switch (grantResults[0]) {
+                case PackageManager.PERMISSION_GRANTED:
+                    READ_PHONE_STATE_GUARANTEED = true;
+                    break;
+                case PackageManager.PERMISSION_DENIED:
+                    if (ActivityCompat.shouldShowRequestPermissionRationale(this,READ_PHONE_STATE)) {
+                        //If "never ask again" isn't pressed try to ask permission again
+                        Snackbar snackbar = Snackbar.make(mLinearLayout, R.string.permission_imei, Snackbar.LENGTH_INDEFINITE);
+                        snackbar.setAction(android.R.string.ok, new View.OnClickListener() {
+                            @Override
+                            @TargetApi(Build.VERSION_CODES.M)
+                            public void onClick(View v) {
+                                requestPermissions(new String[]{READ_PHONE_STATE}, REQUEST_READ_PHONE_STATE);
+                            }
+                        });
+                        snackbar.show();
+                    }
+                    break;
+                default:
+                    break;
             }
         }
     }
