@@ -242,7 +242,8 @@ public class InvitePerson extends AppCompatActivity implements View.OnClickListe
         String password = defaultTemporaryUserRegistrationPassword;
 
         FirebaseAuth auth = FirebaseAuth.getInstance();
-        auth.createUserWithEmailAndPassword(email,password).addOnCompleteListener(new InvitePerson.RegisterTaskListener());
+        auth.createUserWithEmailAndPassword(email,password)
+                .addOnCompleteListener(new InvitePerson.RegisterTaskListener());
     }
 
     private class RegisterTaskListener implements OnCompleteListener<AuthResult> {
