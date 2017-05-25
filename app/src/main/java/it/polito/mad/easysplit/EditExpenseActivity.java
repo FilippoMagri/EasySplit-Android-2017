@@ -24,6 +24,7 @@ import android.widget.Spinner;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -42,8 +43,10 @@ import java.util.Calendar;
 import java.util.Currency;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.concurrent.TimeUnit;
 
 import it.polito.mad.easysplit.R.id;
 import it.polito.mad.easysplit.Utils.UriType;
@@ -60,6 +63,11 @@ public class EditExpenseActivity extends AppCompatActivity {
     static {
         DecimalFormatSymbols symbols = DecimalFormatSymbols.getInstance();
         symbols.setGroupingSeparator('\'');
+        if (Locale.getDefault().getDisplayLanguage().equals("italiano")) {
+            symbols.setDecimalSeparator(',');
+        } else if (Locale.getDefault().getDisplayLanguage().equals("English")) {
+            symbols.setDecimalSeparator('.');
+        }
         mDecimalFormat.setDecimalFormatSymbols(symbols);
         mDecimalFormat.setParseBigDecimal(true);
     }
@@ -83,7 +91,12 @@ public class EditExpenseActivity extends AppCompatActivity {
     private final DatabaseReference mRoot = FirebaseDatabase.getInstance().getReference();
     private final DateFormat mUIDateFormat = DateFormat.getDateInstance();
     private DatePickerDialog mDatePickerDialog;
+    private View mConfirmBtn;
     private String mGroupId;
+    private String mGroupCurrencyCode = ConversionRateProvider.getBaseCurrency().getCurrencyCode();
+    private CurrencySpinnerAdapter mCurrenciesAdapter;
+
+    // only used in edit mode
     private DataSnapshot mInitialExpense;
     private View mProgressBarOverlay;
     private UnsavedChangesNotifier mNotifier;
@@ -93,13 +106,32 @@ public class EditExpenseActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_expenses);
 
+        // Can't be done before onCreate()
+        mCurrenciesAdapter = new CurrencySpinnerAdapter(this);
+
         mProgressBarOverlay = findViewById(id.progress_bar_overlay);
+        mConfirmBtn = findViewById(id.img_confirm_add_expenses);
+        mNotifier = new UnsavedChangesNotifier(this, this);
 
         Intent i = getIntent();
-        mGroupId = getIntent().getStringExtra("groupId");
+        mGroupId = i.getStringExtra("groupId");
+        mRoot.child("groups").child(mGroupId).child("currency").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot currencySnap) {
+                String currencyCode = currencySnap.getValue(String.class);
+                if (currencyCode != null)
+                    mGroupCurrencyCode = currencyCode;
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) { /* TODO */ }
+        });
+
         String expenseId = i.getStringExtra("expenseId");
+
         if (expenseId != null) {
             // edit mode
+            mNotifier.setChanged();
             mProgressBarOverlay.setVisibility(View.VISIBLE);
             mRoot.child("expenses").child(expenseId).addListenerForSingleValueEvent(new ExpenseListener());
         } else {
@@ -107,9 +139,11 @@ public class EditExpenseActivity extends AppCompatActivity {
             mProgressBarOverlay.setVisibility(View.GONE);
             setupView();
         }
+    }
 
-        mNotifier = new UnsavedChangesNotifier(this, this); // prepare unsaved changes notifier
-        /// TODO Add calls to mNotifier.setChanged() where relevant
+    @Override
+    public void onBackPressed() {
+        mNotifier.handleBackButton();
     }
 
     private class ExpenseListener implements ValueEventListener {
@@ -148,25 +182,19 @@ public class EditExpenseActivity extends AppCompatActivity {
         setupPayerSpinner();
         setupMembersChecklist();
 
+        Spinner currencySpinner = (Spinner) findViewById(id.currencySpinner);
+        currencySpinner.setAdapter(mCurrenciesAdapter);
+
         if (isEditing()) {
             EditText titleEdit = (EditText) findViewById(id.titleEdit);
             titleEdit.setText(mInitialExpense.child("name").getValue(String.class));
 
             EditText amountEdit = (EditText) findViewById(id.amountEdit);
-            Money amount = Money.parseOrFail(mInitialExpense.child("amount").getValue(String.class));
+            Money amount = Money.parseOrFail(mInitialExpense.child("amount_original").getValue(String.class));
             amountEdit.setText(amount.getAmount().toString());
 
-            // WARNING Indefinite behavior when the currency code isn't already part of the
-            // spinner's items.
-            Spinner currencySpinner = (Spinner) findViewById(id.currencySpinner);
-            int numCurrencies = currencySpinner.getAdapter().getCount();
-            for (int i=0; i < numCurrencies; i++) {
-                String itemCurrency = (String) currencySpinner.getItemAtPosition(i);
-                if (itemCurrency.equals(amount.getCurrency().getCurrencyCode())) {
-                    currencySpinner.setSelection(i);
-                    break;
-                }
-            }
+            int position = mCurrenciesAdapter.findCurrencyByCode(amount.getCurrency().getCurrencyCode());
+            currencySpinner.setSelection(position);
         }
     }
 
@@ -258,11 +286,11 @@ public class EditExpenseActivity extends AppCompatActivity {
 
         listView.setAdapter(adapter);
 
-        DatabaseReference expensesIdsRef = mRoot.child("groups/"+mGroupId+"/members_ids");
-        expensesIdsRef.addListenerForSingleValueEvent(new ValueEventListener() {
+        DatabaseReference membersIdsRef = mRoot.child("groups/"+mGroupId+"/members_ids");
+        membersIdsRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onDataChange(DataSnapshot membersIdsRef) {
-                for (DataSnapshot child : membersIdsRef.getChildren()) {
+            public void onDataChange(DataSnapshot membersIdsSnap) {
+                for (DataSnapshot child : membersIdsSnap.getChildren()) {
                     String userId = child.getKey();
                     String userName = child.getValue(String.class);
                     adapter.add(new MemberListItem(userId, userName));
@@ -299,8 +327,7 @@ public class EditExpenseActivity extends AppCompatActivity {
             }
         });
 
-        ImageView confirmBtn = (ImageView) findViewById(id.img_confirm_add_expenses);
-        confirmBtn.setOnClickListener(new OnClickListener() {
+        mConfirmBtn.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
                 acceptExpense();
@@ -308,106 +335,149 @@ public class EditExpenseActivity extends AppCompatActivity {
         });
     }
 
-    /** Save the existing expense or create the new one */
-    private void acceptExpense() {
-        final View contentView = findViewById(android.R.id.content);
-        EditText dateEdit = (EditText) findViewById(id.dateEdit);
-        EditText titleEdit = (EditText) findViewById(id.titleEdit);
-        EditText amountEdit = (EditText) findViewById(id.amountEdit);
-        Spinner payerSpinner = (Spinner) findViewById(id.payerSpinner);
-        ListView membersList = (ListView) findViewById(id.membersList);
-        Spinner currencySpinner = (Spinner) findViewById(id.currencySpinner);
+    private static final int CONVERSION_TIMEOUT_SECS = 5;
 
-        String dateStr = dateEdit.getText().toString();
-        Date timestamp;
-        try {
-            timestamp = mUIDateFormat.parse(dateStr);
-        } catch (ParseException e) {
-            Snackbar.make(contentView, "The date is invalid!", Snackbar.LENGTH_LONG)
-                    .show();
-            return;
-        }
+    private void convert(Money amount, Currency currency) {
 
-        String title = titleEdit.getText().toString();
+    }
 
-        Money amount;
-        String currencyCode = (String) currencySpinner.getSelectedItem();
-
-        try {
-            // amount take the value of price + currencyCode
-            BigDecimal price = (BigDecimal) mDecimalFormat.parse(amountEdit.getText().toString());
-            Currency cur = Currency.getInstance(currencyCode);
-            //Rounding with 2 Numbers After dot
-            price = price.divide(new BigDecimal("1.00"),2,RoundingMode.HALF_UP);
-            amount = new Money(cur, price);
-        } catch (NoSuchElementException | ParseException exc) {
-            Snackbar.make(contentView, "Invalid money amount!", Snackbar.LENGTH_LONG).show();
-            return;
-        }
-
-        MemberListItem payerItem = (MemberListItem) payerSpinner.getSelectedItem();
-
-        Map<String, String> memberIds = new HashMap<>();
-        int numMembers = membersList.getAdapter().getCount();
-        for (int i=0; i < numMembers; i++) {
-            MemberListItem item = (MemberListItem) membersList.getItemAtPosition(i);
-            if(membersList.isItemChecked(i)) {
-                memberIds.put(item.id, item.name);
-            }
-        }
-
-        Map<String, Object> expense = new HashMap<>();
-        expense.put("name", title);
-        /// TODO Decide on a standard, strict format for the timestamp
-        expense.put("timestamp", timestamp.getTime());
-        expense.put("timestamp_number", -1 * timestamp.getTime());
-        expense.put("amount", amount.toStandardFormat());
-        expense.put("payer_id", payerItem.id);
-        expense.put("payer_name", payerItem.name);
-        expense.put("group_id", mGroupId);
-        expense.put("members_ids", memberIds);
-
-        /// TODO Refactor database write logic to somewhere else
-        final String expenseId;
-        if (isEditing())
-            expenseId = mInitialExpense.getKey();
-        else
-            expenseId = mRoot.child("groups").child(mGroupId).child("expenses").push().getKey();
-
-        Map<String, Object> update = new HashMap<>();
-        update.put("groups/"+mGroupId+"/expenses/"+expenseId, expense);
-        update.put("users/"+payerItem.id+"/expenses_ids_as_payer/"+expenseId, title);
-        update.put("expenses/"+expenseId, expense);
-        if (isEditing()) {
-            // remove expense from the old payer's expense list
-            String oldPayerId = mInitialExpense.child("payer_id").getValue(String.class);
-            update.put("users/"+oldPayerId+"/expenses_ids_as_payer/"+expenseId, null);
-        }
-
-        mRoot.updateChildren(update).addOnCompleteListener(this, new OnCompleteListener<Void>() {
+    /**
+     * Save the existing expense or create the new one
+     */
+    public synchronized void acceptExpense() {
+        // Everything needs to executed in a separate thread, because we need to call Tasks.await 
+        // in it, and doing that on the main thread is forbidden (although we would only suffer a 
+        // minor delay if we did, since we have a timeout).  It's a hack, but hey
+        new Thread(new Runnable() {
             @Override
-            public void onComplete(@NonNull Task<Void> task) {
-                if (! task.isSuccessful()) {
-                    String msg = task.getException().getLocalizedMessage();
-                    Snackbar.make(contentView, msg, Snackbar.LENGTH_LONG).show();
+            public void run() {
+                final View contentView = findViewById(android.R.id.content);
+                EditText dateEdit = (EditText) findViewById(id.dateEdit);
+                EditText titleEdit = (EditText) findViewById(id.titleEdit);
+                EditText amountEdit = (EditText) findViewById(id.amountEdit);
+                Spinner payerSpinner = (Spinner) findViewById(id.payerSpinner);
+                ListView membersList = (ListView) findViewById(id.membersList);
+                Spinner currencySpinner = (Spinner) findViewById(id.currencySpinner);
+
+                String dateStr = dateEdit.getText().toString();
+                Date timestamp;
+                try {
+                    timestamp = mUIDateFormat.parse(dateStr);
+                } catch (ParseException e) {
+                    Snackbar.make(contentView, "The date is invalid!", Snackbar.LENGTH_LONG)
+                            .show();
                     return;
                 }
 
-                if (! isEditing()) {
-                    /// TODO Go to the expense details (with the newly created URI)
-                    Intent i = new Intent(getApplicationContext(), ExpenseDetailsActivity.class);
-                    i.setData(Utils.getUriFor(UriType.EXPENSE, expenseId));
-                    startActivity(i);
+                String title = titleEdit.getText().toString();
+
+                Money amountOriginal;
+                Currency currency = (Currency) currencySpinner.getSelectedItem();
+                try {
+                    // amount take the value of price + currencyCode
+                    String codeCountry = Locale.getDefault().getDisplayLanguage();
+                    String amountEditString = amountEdit.getText().toString();
+                    if (codeCountry.equals("italiano")) {
+                        amountEditString = amountEditString.replace(".",",");
+                    } else if (codeCountry.equals("English")) {
+                        amountEditString = amountEditString.replace(",",".");
+                    }
+                    BigDecimal price = (BigDecimal) mDecimalFormat.parse(amountEditString);
+                    //Rounding with 2 Numbers After dot
+                    price = price.divide(new BigDecimal("1.00"), 2, RoundingMode.HALF_UP);
+                    amountOriginal = new Money(currency, price);
+                } catch (NoSuchElementException | ParseException exc) {
+                    Snackbar.make(contentView, "Invalid money amount!", Snackbar.LENGTH_LONG).show();
+                    return;
                 }
-                finish();
+
+
+                ConversionRateProvider conversionProvider = ConversionRateProvider.getInstance();
+                Money amountBase, amountConverted;
+
+                try {
+                    Task<Money> conversion = conversionProvider.convertToBase(amountOriginal);
+                    amountBase = Tasks.await(conversion, CONVERSION_TIMEOUT_SECS, TimeUnit.SECONDS);
+                } catch (Exception e) {
+                    Snackbar.make(contentView,
+                            "Error while converting: " + e.getLocalizedMessage(),
+                            Snackbar.LENGTH_LONG).show();
+                    return;
+                }
+
+                try {
+                    Currency groupCurrency = Currency.getInstance(mGroupCurrencyCode);
+                    Task<Money> conversion = conversionProvider.convertFromBase(amountBase, groupCurrency);
+                    amountConverted = Tasks.await(conversion, CONVERSION_TIMEOUT_SECS, TimeUnit.SECONDS);
+                } catch (Exception e) {
+                    Snackbar.make(contentView,
+                            "Error while converting: " + e.getLocalizedMessage(),
+                            Snackbar.LENGTH_LONG).show();
+                    return;
+                }
+
+
+                MemberListItem payerItem = (MemberListItem) payerSpinner.getSelectedItem();
+                Map<String, String> memberIds = new HashMap<>();
+                int numMembers = membersList.getAdapter().getCount();
+                for (int i = 0; i < numMembers; i++) {
+                    MemberListItem item = (MemberListItem) membersList.getItemAtPosition(i);
+                    if (membersList.isItemChecked(i))
+                        memberIds.put(item.id, item.name);
+                }
+
+                Map<String, Object> expense = new HashMap<>();
+                expense.put("name", title);
+                /// TODO Decide on a standard, strict format for the timestamp
+                expense.put("timestamp", timestamp.getTime());
+                expense.put("timestamp_number", -1 * timestamp.getTime());
+                expense.put("amount_original", amountOriginal.toStandardFormat());
+                expense.put("amount", amountBase.toStandardFormat());
+                expense.put("amount_converted", amountConverted.toStandardFormat());
+                expense.put("payer_id", payerItem.id);
+                expense.put("payer_name", payerItem.name);
+                expense.put("group_id", mGroupId);
+                expense.put("members_ids", memberIds);
+
+                /// TODO Refactor database write logic to somewhere else
+                final String expenseId;
+                if (isEditing())
+                    expenseId = mInitialExpense.getKey();
+                else
+                    expenseId = mRoot.child("groups").child(mGroupId).child("expenses").push().getKey();
+
+                Map<String, Object> update = new HashMap<>();
+                update.put("groups/" + mGroupId + "/expenses/" + expenseId, expense);
+                update.put("users/" + payerItem.id + "/expenses_ids_as_payer/" + expenseId, title);
+                update.put("expenses/" + expenseId, expense);
+                if (isEditing()) {
+                    // remove expense from the old payer's expense list
+                    String oldPayerId = mInitialExpense.child("payer_id").getValue(String.class);
+                    update.put("users/" + oldPayerId + "/expenses_ids_as_payer/" + expenseId, null);
+                }
+
+                mRoot.updateChildren(update).addOnCompleteListener(EditExpenseActivity.this, new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if (!task.isSuccessful()) {
+                            String msg = task.getException().getLocalizedMessage();
+                            Snackbar.make(contentView, msg, Snackbar.LENGTH_LONG).show();
+                            return;
+                        }
+
+                        if (!isEditing()) {
+                            /// TODO Go to the expense details (with the newly created URI)
+                            Intent i = new Intent(getApplicationContext(), ExpenseDetailsActivity.class);
+                            i.setData(Utils.getUriFor(UriType.EXPENSE, expenseId));
+                            startActivity(i);
+                        }
+
+                        finish();
+                    }
+                });
             }
-        });
-    }
 
-
-    @Override
-    public void onBackPressed() {
-        mNotifier.handleBackButton();
+        }).start();   // The thread needs to be started!
     }
 
 }

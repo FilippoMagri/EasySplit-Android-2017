@@ -14,10 +14,9 @@ import android.text.style.BackgroundColorSpan;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.Spinner;
 
-import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
-import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -28,22 +27,20 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Currency;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
 
 public class CreationGroup extends AppCompatActivity {
     private static final DatabaseReference mRoot = FirebaseDatabase.getInstance().getReference();
 
+    private static CurrencySpinnerAdapter mCurrenciesAdapter;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         setContentView(R.layout.activity_creation_group);
-
-        final EditText groupNameEdit = (EditText) findViewById(R.id.nameGroup);
-        ImageView submit = (ImageView) findViewById(R.id.valid);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -56,19 +53,92 @@ public class CreationGroup extends AppCompatActivity {
             }
         });
 
-        setTitle(R.string.creation_group_title);
+        setTitle(getString(R.string.title_new_group));
+
+        final EditText groupNameEdit = (EditText) findViewById(R.id.nameGroup);
+        final EditText participantsListEdit = (EditText) findViewById(R.id.newGroupParticipantsList);
+        final Spinner currencySpinner = (Spinner) findViewById(R.id.currencySpinner);
+        ImageView submit = (ImageView) findViewById(R.id.valid);
+
+        mCurrenciesAdapter = new CurrencySpinnerAdapter(this);
+        currencySpinner.setAdapter(mCurrenciesAdapter);
+
+        TextWatcher tw = new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+            }
+
+            private int getColorFromString(String str) {
+                return isValidEmail(str) ? Color.GREEN : Color.RED;
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                Character[] spacingChars = {' ', '\t', '\n'};
+
+                String str = s.toString();
+                SpannableString text = new SpannableString(str);
+                int position = participantsListEdit.getSelectionStart();
+                int start;
+                for (start = 0; start < s.length(); ) {
+                    int end = start;
+                    while (end < str.length() && !Arrays.asList(spacingChars).contains(str.charAt(end))) {
+                        end++;
+                    }
+                    text.setSpan(new BackgroundColorSpan(getColorFromString(str.substring(start, end))), start, end, 0);
+                    start = end + 1;
+                    while (start < str.length() && Arrays.asList(spacingChars).contains(str.charAt(start))) {
+                        start++;
+                    }
+                }
+
+                /* set new text (with highlights) */
+                participantsListEdit.removeTextChangedListener(this);
+                participantsListEdit.setText(text);
+                participantsListEdit.addTextChangedListener(this);
+                participantsListEdit.setSelection(position); // update to previous position */
+            }
+        };
+        participantsListEdit.addTextChangedListener(tw);
+
         submit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                final String groupName = groupNameEdit.getText().toString();
-                createGroup(groupName);
+                final DatabaseReference root = FirebaseDatabase.getInstance().getReference();
+                root.child("users").addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(final DataSnapshot usersSnap) {
+                        String participantsStr = participantsListEdit.getText().toString();
+                        final List<String> participants = Arrays.asList(participantsStr.split("\\s+"));
+                        final String groupName = groupNameEdit.getText().toString();
+                        final Currency currency = (Currency) currencySpinner.getSelectedItem();
+
+                        Tasks.call(new Callable<Void>() {
+                            @Override
+                            public Void call() throws Exception {
+                                createGroup(groupName, currency.getCurrencyCode(), participants);
+                                return null;
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+                    }
+                });
 
             }
         });
 
     }
 
-    private void createGroup(String groupName) {
+    private void createGroup(String groupName, String currencyCode, List<String> emails) {
+        ArrayList<String> externalEmails = new ArrayList<>(emails);
         HashMap<String, String> groupMembers = new HashMap<>();
         HashMap<String, Object> childUpdates = new HashMap<>();
 
@@ -84,7 +154,7 @@ public class CreationGroup extends AppCompatActivity {
 
         HashMap<String, Object> map = new HashMap<>();
         map.put("name", groupName);
-        map.put("expenses", new HashMap<String, Boolean>());
+        map.put("currency", currencyCode);
         map.put("members_ids", groupMembers);
 
         childUpdates.put("/groups/" + groupKey, map);

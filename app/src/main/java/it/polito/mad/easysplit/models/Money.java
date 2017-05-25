@@ -1,13 +1,34 @@
 package it.polito.mad.easysplit.models;
 
+import android.support.annotation.NonNull;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Currency;
+import java.util.List;
 
 public class Money {
     private static Currency defaultCurrency = Currency.getInstance("EUR");
+
+    private static List<Currency> currencies = null;
+
+    @NonNull
+    public static List<Currency> getCurrencies() {
+        if (currencies == null) {
+            final String[] codes = {
+                    "EUR", "USD", "JPY", "GBP", "AUD", "CAD", "CHF", "CNY", "SEK", "NZD",
+                    "MXN", "SGD", "HKD", "NOK", "KRW", "TRY", "RUB", "INR", "BRL", "ZAR",
+            };
+
+            currencies = new ArrayList<>();
+            for (String code : codes)
+                currencies.add(Currency.getInstance(code));
+        }
+        return currencies;
+    }
 
     public static Money zero() {
         return new Money(BigDecimal.ZERO);
@@ -18,6 +39,7 @@ public class Money {
     public static Money zeroLike(Money other) {
         return new Money(other.getCurrency(), BigDecimal.ZERO);
     }
+
 
     private Currency mCurrency;
     private BigDecimal mAmount;

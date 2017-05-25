@@ -120,9 +120,18 @@ public class ExpenseDetailsActivity extends AppCompatActivity {
             });
 
             String totalStr = expenseSnap.child("amount").getValue(String.class);
-            Money total = Money.parseOrFail(totalStr);
+            String originalTotalStr = expenseSnap.child("amount_original").getValue(String.class);
+            String convertedTotalStr = expenseSnap.child("amount_converted").getValue(String.class);
+
+            Money convertedTotal = Money.parseOrFail(convertedTotalStr);
+            Money originalTotal = Money.parseOrFail(originalTotalStr);
+
             /// TODO Move the total somewhere else on the UI
-            setTitle(total.toString());
+            if (convertedTotal.getCurrency().equals(originalTotal.getCurrency()))
+                setTitle(originalTotal.toString());
+            else
+                setTitle(convertedTotal.toString() + " (" + originalTotal.toString() + ")");
+
 
             mParticipantsAdapter.clear();
 
@@ -130,7 +139,7 @@ public class ExpenseDetailsActivity extends AppCompatActivity {
             if (numParticipants == 0)
                 return;
 
-            Money quota = total.div(numParticipants);
+            Money quota = convertedTotal.div(numParticipants);
             Money totalCostCalculated = quota.mul(numParticipants);
             Money rest = Money.zero();
 
@@ -138,8 +147,8 @@ public class ExpenseDetailsActivity extends AppCompatActivity {
             for (DataSnapshot member : expenseSnap.child("members_ids").getChildren()) {
                 // In case the quota is not strictly equal to the amount divided by the
                 // number of participants, we have to consider a global rest of the single Expense
-                if (totalCostCalculated.compareTo(total) != 0)
-                    rest = total.sub(totalCostCalculated);
+                if (totalCostCalculated.compareTo(convertedTotal) != 0)
+                    rest = convertedTotal.sub(totalCostCalculated);
 
                 String memberId = member.getKey();
                 String memberName = member.getValue(String.class);
