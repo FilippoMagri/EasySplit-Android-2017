@@ -20,14 +20,11 @@
 
     <string name="title_activity_add_expenses">AddExpenses</string>
 
-    <string-array name="countries_dummy_example">
-        <item>Italy</item>
-        <item>Germany</item>
+    <string-array name="CurrencyListItem">
+        <item>EUR</item>
+        <item>USD</item>
     </string-array>
-       <string-array name="CurrencyListItem">
-           <item>EUR</item>
-           <item>USD</item>
-    </string-array>
+
     <string name="title_activity_add_expenses_check_box">AddExpenses_checkBox</string>
 
     <string name="title_activity_group_balance_dummy">Group balance</string>
@@ -69,10 +66,10 @@
     <string name="balance_debtor_message">This member has to receive from %s:</string>
     <string name="balance_creditor_message">This member has to give back to %s:</string>
 
-    <!--Strings related to creation Group-->
-    <string name="creation_group_title">Creation Group</string>
-    <string name="permission_imei">Accept for receiving notifications</string>
+    <!--Strings related to group creation -->
+    <string name="title_new_group">New group</string>
 
+    <string name="permission_imei">Accept for receiving notifications</string>
     <!--Strings related to PushUp Notifications-->
     <string name="new_expense_notification">New Expense Added</string>
 </resources>

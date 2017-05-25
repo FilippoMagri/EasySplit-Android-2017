@@ -43,7 +43,7 @@
     <string name="unsaved_confirm_title">Cambiamenti non salvati</string>
     <string name="yes">Sì</string>
     <string name="caught_up">In pari</string>
-    <string name="balance_debtor_message">This member has to receive from %s:</string>
-    <string name="creation_group_title">Creazione Gruppo</string>
+    <string name="balance_debtor_message">Deve ricevere da %s:</string>
+    <string name="title_new_group">Nuovo gruppo</string>
     <string name="permission_imei">Accetta per ricevere le notifiche</string>
 </resources>

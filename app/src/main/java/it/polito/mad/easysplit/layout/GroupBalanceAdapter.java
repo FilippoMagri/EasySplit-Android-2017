@@ -63,7 +63,7 @@ class GroupBalanceAdapter extends ArrayAdapter<MemberRepresentation> implements 
             return convertView;
         }
 
-        residueText.setText(memberRepr.getResidue().toString());
+        residueText.setText(memberRepr.getConvertedResidue().toString());
         int cmp = memberRepr.getResidue().cmpZero();
         if (cmp > 0) {
             // This member is a creditor
@@ -75,7 +75,7 @@ class GroupBalanceAdapter extends ArrayAdapter<MemberRepresentation> implements 
             typeOfMember.setText(R.string.balance_debtor);
         }
 
-        for (Map.Entry<MemberRepresentation, Money> entry : memberRepr.getAssignments().entrySet()) {
+        for (Map.Entry<MemberRepresentation, Money> entry : memberRepr.getConvertedAssignments().entrySet()) {
             MemberRepresentation debtor = entry.getKey();
             Money debt = entry.getValue();
 

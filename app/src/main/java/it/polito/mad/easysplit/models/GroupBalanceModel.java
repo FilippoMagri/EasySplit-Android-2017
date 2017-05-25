@@ -3,6 +3,10 @@ package it.polito.mad.easysplit.models;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.TaskCompletionSource;
+import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -13,14 +17,18 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Currency;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.ExecutionException;
 
+import it.polito.mad.easysplit.ConversionRateProvider;
 import it.polito.mad.easysplit.Utils;
 
 public class GroupBalanceModel {
+
 
     public interface Listener {
         void onBalanceChanged(Map<String, MemberRepresentation> balance);
@@ -44,6 +52,7 @@ public class GroupBalanceModel {
 
     private final Map<String, MemberRepresentation> mBalance = new HashMap<>();
     private final ArrayList<Listener> mListeners = new ArrayList<>();
+    private Currency mGroupCurrency = ConversionRateProvider.getBaseCurrency();
 
     private GroupBalanceModel(Uri groupUri) {
         DatabaseReference groupRef = Utils.findByUri(groupUri);
@@ -51,9 +60,13 @@ public class GroupBalanceModel {
         groupRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot groupSnap) {
+                String currencyCode = groupSnap.child("currency").getValue(String.class);
+                if (currencyCode != null)
+                    mGroupCurrency = Currency.getInstance(currencyCode);
+                else
+                    mGroupCurrency = ConversionRateProvider.getBaseCurrency();
+
                 updateBalance(groupSnap);
-                decideWhoHasToGiveBackTo();
-                notifyListeners();
             }
 
             @Override
@@ -138,6 +151,12 @@ public class GroupBalanceModel {
         }
 
         decideWhoHasToGiveBackTo();
+        convertToGroupCurrency().addOnSuccessListener(new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void aVoid) {
+                notifyListeners();
+            }
+        });
     }
 
     /// TODO Deduplicate with ExpenseDetailsActivity.distributeRest or clarify difference
@@ -218,11 +237,40 @@ public class GroupBalanceModel {
         }
     }
 
+    /** Do all of the necessary conversions to the group currency */
+    private Task<Void> convertToGroupCurrency() {
+        final ConversionRateProvider converter = ConversionRateProvider.getInstance();
+        final TaskCompletionSource completion = new TaskCompletionSource();
+
+        new Thread() {
+            @Override
+            public void run() {
+                try {
+                    for (final MemberRepresentation member : mBalance.values()) {
+                        member.convertedResidue = Tasks.await(converter.convertFromBase(member.residue, mGroupCurrency));
+                        member.convertedAssignments.clear();
+                        for (final MemberRepresentation otherMember : member.assignments.keySet()) {
+                            Money amount = member.assignments.get(otherMember);
+                            Money convertedAmount = Tasks.await(converter.convertFromBase(amount, mGroupCurrency));
+                            member.convertedAssignments.put(otherMember, convertedAmount);
+                        }
+                    }
+                    completion.setResult(null);
+                } catch(InterruptedException | ExecutionException exc) {
+                    completion.setException(exc);
+                }
+            }
+        }.start();
+
+        return completion.getTask();
+    }
+
     public class MemberRepresentation {
         private String id;
         private String name;
-        private Money residue;
+        private Money residue, convertedResidue;
         private Map<MemberRepresentation, Money> assignments = new HashMap<>();
+        private Map<MemberRepresentation, Money> convertedAssignments = new HashMap<>();
 
         MemberRepresentation(String id, String name) {
             this(id, name, Money.zero());
@@ -244,6 +292,9 @@ public class GroupBalanceModel {
         public Money getResidue() {
             return residue;
         }
+        public Money getConvertedResidue() {
+            return convertedResidue;
+        }
 
         public String getId() {
             return id;
@@ -254,6 +305,10 @@ public class GroupBalanceModel {
 
         public Map<MemberRepresentation, Money> getAssignments() {
             return Collections.unmodifiableMap(assignments);
+        }
+
+        public Map<MemberRepresentation, Money> getConvertedAssignments() {
+            return convertedAssignments;
         }
 
         void resetAssignments() {
