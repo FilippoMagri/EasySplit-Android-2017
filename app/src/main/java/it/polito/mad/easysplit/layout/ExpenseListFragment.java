@@ -132,8 +132,15 @@ public class ExpenseListFragment extends Fragment {
             for (DataSnapshot child : expenseIdsSnap.getChildren()) {
                 String expenseId = child.getKey();
                 String name = child.child("name").getValue(String.class);
+                String baseAmountStdStr = child.child("amount").getValue(String.class);
+
                 String origAmountStdStr = child.child("amount_original").getValue(String.class);
+                if (origAmountStdStr == null)
+                    origAmountStdStr = baseAmountStdStr;
+
                 String convAmountStdStr = child.child("amount_converted").getValue(String.class);
+                if (convAmountStdStr == null)
+                    convAmountStdStr = baseAmountStdStr;
 
                 Money amountOriginal = Money.parseOrFail(origAmountStdStr);
                 Money amountConverted = Money.parseOrFail(convAmountStdStr);
