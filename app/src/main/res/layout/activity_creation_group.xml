@@ -66,19 +66,5 @@
             android:minHeight="40sp"
             android:spinnerMode="dialog" />
 
-        <TextView
-            android:visibility="gone"
-            android:id="@+id/participantsListLabel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:hint="Add Participants list (space separated)"
-            android:textSize="18sp" />
-        <EditText
-            android:visibility="gone"
-            android:id="@+id/newGroupParticipantsList"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:ems="10"
-            android:inputType="textMultiLine"/>
     </LinearLayout>
 </android.support.design.widget.CoordinatorLayout>

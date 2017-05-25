@@ -120,8 +120,14 @@ public class ExpenseDetailsActivity extends AppCompatActivity {
             });
 
             String totalStr = expenseSnap.child("amount").getValue(String.class);
+
             String originalTotalStr = expenseSnap.child("amount_original").getValue(String.class);
+            if (originalTotalStr == null)
+                originalTotalStr = totalStr;
+
             String convertedTotalStr = expenseSnap.child("amount_converted").getValue(String.class);
+            if (convertedTotalStr == null)
+                convertedTotalStr = totalStr;
 
             Money convertedTotal = Money.parseOrFail(convertedTotalStr);
             Money originalTotal = Money.parseOrFail(originalTotalStr);
