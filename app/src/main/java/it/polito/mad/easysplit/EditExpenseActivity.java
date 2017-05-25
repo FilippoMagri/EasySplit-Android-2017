@@ -6,6 +6,7 @@ import android.app.DatePickerDialog;
 import android.app.DatePickerDialog.OnDateSetListener;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
@@ -13,6 +14,7 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AlertDialog.Builder;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.ArrayAdapter;
@@ -31,8 +33,17 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
@@ -57,6 +68,9 @@ import it.polito.mad.easysplit.models.Money;
  */
 public class EditExpenseActivity extends AppCompatActivity {
     private static final DecimalFormat mDecimalFormat = new DecimalFormat("#,##0.00");
+    public final static String AUTH_KEY_FCM = "AAAAbkzlrnw:APA91bHmAL4upMmgUiT9byDUDZKOXr5Skgk55PXKv0mGqmtMDscP-KFn1F-UltmVCXOYubYi-Wy57w1woFuGy8WiQ4BL_uZt6TZ-yDG-6aQanq4tVmk8reK-AXaxCYZRkWHRTj2JJJjH";
+    public final static String API_URL_FCM = "https://fcm.googleapis.com/fcm/send";
+
     static {
         DecimalFormatSymbols symbols = DecimalFormatSymbols.getInstance();
         symbols.setGroupingSeparator('\'');
@@ -328,7 +342,7 @@ public class EditExpenseActivity extends AppCompatActivity {
             return;
         }
 
-        String title = titleEdit.getText().toString();
+        final String title = titleEdit.getText().toString();
 
         Money amount;
         String currencyCode = (String) currencySpinner.getSelectedItem();
@@ -347,7 +361,7 @@ public class EditExpenseActivity extends AppCompatActivity {
 
         MemberListItem payerItem = (MemberListItem) payerSpinner.getSelectedItem();
 
-        Map<String, String> memberIds = new HashMap<>();
+        final Map<String, String> memberIds = new HashMap<>();
         int numMembers = membersList.getAdapter().getCount();
         for (int i=0; i < numMembers; i++) {
             MemberListItem item = (MemberListItem) membersList.getItemAtPosition(i);
@@ -384,6 +398,8 @@ public class EditExpenseActivity extends AppCompatActivity {
             update.put("users/"+oldPayerId+"/expenses_ids_as_payer/"+expenseId, null);
         }
 
+        final String payerId4Notification = payerItem.id;
+
         mRoot.updateChildren(update).addOnCompleteListener(this, new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
@@ -398,12 +414,111 @@ public class EditExpenseActivity extends AppCompatActivity {
                     Intent i = new Intent(getApplicationContext(), ExpenseDetailsActivity.class);
                     i.setData(Utils.getUriFor(UriType.EXPENSE, expenseId));
                     startActivity(i);
+                    sendPushUpNotifications(expenseId,title,memberIds,payerId4Notification);
                 }
                 finish();
             }
         });
     }
+    //Send notifications to all members involved in the payment
+    private void sendPushUpNotifications(String expenseId, final String expenseName, Map<String, String> memberIds, String payerId) {
+        HashMap<String,String> membersToNotify = new HashMap<>(memberIds);
+        String idUserLogged = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
+        if (membersToNotify.containsKey(idUserLogged)){
+            //Remove the user-logged from the notification list
+            membersToNotify.remove(idUserLogged);
+        }
+
+        for (Map.Entry<String,String> entry:membersToNotify.entrySet()) {
+            final String idMember = entry.getKey();
+            final DatabaseReference userRefName = mRoot.child("users").child(idMember);
+            userRefName.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    if (dataSnapshot.hasChild("devices")) {
+                        DataSnapshot devicesUserSnapShot = dataSnapshot.child("devices");
+                        for (DataSnapshot device :devicesUserSnapShot.getChildren()) {
+                            String tokenNotification = device.getValue(String.class);
+                            String new_expense_notification = getResources().getString(R.string.new_expense_notification);
+                            sendRealPushUpNotification(tokenNotification, new_expense_notification, expenseName, mGroupId.toString());
+                        }
+                    }
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+
+                }
+            });
+
+
+
+        }
+
+
+    }
+
+    public void sendRealPushUpNotification (final String tokenNotification, final String notificationTitle,
+                                            final String notificationMessage, final String groupUri) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    String result = "";
+                    URL url = new URL(API_URL_FCM);
+
+                    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+
+
+                    conn.setUseCaches(false);
+                    conn.setDoInput(true);
+                    conn.setDoOutput(true);
+
+                    conn.setRequestMethod("POST");
+                    conn.setRequestProperty("Authorization", "key=" + AUTH_KEY_FCM);
+                    conn.setRequestProperty("Content-Type", "application/json");
+
+                    JSONObject json = new JSONObject();
+                    try {
+                        json.put("to", tokenNotification.trim());
+                        json.put("priority","normal");
+                        json.put("content_available",true);
+
+                        JSONObject data = new JSONObject();
+                        data.put("notificationTitle",notificationTitle);
+                        data.put("notificationMessage",notificationMessage);
+                        data.put("groupUri",groupUri);
+                        data.put("groupTitle","groupTitle");
+                        json.put("data",data);
+                        try {
+                            OutputStreamWriter wr = new OutputStreamWriter(
+                                    conn.getOutputStream());
+                            wr.write(json.toString());
+                            wr.flush();
+
+                            BufferedReader br = new BufferedReader(new InputStreamReader(
+                                    (conn.getInputStream())));
+
+                            String output;
+                            Log.d("EditExpense","Output from Server .... \n");
+                            while ((output = br.readLine()) != null) {
+                                Log.d("EditExpense",output);
+                            }
+                            result =  Integer.toString(conn.getResponseCode());
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            result = Integer.toString(conn.getResponseCode());
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+    }
 
     @Override
     public void onBackPressed() {

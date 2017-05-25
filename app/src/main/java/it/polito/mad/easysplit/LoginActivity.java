@@ -333,9 +333,11 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
     private boolean mayRequestPhoneState() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            READ_PHONE_STATE_GUARANTEED = true;
             return true;
         }
         if (checkSelfPermission(READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
+            READ_PHONE_STATE_GUARANTEED = true;
             return true;
         }
         if (checkSelfPermission(READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {

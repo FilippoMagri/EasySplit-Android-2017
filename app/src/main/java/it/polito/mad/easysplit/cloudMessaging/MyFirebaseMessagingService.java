@@ -38,11 +38,14 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     public void onMessageReceived(RemoteMessage remoteMessage) {
         // Check if message contains a data payload.
         if (remoteMessage.getData().size() > 0) {
-            String notificationMessage="",groupUri="",groupTitle="";
+            String notificationMessage="",groupUri="",groupTitle="",notificationTitle="";
             ArrayMap<String,String> map = (ArrayMap<String,String>) remoteMessage.getData();
             for (Map.Entry<String,String> entry: map.entrySet()) {
                 String key = entry.getKey();
                 switch (key) {
+                    case "notificationTitle":
+                        notificationTitle = entry.getValue();
+                    break;
                     case "notificationMessage":
                         notificationMessage = entry.getValue();
                         break;
@@ -57,13 +60,13 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                 }
             }
             // Check if every important field of the payload is present
-            if (!notificationMessage.equals("")&&!groupUri.equals("")&&!groupTitle.equals("")) {
-                createSimpleNotification(notificationMessage,groupUri,groupTitle);
+            if (!notificationMessage.equals("")&&!groupUri.equals("")&&!notificationTitle.equals("")) {
+                createSimpleNotification(notificationMessage,groupUri,notificationTitle);
             }
         }
     }
 
-    private void createSimpleNotification(String body,String groupUri,String groupTitle) {
+    private void createSimpleNotification(String body,String groupUri,String notificationTitle) {
         long[] vibrate = { 0, 100, 200, 300 };
         Uri uri= RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
         Bitmap largeIcon = BitmapFactory.decodeResource(getApplicationContext().getResources(),
@@ -72,7 +75,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                 new NotificationCompat.Builder(this)
                         .setLargeIcon(largeIcon)
                         .setSmallIcon(R.drawable.ic_monetization_on_red_900_36dp)
-                        .setContentTitle(groupTitle).setDefaults(Notification.DEFAULT_ALL)
+                        .setContentTitle(notificationTitle).setDefaults(Notification.DEFAULT_ALL)
                         .setContentText(body).setPriority(Notification.PRIORITY_HIGH)
                         .setSound(uri)
                         .setVibrate(vibrate);
