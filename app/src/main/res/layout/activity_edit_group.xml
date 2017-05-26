@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="it.polito.mad.easysplit.EditGroupActivity"
+    android:orientation="vertical">
+
+    <EditText
+        android:id="@+id/nameEdit"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:ems="10"
+        android:hint="@string/hint_name_of_group"
+        android:singleLine="true"
+        android:text="Name"
+        android:textAppearance="@android:style/TextAppearance.Material.Large.Inverse" />
+
+    <TextView
+        android:id="@+id/currencyWarningText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/text_margin"
+        android:text="@string/currency_change_warning"
+        android:textAlignment="center" />
+
+    <LinearLayout
+        android:id="@+id/currencySpinnerLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_margin="@dimen/text_margin"
+        android:gravity="center_horizontal">
+
+        <TextView
+            android:id="@+id/textView4"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:text="@string/currency" />
+
+        <Spinner
+            android:id="@+id/currencySpinner"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="100dp"
+            android:spinnerMode="dialog" />
+    </LinearLayout>
+
+</LinearLayout>

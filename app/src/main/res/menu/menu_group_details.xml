@@ -3,6 +3,12 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="it.polito.mad.easysplit.Group">
     <item
+        android:id="@+id/action_edit"
+        android:orderInCategory="100"
+        android:title="@string/action_name_group_edit"
+        android:icon="@drawable/ic_edit_black_24dp"
+        app:showAsAction="ifRoom" />
+    <item
         android:id="@+id/action_invite"
         android:orderInCategory="100"
         android:title="@string/action_invite"
