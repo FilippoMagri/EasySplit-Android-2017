@@ -9,4 +9,5 @@
     <color name="balance_creditor">#ff00aa00</color>
     <color name="balance_debtor">#ffff0000</color>
     <color name="balance_caught_up">#ff000000</color>
+    <color name="color_notifications">#B71C1C</color>
 </resources>
