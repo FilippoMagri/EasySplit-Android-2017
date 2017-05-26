@@ -73,18 +73,6 @@ public class EditExpenseActivity extends AppCompatActivity {
     public final static String AUTH_KEY_FCM = "AAAAbkzlrnw:APA91bHmAL4upMmgUiT9byDUDZKOXr5Skgk55PXKv0mGqmtMDscP-KFn1F-UltmVCXOYubYi-Wy57w1woFuGy8WiQ4BL_uZt6TZ-yDG-6aQanq4tVmk8reK-AXaxCYZRkWHRTj2JJJjH";
     public final static String API_URL_FCM = "https://fcm.googleapis.com/fcm/send";
 
-    static {
-        DecimalFormatSymbols symbols = DecimalFormatSymbols.getInstance();
-        symbols.setGroupingSeparator('\'');
-        if (Locale.getDefault().getDisplayLanguage().equals("italiano")) {
-            symbols.setDecimalSeparator(',');
-        } else if (Locale.getDefault().getDisplayLanguage().equals("English")) {
-            symbols.setDecimalSeparator('.');
-        }
-        mDecimalFormat.setDecimalFormatSymbols(symbols);
-        mDecimalFormat.setParseBigDecimal(true);
-    }
-
 
     // Used for both the spinner and the checklist
     private final class MemberListItem {
@@ -151,6 +139,23 @@ public class EditExpenseActivity extends AppCompatActivity {
             mProgressBarOverlay.setVisibility(View.GONE);
             setupView();
         }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        // Reset the decimal format configuration, in case the system's locale configuration
+        // has changed while the Activity was not running
+        DecimalFormatSymbols symbols = DecimalFormatSymbols.getInstance();
+        symbols.setGroupingSeparator('\'');
+        if (Locale.getDefault().getDisplayLanguage().equals("italiano")) {
+            symbols.setDecimalSeparator(',');
+        } else if (Locale.getDefault().getDisplayLanguage().equals("English")) {
+            symbols.setDecimalSeparator('.');
+        }
+        mDecimalFormat.setDecimalFormatSymbols(symbols);
+        mDecimalFormat.setParseBigDecimal(true);
     }
 
     @Override
