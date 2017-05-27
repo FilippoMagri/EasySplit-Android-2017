@@ -9,97 +9,83 @@
     tools:context="it.polito.mad.easysplit.EditExpenseActivity"
     tools:showIn="@layout/activity_add_expenses">
 
-    <GridLayout
+    <android.support.constraint.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:columnCount="3">
+        android:layout_marginBottom="8dp">
 
         <TextView
-            android:id="@+id/dateLabel"
+            android:id="@+id/textView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="right|center_vertical"
-            android:layout_margin="10dp"
-            android:gravity="right|end"
-            android:text="Date"
-            android:textAlignment="gravity"
-            android:textSize="18sp" />
-
-        <EditText
-            android:id="@+id/dateEdit"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="fill"
-            android:layout_margin="10dp"
-            android:editable="false"
-            android:gravity="fill_horizontal"
-            android:inputType="date"
-            android:textAlignment="textStart" />
-
-        <ImageView
-            android:id="@+id/dateImg"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="10dp"
-            android:layout_weight="0.1"
-            android:src="@drawable/ic_date_range_black_36dp"
-            android:textAlignment="center" />
-
-        <TextView
-            android:id="@+id/titleLabel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="right|center_vertical"
-            android:layout_margin="10dp"
-            android:gravity="right|end"
-            android:text="Title"
-            android:textAlignment="gravity"
-            android:textSize="18sp" />
+            android:layout_marginEnd="8dp"
+            android:layout_marginRight="8dp"
+            android:text="When:"
+            app:layout_constraintBaseline_toBaselineOf="@+id/dateButton"
+            app:layout_constraintRight_toLeftOf="@+id/guideline" />
 
         <EditText
             android:id="@+id/titleEdit"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="0dp"
+            android:layout_height="42dp"
             android:layout_gravity="fill"
             android:layout_margin="10dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginLeft="8dp"
+            android:layout_marginRight="8dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
             android:gravity="fill_horizontal"
+            android:hint="@string/text_title"
             android:inputType="text"
-            android:textAlignment="textStart" />
-
-        <Space
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
-
-        <TextView
-            android:id="@+id/amountLabel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="right|center_vertical"
-            android:layout_margin="10dp"
-            android:text="Amount"
-            android:textAlignment="gravity"
-            android:textSize="18sp" />
+            android:textAppearance="@android:style/TextAppearance.Material.Large.Inverse"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <EditText
             android:id="@+id/amountEdit"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="fill"
-            android:layout_margin="10dp"
+            android:layout_marginStart="8dp"
             android:digits="0123456789.,"
             android:gravity="fill_horizontal"
             android:inputType="numberDecimal"
-            android:textAlignment="textStart" />
+            android:paddingLeft="15dp"
+            android:singleLine="true"
+            android:text="5.65"
+            android:textAppearance="@android:style/TextAppearance.Material.Large.Inverse"
+            app:layout_constraintBaseline_toBaselineOf="@+id/currencySpinner"
+            app:layout_constraintRight_toLeftOf="@+id/currencySpinner"
+            android:layout_marginRight="8dp" />
 
         <Spinner
             android:id="@+id/currencySpinner"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
+            android:layout_width="94dp"
+            android:layout_height="38dp"
             android:layout_gravity="center_vertical"
+            android:layout_marginStart="0dp"
+            android:layout_marginTop="8dp"
             android:entries="@array/CurrencyListItem"
             android:gravity="center_vertical|end"
-            android:textAlignment="textEnd" />
+            android:textAlignment="textEnd"
+            app:layout_constraintTop_toBottomOf="@+id/titleEdit"
+            android:layout_marginRight="8dp"
+            app:layout_constraintRight_toRightOf="parent" />
 
+        <Button
+            android:id="@+id/dateButton"
+            style="@android:style/Widget.Material.Button.Borderless"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="8dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:text="27 mag 2017, 12:50"
+            android:textAppearance="@android:style/TextAppearance.Material.Medium"
+            app:layout_constraintLeft_toLeftOf="@+id/guideline"
+            app:layout_constraintTop_toBottomOf="@+id/currencySpinner" />
 
         <TextView
             android:id="@+id/payerLabel"
@@ -107,25 +93,53 @@
             android:layout_height="wrap_content"
             android:layout_gravity="right|center_vertical"
             android:layout_margin="10dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginRight="8dp"
             android:text="Paid by"
-            android:textAlignment="gravity"
-            android:textSize="18sp" />
+            android:textAppearance="@android:style/TextAppearance.Material.Small"
+            app:layout_constraintBaseline_toBaselineOf="@+id/payerSpinner"
+            app:layout_constraintRight_toLeftOf="@+id/guideline" />
 
         <Spinner
             android:id="@+id/payerSpinner"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="fill"
-            android:layout_margin="10dp"
+            android:layout_marginLeft="8dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:entries="@array/CurrencyListItem"
             android:gravity="fill_horizontal"
-            android:textAlignment="textEnd" />
+            android:textAlignment="textEnd"
+            app:layout_constraintLeft_toLeftOf="@+id/guideline"
+            app:layout_constraintTop_toBottomOf="@+id/dateButton" />
 
-    </GridLayout>
+        <android.support.constraint.Guideline
+            android:id="@+id/guideline"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintGuide_begin="80dp"
+            tools:layout_editor_absoluteX="80dp"
+            tools:layout_editor_absoluteY="81dp" />
+
+    </android.support.constraint.ConstraintLayout>
+
+    <TextView
+        android:id="@+id/textView3"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingStart="20dp"
+        android:paddingTop="10dp"
+        android:text="Who participates:"
+        tools:layout_editor_absoluteX="8dp"
+        tools:layout_editor_absoluteY="81dp" />
 
     <ListView
         android:id="@+id/membersList"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_marginBottom="50sp"
         android:choiceMode="multipleChoice" />
 
 </LinearLayout>

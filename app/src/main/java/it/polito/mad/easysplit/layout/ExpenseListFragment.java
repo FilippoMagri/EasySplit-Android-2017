@@ -23,6 +23,9 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.ArrayList;
+import java.util.Collections;
+
 import it.polito.mad.easysplit.EditExpenseActivity;
 import it.polito.mad.easysplit.ExpenseDetailsActivity;
 import it.polito.mad.easysplit.R.id;
@@ -43,7 +46,7 @@ public class ExpenseListFragment extends Fragment {
     }
 
 
-    private DatabaseReference mExpenseIdsRef;
+    private DatabaseReference mExpensesRef;
     private final DatabaseReference mRoot = FirebaseDatabase.getInstance().getReference();
     private String mGroupUri;
 
@@ -54,7 +57,7 @@ public class ExpenseListFragment extends Fragment {
         Bundle args = getArguments();
         mGroupUri = (String) args.getCharSequence("groupUri");
         DatabaseReference groupRef = Utils.findByUri(Uri.parse(mGroupUri), mRoot);
-        mExpenseIdsRef = groupRef.child("expenses");
+        mExpensesRef = groupRef.child("expenses");
     }
 
     @Nullable
@@ -64,7 +67,7 @@ public class ExpenseListFragment extends Fragment {
         ListView lv = (ListView) view.findViewById(id.expensesList);
 
         ExpenseListAdapter adapter = new ExpenseListAdapter(getContext());
-        mExpenseIdsRef.orderByChild("timestamp_number").addValueEventListener(adapter);
+        mExpensesRef.orderByChild("timestamp").addValueEventListener(adapter);
         lv.setAdapter(adapter);
         lv.setOnItemClickListener(new OnItemClickListener() {
             @Override
@@ -93,13 +96,11 @@ public class ExpenseListFragment extends Fragment {
 
     private static final class ListItem {
         String id, name, amount;
-        Long timeStamp_number;
 
-        public ListItem(String id, String name, String amount, Long timeStamp_number) {
+        public ListItem(String id, String name, String amount) {
             this.id = id;
             this.name = name;
             this.amount = amount;
-            this.timeStamp_number=timeStamp_number;
         }
     }
 
@@ -128,7 +129,8 @@ public class ExpenseListFragment extends Fragment {
 
         @Override
         public synchronized void onDataChange(DataSnapshot expenseIdsSnap) {
-            clear();
+            ArrayList<ListItem> items = new ArrayList<>();
+
             for (DataSnapshot child : expenseIdsSnap.getChildren()) {
                 String expenseId = child.getKey();
                 String name = child.child("name").getValue(String.class);
@@ -148,10 +150,12 @@ public class ExpenseListFragment extends Fragment {
                 if (! amountOriginal.getCurrency().equals(amountConverted.getCurrency()))
                     amountText += " (" + amountOriginal.toString() + ")";
 
-                Long timestampNumber = child.child("timestamp_number").getValue(Long.class);
-
-                add(new ListItem(expenseId, name, amountText, timestampNumber));
+                items.add(new ListItem(expenseId, name, amountText));
             }
+
+            Collections.reverse(items);
+            clear();
+            addAll(items);
         }
 
         @Override

@@ -15,7 +15,7 @@ import it.polito.mad.easysplit.models.Money;
 
 public class CurrencySpinnerAdapter extends ArrayAdapter<Currency> {
     public CurrencySpinnerAdapter(@NonNull Context context) {
-        super(context, android.R.layout.simple_spinner_item);
+        super(context, R.layout.spinner_item_currency);
         addAll(Money.getCurrencies());
     }
 
@@ -30,11 +30,27 @@ public class CurrencySpinnerAdapter extends ArrayAdapter<Currency> {
         return -1;
     }
 
+    @NonNull
+    @Override
+    public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
+        if (convertView == null)
+            convertView = LayoutInflater.from(getContext())
+                    .inflate(R.layout.spinner_item_currency, parent, false);
+
+        Currency curr = getItem(position);
+        if (curr != null) {
+            TextView textView = (TextView) convertView;
+            textView.setText(curr.getSymbol());
+        }
+
+        return convertView;
+    }
+
     @Override
     public View getDropDownView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
         if (convertView == null)
             convertView = LayoutInflater.from(getContext())
-                    .inflate(R.layout.spinner_item_currency, parent, false);
+                    .inflate(R.layout.dropdown_item_currency, parent, false);
 
         Currency curr = getItem(position);
 

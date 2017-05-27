@@ -19,14 +19,6 @@
             android:background="?attr/colorPrimary"
             app:popupTheme="@style/AppTheme.PopupOverlay">
 
-            <ImageView
-                android:id="@+id/img_confirm_add_expenses"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="right"
-                android:layout_marginRight="16dp"
-                android:foreground="?android:attr/selectableItemBackground"
-                android:src="@drawable/ic_check_circle_deep_orange_400_36dp" />
         </android.support.v7.widget.Toolbar>
     </android.support.design.widget.AppBarLayout>
 
@@ -35,7 +27,8 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@color/progress_bar_overlay_background"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:visibility="gone">
 
         <Space
             android:layout_width="wrap_content"
