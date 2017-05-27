@@ -140,7 +140,7 @@ public class GroupDetailsActivity extends AppCompatActivity {
 
                             // delete user from group, and group from user
                             if (residue.isZero()) {
-                                removeUserFromGroup(user.getUid());
+                                removeUserFromGroup(user.getUid(), balance.size() == 1);
                                 Intent i = new Intent(GroupDetailsActivity.this, Group.class);
                                 startActivity(i);
                             } else {
@@ -160,7 +160,7 @@ public class GroupDetailsActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    private void removeUserFromGroup(String userId) {
+    private void removeUserFromGroup(String userId, boolean deleteGroup) {
         String userPath = Utils.getPathFor(Utils.UriType.USER, userId);
         String groupPath = Utils.getPathFor(mGroupUri);
         String groupId = Utils.getIdFor(Utils.UriType.GROUP, mGroupUri);
@@ -168,8 +168,13 @@ public class GroupDetailsActivity extends AppCompatActivity {
         HashMap<String, Object> updates = new HashMap<>();
         // remove group from user
         updates.put(userPath + "/groups_ids/" + groupId, null);
-        // remove user from group
-        updates.put(groupPath + "/members_ids/" + userId, null);
+
+        if (deleteGroup)
+            // remove group altogether
+            updates.put(groupPath, null);
+        else
+            // remove user from group
+            updates.put(groupPath + "/members_ids/" + userId, null);
 
         mRoot.updateChildren(updates);
     }
