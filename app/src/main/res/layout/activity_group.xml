@@ -35,7 +35,6 @@
             android:layout_height="wrap_content"
             android:layout_margin="10sp"
             android:textAlignment="textEnd"
-            android:text="YOUR NAME"
             android:textSize="20sp" />
 
         <TextView
