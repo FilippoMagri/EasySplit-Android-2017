@@ -1,13 +1,36 @@
 package it.polito.mad.easysplit.models;
 
+import android.support.annotation.NonNull;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Currency;
+import java.util.List;
+import java.util.Locale;
 
 public class Money {
     private static Currency defaultCurrency = Currency.getInstance("EUR");
+
+    private static List<Currency> currencies = null;
+
+    @NonNull
+    public static List<Currency> getCurrencies() {
+        if (currencies == null) {
+            final String[] codes = {
+                    "EUR", "USD", "JPY", "GBP", "AUD", "CAD", "CHF", "CNY", "SEK", "NZD",
+                    "MXN", "SGD", "HKD", "NOK", "KRW", "TRY", "RUB", "INR", "BRL", "ZAR",
+            };
+
+            currencies = new ArrayList<>();
+            for (String code : codes)
+                currencies.add(Currency.getInstance(code));
+        }
+        return currencies;
+    }
 
     public static Money zero() {
         return new Money(BigDecimal.ZERO);
@@ -18,6 +41,20 @@ public class Money {
     public static Money zeroLike(Money other) {
         return new Money(other.getCurrency(), BigDecimal.ZERO);
     }
+
+    private static DecimalFormat sStdFormat = new DecimalFormat("0.00");
+    private static DecimalFormat sLocaleFormat = new DecimalFormat("####,###,##0.00");
+    static {
+        sStdFormat.setParseBigDecimal(true);
+        sLocaleFormat.setParseBigDecimal(true);
+    }
+
+    public static void setLocale(Locale locale) {
+        DecimalFormatSymbols symbols = DecimalFormatSymbols.getInstance(locale);
+        sLocaleFormat.setDecimalFormatSymbols(symbols);
+    }
+
+    
 
     private Currency mCurrency;
     private BigDecimal mAmount;
@@ -100,12 +137,6 @@ public class Money {
         return mul(BigDecimal.valueOf(factor));
     }
 
-    private static DecimalFormat sStdFormat = new DecimalFormat("0.00");
-    private static DecimalFormat sLocaleFormat = new DecimalFormat("####,###,##0.00");
-    static {
-        sStdFormat.setParseBigDecimal(true);
-        sLocaleFormat.setParseBigDecimal(true);
-    }
 
     @Override
     public String toString() {
