@@ -1,27 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    style="?android:attr/spinnerItemStyle"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:baselineAligned="false">
-
-    <TextView
-        android:id="@+id/currencySymbolText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="10sp"
-        android:elevation="1dp"
-        android:minEms="2"
-        android:text="AU$"
-        android:textAlignment="textEnd"
-        android:textSize="24sp"
-        android:textStyle="bold" />
-
-    <TextView
-        android:id="@+id/currencyCodeText"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_gravity="center_vertical"
-        android:gravity="center_vertical"
-        android:text="EUR" />
-
-</LinearLayout>
+    android:maxLines="1"
+    android:textAlignment="inherit"
+    android:textSize="24sp"
+    android:textStyle="bold" />

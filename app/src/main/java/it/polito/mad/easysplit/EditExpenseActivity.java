@@ -2,8 +2,6 @@ package it.polito.mad.easysplit;
 
 import android.R.layout;
 import android.R.string;
-import android.app.DatePickerDialog;
-import android.app.DatePickerDialog.OnDateSetListener;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
@@ -14,12 +12,13 @@ import android.support.v7.app.AlertDialog.Builder;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.ArrayAdapter;
-import android.widget.DatePicker;
+import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Spinner;
 
@@ -89,10 +88,10 @@ public class EditExpenseActivity extends AppCompatActivity {
         }
     }
 
+
     private final DatabaseReference mRoot = FirebaseDatabase.getInstance().getReference();
-    private final DateFormat mUIDateFormat = DateFormat.getDateInstance();
-    private DatePickerDialog mDatePickerDialog;
-    private View mConfirmBtn;
+    private final DateFormat mUIDateFormat = DateFormat.getDateTimeInstance();
+    private DateTimePicker mDateTimePicker;
     private String mGroupId;
     private String mGroupCurrencyCode = ConversionRateProvider.getBaseCurrency().getCurrencyCode();
     private CurrencySpinnerAdapter mCurrenciesAdapter;
@@ -101,6 +100,7 @@ public class EditExpenseActivity extends AppCompatActivity {
     private DataSnapshot mInitialExpense;
     private View mProgressBarOverlay;
     private UnsavedChangesNotifier mNotifier;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -111,7 +111,6 @@ public class EditExpenseActivity extends AppCompatActivity {
         mCurrenciesAdapter = new CurrencySpinnerAdapter(this);
 
         mProgressBarOverlay = findViewById(id.progress_bar_overlay);
-        mConfirmBtn = findViewById(id.img_confirm_add_expenses);
         mNotifier = new UnsavedChangesNotifier(this, this);
 
         Intent i = getIntent();
@@ -131,6 +130,7 @@ public class EditExpenseActivity extends AppCompatActivity {
         String expenseId = i.getStringExtra("expenseId");
         if (expenseId != null) {
             // edit mode
+            setTitle(getString(R.string.title_edit_expenes));
             mNotifier.setChanged();
             mProgressBarOverlay.setVisibility(View.VISIBLE);
             mRoot.child("expenses").child(expenseId).addListenerForSingleValueEvent(new ExpenseListener());
@@ -216,32 +216,19 @@ public class EditExpenseActivity extends AppCompatActivity {
     }
 
     private void setupDateEdit() {
-        final EditText dateEdit = (EditText) findViewById(id.dateEdit);
+        final Button dateButton = (Button) findViewById(id.dateButton);
 
-        if (isEditing()) {
-            Date timestamp = new Date(mInitialExpense.child("timestamp").getValue(Long.class).longValue());
-            dateEdit.setText(mUIDateFormat.format(timestamp));
-        } else {
-            Date newDate = new Date(System.currentTimeMillis());
-            dateEdit.setText(mUIDateFormat.format(newDate));
-        }
+        Long timestamp = isEditing() ?
+                mInitialExpense.child("mCalendar").getValue(Long.class) :
+                null;
 
-        OnDateSetListener dateSetListener = new OnDateSetListener() {
-            public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
-                Calendar cal = Calendar.getInstance();
-                cal.set(year, monthOfYear, dayOfMonth);
-                dateEdit.setText(mUIDateFormat.format(new Date(cal.getTimeInMillis())));
+        mDateTimePicker = new DateTimePicker(this, timestamp);
+        mDateTimePicker.setListener(new DateTimePicker.Listener() {
+            @Override
+            public void onDateTimeChanged(Calendar calendar) {
+                dateButton.setText(mUIDateFormat.format(calendar.getTime()));
             }
-        };
-
-        Calendar newCalendar = Calendar.getInstance();
-        mDatePickerDialog = new DatePickerDialog(this, dateSetListener,
-                newCalendar.get(Calendar.YEAR),
-                newCalendar.get(Calendar.MONTH),
-                newCalendar.get(Calendar.DAY_OF_MONTH));
-
-        // Disable future dates
-        mDatePickerDialog.getDatePicker().setMaxDate(System.currentTimeMillis());
+        });
     }
 
     public void setupPayerSpinner() {
@@ -330,24 +317,34 @@ public class EditExpenseActivity extends AppCompatActivity {
         });
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_edit_expense, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == id.action_accept) {
+            acceptExpense();
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
     public void setActionOnButtons() {
         Toolbar toolbar = (Toolbar) findViewById(id.toolbar);
         setSupportActionBar(toolbar);
 
         /// TODO Setup back/up navigation
 
-        ImageView dateImg = (ImageView) findViewById(id.dateImg);
-        dateImg.setOnClickListener(new OnClickListener() {
+        Button timestampButton = (Button) findViewById(id.dateButton);
+        timestampButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
-                mDatePickerDialog.show();
-            }
-        });
-
-        mConfirmBtn.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                acceptExpense();
+                mDateTimePicker.show();
             }
         });
     }
@@ -365,22 +362,13 @@ public class EditExpenseActivity extends AppCompatActivity {
             @Override
             public void run() {
                 final View contentView = findViewById(android.R.id.content);
-                EditText dateEdit = (EditText) findViewById(id.dateEdit);
                 EditText titleEdit = (EditText) findViewById(id.titleEdit);
                 EditText amountEdit = (EditText) findViewById(id.amountEdit);
                 Spinner payerSpinner = (Spinner) findViewById(id.payerSpinner);
                 ListView membersList = (ListView) findViewById(id.membersList);
                 Spinner currencySpinner = (Spinner) findViewById(id.currencySpinner);
 
-                String dateStr = dateEdit.getText().toString();
-                Date timestamp;
-                try {
-                    timestamp = mUIDateFormat.parse(dateStr);
-                } catch (ParseException e) {
-                    Snackbar.make(contentView, "The date is invalid!", Snackbar.LENGTH_LONG)
-                            .show();
-                    return;
-                }
+                Date timestamp = mDateTimePicker.getCalendar().getTime();
 
                 final String title = titleEdit.getText().toString();
 
@@ -440,7 +428,7 @@ public class EditExpenseActivity extends AppCompatActivity {
 
                 Map<String, Object> expense = new HashMap<>();
                 expense.put("name", title);
-                /// TODO Decide on a standard, strict format for the timestamp
+                /// TODO Decide on a standard, strict format for the mCalendar
                 expense.put("timestamp", timestamp.getTime());
                 expense.put("timestamp_number", -1 * timestamp.getTime());
                 expense.put("amount_original", amountOriginal.toStandardFormat());

@@ -46,4 +46,7 @@
     <string name="balance_debtor_message">Deve ricevere da %s:</string>
     <string name="title_new_group">Nuovo gruppo</string>
     <string name="permission_imei">Accetta per ricevere le notifiche</string>
+    <string name="text_title">Titolo</string>
+    <string name="save">Salva</string>
+    <string name="title_edit_expenes">Modifica spesa</string>
 </resources>
