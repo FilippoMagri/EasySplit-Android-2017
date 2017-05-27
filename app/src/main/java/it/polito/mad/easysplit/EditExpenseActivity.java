@@ -219,7 +219,7 @@ public class EditExpenseActivity extends AppCompatActivity {
         final Button dateButton = (Button) findViewById(id.dateButton);
 
         Long timestamp = isEditing() ?
-                mInitialExpense.child("mCalendar").getValue(Long.class) :
+                mInitialExpense.child("timestamp").getValue(Long.class) :
                 null;
 
         mDateTimePicker = new DateTimePicker(this, timestamp);
@@ -428,7 +428,7 @@ public class EditExpenseActivity extends AppCompatActivity {
 
                 Map<String, Object> expense = new HashMap<>();
                 expense.put("name", title);
-                /// TODO Decide on a standard, strict format for the mCalendar
+                /// TODO Decide on a standard, strict format for the timestamp
                 expense.put("timestamp", timestamp.getTime());
                 expense.put("timestamp_number", -1 * timestamp.getTime());
                 expense.put("amount_original", amountOriginal.toStandardFormat());

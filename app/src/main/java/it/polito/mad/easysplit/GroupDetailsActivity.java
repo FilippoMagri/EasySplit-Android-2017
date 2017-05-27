@@ -50,7 +50,7 @@ public class GroupDetailsActivity extends AppCompatActivity {
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                startActivity(new Intent(getApplicationContext(),Group.class));
+                startActivity(new Intent(getApplicationContext(), Group.class));
             }
         });
 

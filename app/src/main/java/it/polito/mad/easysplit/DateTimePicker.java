@@ -25,6 +25,8 @@ class DateTimePicker implements DatePickerDialog.OnDateSetListener, TimePickerDi
 
     public void setListener(Listener listener) {
         mListener = listener;
+        if (mListener != null)
+            mListener.onDateTimeChanged(mCalendar);
     }
 
     public Calendar getCalendar() {
