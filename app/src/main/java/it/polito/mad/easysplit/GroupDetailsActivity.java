@@ -143,6 +143,7 @@ public class GroupDetailsActivity extends AppCompatActivity {
                                 removeUserFromGroup(user.getUid(), balance.size() == 1);
                                 Intent i = new Intent(GroupDetailsActivity.this, Group.class);
                                 startActivity(i);
+                                finish();
                             } else {
                                 new AlertDialog.Builder(GroupDetailsActivity.this)
                                         .setTitle(R.string.balance_problem_title)
