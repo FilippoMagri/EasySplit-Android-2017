@@ -6,11 +6,14 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
@@ -80,7 +83,7 @@ public class ExpenseListFragment extends Fragment {
         });
 
         /// TODO Support multiple groups
-        View btnAdd = view.findViewById(id.add_button_expense);
+        final FloatingActionButton btnAdd = (FloatingActionButton) view.findViewById(id.add_button_expense);
         btnAdd.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -90,7 +93,24 @@ public class ExpenseListFragment extends Fragment {
                 startActivity(i);
             }
         });
+        lv.setOnScrollListener(new AbsListView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(AbsListView absListView, int scrollState) {
+                int btn_initPosY=btnAdd.getScrollY();
+                if (scrollState == SCROLL_STATE_TOUCH_SCROLL || scrollState == SCROLL_STATE_FLING) {
+                    btnAdd.animate().cancel();
+                    btnAdd.animate().translationYBy(200);
+                } else {
+                    btnAdd.animate().cancel();
+                    btnAdd.animate().translationY(btn_initPosY);
+                }
+            }
 
+            @Override
+            public void onScroll(AbsListView absListView, int i, int i1, int i2) {
+
+            }
+        });
         return view;
     }
 
