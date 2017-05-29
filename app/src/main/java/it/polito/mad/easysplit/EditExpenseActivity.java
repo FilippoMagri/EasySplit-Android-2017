@@ -43,6 +43,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import it.polito.mad.easysplit.cloudMessaging.MessagingUtils;
 import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
@@ -69,9 +70,6 @@ import it.polito.mad.easysplit.models.Money;
  */
 public class EditExpenseActivity extends AppCompatActivity {
     private static final DecimalFormat mDecimalFormat = new DecimalFormat("#,##0.00");
-    public final static String AUTH_KEY_FCM = "AAAAbkzlrnw:APA91bHmAL4upMmgUiT9byDUDZKOXr5Skgk55PXKv0mGqmtMDscP-KFn1F-UltmVCXOYubYi-Wy57w1woFuGy8WiQ4BL_uZt6TZ-yDG-6aQanq4tVmk8reK-AXaxCYZRkWHRTj2JJJjH";
-    public final static String API_URL_FCM = "https://fcm.googleapis.com/fcm/send";
-
 
     // Used for both the spinner and the checklist
     private final class MemberListItem {
@@ -473,108 +471,15 @@ public class EditExpenseActivity extends AppCompatActivity {
                             i.setData(Utils.getUriFor(UriType.EXPENSE, expenseId));
                             startActivity(i);
                             String message4Notification = getResources().getString(R.string.new_expense_notification);
-                            sendPushUpNotifications(expenseId, title, memberIds, payerId4Notification,message4Notification);
+                            MessagingUtils.sendPushUpNotifications(mRoot, mGroupId, title, memberIds, message4Notification);
                         }
                         if(isEditing()) {
                             String message4Notification = getResources().getString(R.string.expense_modified);
-                            sendPushUpNotifications(expenseId, title, memberIds, payerId4Notification,message4Notification);
+                            MessagingUtils.sendPushUpNotifications(mRoot, mGroupId, title, memberIds,message4Notification);
                         }
                         finish();
                     }
                 });
-            }
-        }).start();
-    }
-
-
-    //Send notifications to all members involved in the payment
-    private void sendPushUpNotifications(String expenseId, final String expenseName, Map<String, String> memberIds, String payerId,final String message) {
-        HashMap<String, String> membersToNotify = new HashMap<>(memberIds);
-        String idUserLogged = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        if (membersToNotify.containsKey(idUserLogged)) {
-            // Remove the user-logged from the notification list
-            membersToNotify.remove(idUserLogged);
-        }
-
-        for (Map.Entry<String,String> entry:membersToNotify.entrySet()) {
-            final String idMember = entry.getKey();
-            final DatabaseReference userRef = mRoot.child("users").child(idMember);
-            userRef.addListenerForSingleValueEvent(new ValueEventListener() {
-                @Override
-                public void onDataChange(DataSnapshot userSnap) {
-                    if (! userSnap.hasChild("devices"))
-                        return;
-                    DataSnapshot devicesUserSnapShot = userSnap.child("devices");
-                    for (DataSnapshot device : devicesUserSnapShot.getChildren()) {
-                        String tokenNotification = device.getValue(String.class);
-                        sendRealPushUpNotification(tokenNotification, message, expenseName, mGroupId.toString());
-                    }
-                }
-
-                @Override
-                public void onCancelled(DatabaseError databaseError) {
-
-                }
-            });
-        }
-    }
-
-    public void sendRealPushUpNotification (final String tokenNotification, final String notificationTitle,
-                                            final String notificationMessage, final String groupUri) {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    String result = "";
-                    URL url = new URL(API_URL_FCM);
-
-                    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-
-                    conn.setUseCaches(false);
-                    conn.setDoInput(true);
-                    conn.setDoOutput(true);
-
-                    conn.setRequestMethod("POST");
-                    conn.setRequestProperty("Authorization", "key=" + AUTH_KEY_FCM);
-                    conn.setRequestProperty("Content-Type", "application/json");
-
-                    JSONObject json = new JSONObject();
-                    try {
-                        json.put("to", tokenNotification.trim());
-                        json.put("priority","normal");
-                        json.put("content_available",true);
-
-                        JSONObject data = new JSONObject();
-                        data.put("notificationTitle", notificationTitle);
-                        data.put("notificationMessage", notificationMessage);
-                        data.put("groupUri", groupUri);
-                        data.put("groupTitle", "groupTitle");
-                        json.put("data",data);
-                        try {
-                            OutputStreamWriter wr = new OutputStreamWriter(
-                                    conn.getOutputStream());
-                            wr.write(json.toString());
-                            wr.flush();
-
-                            BufferedReader br = new BufferedReader(new InputStreamReader(
-                                    (conn.getInputStream())));
-
-                            String output;
-                            Log.d("EditExpense","Output from Server .... \n");
-                            while ((output = br.readLine()) != null) {
-                                Log.d("EditExpense",output);
-                            }
-                            result =  Integer.toString(conn.getResponseCode());
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                            result = Integer.toString(conn.getResponseCode());
-                        }
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
             }
         }).start();
     }
