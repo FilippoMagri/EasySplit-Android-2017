@@ -51,4 +51,6 @@
     <string name="title_edit_expenes">Modifica spesa</string>
     <string name="expense_modified">Spesa modificata</string>
     <string name="expense_deleted">Spesa eliminata</string>
+    <string name="join_group">Unisciti al nuovo gruppo</string>
+    <string name="new_group_created">Sei stato aggiunto</string>
 </resources>

@@ -74,6 +74,8 @@
     <string name="new_expense_notification">New Expense Added</string>
     <string name="expense_modified">Expense modified</string>
     <string name="expense_deleted">Expense deleted</string>
+    <string name="join_group">Join the new group</string>
+    <string name="new_group_created">You have been added</string>
     <string name="text_title">Title</string>
     <string name="save">Save</string>
     <string name="title_edit_expenes">Edit expense</string>
