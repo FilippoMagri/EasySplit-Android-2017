@@ -72,6 +72,7 @@
     <string name="permission_imei">Accept for receiving notifications</string>
     <!--Strings related to PushUp Notifications-->
     <string name="new_expense_notification">New Expense Added</string>
+    <string name="expense_modified">Expense has been modified</string>
     <string name="text_title">Title</string>
     <string name="save">Save</string>
     <string name="title_edit_expenes">Edit expense</string>

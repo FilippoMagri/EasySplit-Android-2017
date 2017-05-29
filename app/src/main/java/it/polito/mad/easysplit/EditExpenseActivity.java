@@ -472,7 +472,12 @@ public class EditExpenseActivity extends AppCompatActivity {
                             Intent i = new Intent(getApplicationContext(), ExpenseDetailsActivity.class);
                             i.setData(Utils.getUriFor(UriType.EXPENSE, expenseId));
                             startActivity(i);
-                            sendPushUpNotifications(expenseId, title, memberIds, payerId4Notification);
+                            String message4Notification = getResources().getString(R.string.new_expense_notification);
+                            sendPushUpNotifications(expenseId, title, memberIds, payerId4Notification,message4Notification);
+                        }
+                        if(isEditing()) {
+                            String message4Notification = getResources().getString(R.string.expense_modified);
+                            sendPushUpNotifications(expenseId, title, memberIds, payerId4Notification,message4Notification);
                         }
                         finish();
                     }
@@ -483,7 +488,7 @@ public class EditExpenseActivity extends AppCompatActivity {
 
 
     //Send notifications to all members involved in the payment
-    private void sendPushUpNotifications(String expenseId, final String expenseName, Map<String, String> memberIds, String payerId) {
+    private void sendPushUpNotifications(String expenseId, final String expenseName, Map<String, String> memberIds, String payerId,final String message) {
         HashMap<String, String> membersToNotify = new HashMap<>(memberIds);
         String idUserLogged = FirebaseAuth.getInstance().getCurrentUser().getUid();
         if (membersToNotify.containsKey(idUserLogged)) {
@@ -502,8 +507,7 @@ public class EditExpenseActivity extends AppCompatActivity {
                     DataSnapshot devicesUserSnapShot = userSnap.child("devices");
                     for (DataSnapshot device : devicesUserSnapShot.getChildren()) {
                         String tokenNotification = device.getValue(String.class);
-                        String new_expense_notification = getResources().getString(R.string.new_expense_notification);
-                        sendRealPushUpNotification(tokenNotification, new_expense_notification, expenseName, mGroupId.toString());
+                        sendRealPushUpNotification(tokenNotification, message, expenseName, mGroupId.toString());
                     }
                 }
 
