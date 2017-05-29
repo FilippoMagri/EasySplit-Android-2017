@@ -22,9 +22,11 @@ import android.widget.TextView;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.math.BigDecimal;
@@ -37,12 +39,14 @@ import java.util.Map;
 import it.polito.mad.easysplit.R.drawable;
 import it.polito.mad.easysplit.R.id;
 import it.polito.mad.easysplit.R.layout;
+import it.polito.mad.easysplit.cloudMessaging.MessagingUtils;
 import it.polito.mad.easysplit.models.Money;
 
 
 public class ExpenseDetailsActivity extends AppCompatActivity {
     private static final DateFormat sUIDateFormat = DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.SHORT);
 
+    private final DatabaseReference mRoot = FirebaseDatabase.getInstance().getReference();
     private DatabaseReference mRef;
 
     private ValueEventListener mListener;
@@ -251,6 +255,18 @@ public class ExpenseDetailsActivity extends AppCompatActivity {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
                 if (task.isSuccessful()) {
+                    //Retrieve fields {expenseName,expenseMembers,message4Notification} to send
+                    //notification before closing the activity
+                    TextView expenseNameText = (TextView) findViewById(id.expenseName);
+                    String expenseName = expenseNameText.getText().toString();
+                    Map<String,String> expenseMembers = new HashMap<String, String>();
+                    int numParticipants = mParticipantsAdapter.getCount();
+                    for (int i = 0; i < numParticipants; i++) {
+                        Participant participant = mParticipantsAdapter.getItem(i);
+                        expenseMembers.put(participant.id,participant.name);
+                    }
+                    String message4Notification = getResources().getString(R.string.expense_deleted);
+                    MessagingUtils.sendPushUpNotifications(mRoot, mGroupId, expenseName,expenseMembers,message4Notification);
                     finish();
                     return;
                 }
