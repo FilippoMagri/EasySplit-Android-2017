@@ -120,7 +120,6 @@ class OnClickCatchUpItemListener implements View.OnClickListener {
     @Override
     public void onClick(View view) {
         Intent intent = new Intent(context, Payment.class);
-        //This Will be "Credtor","Name" or "Debtor","Name"
         //Root Member
         intent.putExtra("RootMemberName",memberRepr.getName());
         intent.putExtra("RootMemberId",memberRepr.getId());

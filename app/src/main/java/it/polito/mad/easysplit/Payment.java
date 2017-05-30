@@ -51,6 +51,7 @@ public class Payment extends AppCompatActivity {
         Log.d("Payment","SubMemberMoney"+subMemberMoney);
 
         mCurrenciesAdapter = new CurrencySpinnerAdapter(this);
+        mCurrenciesAdapter.setOnlyGroupCurrency(subMemberCurrency);
 
         mTvCreditor = (TextView) findViewById(R.id.textview_creditor);
         mTvDebtor = (TextView) findViewById(R.id.textview_debtor);
