@@ -76,4 +76,6 @@
     <string name="save">Save</string>
     <string name="title_edit_expenes">Edit expense</string>
     <string name="title_activity_payment">Payment</string>
+    <!--String related to Payment-->
+    <string name="wanna_pay">wants pay to</string>
 </resources>
