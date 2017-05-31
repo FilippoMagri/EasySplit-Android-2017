@@ -186,6 +186,11 @@ public class ExpenseDetailsActivity extends AppCompatActivity {
         int numParticipants = mParticipantsAdapter.getCount();
         for (int i = 0; i < numParticipants && numberOfIteration != 0; i++, numberOfIteration--) {
             Participant participant = mParticipantsAdapter.getItem(i);
+            // TODO in order to have the same rest distribution also for one single payment among the group, try to make it the same also in GroupBalance
+            if(participant.id.equals(mPayerId)) {
+                numberOfIteration++;
+                continue;
+            }
             int cmp = rest.getAmount().compareTo(BigDecimal.ZERO);
             if (cmp > 0) {
                 participant.quota = participant.quota.add(new BigDecimal("+0.01"));
