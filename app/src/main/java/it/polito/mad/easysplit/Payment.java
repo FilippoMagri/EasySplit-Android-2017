@@ -15,7 +15,13 @@ import android.widget.Spinner;
 import android.widget.TextView;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.text.ParseException;
 import java.util.Currency;
+import java.util.Locale;
+import java.util.NoSuchElementException;
 
 import it.polito.mad.easysplit.models.Money;
 
@@ -25,18 +31,25 @@ public class Payment extends AppCompatActivity {
     private TextView mTvCreditor;
     private TextView mTvDebtor;
     private EditText mEditTextPayment;
+    private Spinner mCurrencySpinner;
+    private CoordinatorLayout mCoordinatorLayout;
+
     //RootMember
     String rootMemberName = "";
     String rootMemberId = "";
-    String rootMemberMoney = "";
+    String rootMemberStringMoney = "";
     String rootMemberSymbol = "";
     String rootMemberCurrency = "";
+    Money moneyRootMember = new Money(new BigDecimal("0.00"));
     //Sub Member
     String subMemberName = "";
     String subMemberId = "";
-    String subMemberMoney = "";
+    String subMemberStringMoney = "";
     String subMemberSymbol = "";
     String subMemberCurrency = "";
+    Money moneySubMember = new Money(new BigDecimal("0.00"));
+
+    private static final DecimalFormat mDecimalFormat = new DecimalFormat("#,##0.00");
 
 
     @Override
@@ -44,35 +57,27 @@ public class Payment extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_payment);
 
-        retrieveIntentInformations();
-
-        Log.d("Payment","RootMemberName: "+rootMemberName);
-        Log.d("Payment","SubMemberName: "+subMemberName);
-        Log.d("Payment","SubMemberMoney"+subMemberMoney);
-
-        mCurrenciesAdapter = new CurrencySpinnerAdapter(this);
-        mCurrenciesAdapter.setOnlyGroupCurrency(subMemberCurrency);
+        resetDecimalFormat();
 
         mTvCreditor = (TextView) findViewById(R.id.textview_creditor);
         mTvDebtor = (TextView) findViewById(R.id.textview_debtor);
         mEditTextPayment = (EditText) findViewById(R.id.amountPayment);
+        mCoordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinator_layout_payment);
+        mCurrencySpinner = (Spinner) findViewById(R.id.paymentSpinner);
 
-        Money moneyCheck = new Money(Currency.getInstance(rootMemberCurrency),new BigDecimal(rootMemberMoney));
-        Money amountPayment = new Money(Currency.getInstance(subMemberCurrency),new BigDecimal(subMemberMoney));
-        mEditTextPayment.setText(amountPayment.abs().toString().replace(subMemberSymbol,"").replace(" ",""));
+        retrieveIntentInformations();
 
-        if (moneyCheck.cmpZero()>0) {
+        mEditTextPayment.setText(moneySubMember.abs().toString().replace(subMemberSymbol,"").replace(" ",""));
+
+        if (moneyRootMember.cmpZero()>0) {
             //RootMember is a creditor
             mTvCreditor.setText(rootMemberName);
             mTvDebtor.setText(subMemberName);
-        } else if (moneyCheck.cmpZero()<0){
+        } else if (moneyRootMember.cmpZero()<0){
             //SubMember is a creditor
             mTvCreditor.setText(subMemberName);
             mTvDebtor.setText(rootMemberName);
         }
-
-        Spinner currencySpinner = (Spinner) findViewById(R.id.paymentSpinner);
-        currencySpinner.setAdapter(mCurrenciesAdapter);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -97,21 +102,76 @@ public class Payment extends AppCompatActivity {
         //RootMember
         this.rootMemberName = intent.getStringExtra("RootMemberName");
         this.rootMemberId = intent.getStringExtra("RootMemberId");
-        this.rootMemberMoney = intent.getStringExtra("RootMemberMoney");
         this.rootMemberSymbol = intent.getStringExtra("RootMemberSymbol");
+        this.rootMemberStringMoney = intent.getStringExtra("RootMemberMoney").replace(rootMemberSymbol,"").replace(" ","");
         this.rootMemberCurrency = intent.getStringExtra("RootMemberCurrency");
-        //Adjust String formats
-        rootMemberMoney = rootMemberMoney.replace(rootMemberSymbol,"");
-        rootMemberMoney = rootMemberMoney.replace(" ","");
-        //Sub Member
+         //Sub Member
         this.subMemberName = intent.getStringExtra("SubMemberName");
         this.subMemberId = intent.getStringExtra("SubMemberId");
-        this.subMemberMoney = intent.getStringExtra("SubMemberMoney");
         this.subMemberSymbol = intent.getStringExtra("SubMemberSymbol");
+        this.subMemberStringMoney = intent.getStringExtra("SubMemberMoney").replace(subMemberSymbol,"").replace(" ","");
         this.subMemberCurrency = intent.getStringExtra("SubMemberCurrency");
-        //Adjust String formats
-        subMemberMoney = subMemberMoney.replace(subMemberSymbol,"");
-        subMemberMoney = subMemberMoney.replace(" ","");
+        //Set Currency Adapter For Payment
+        mCurrenciesAdapter = new CurrencySpinnerAdapter(this);
+        mCurrenciesAdapter.setOnlyGroupCurrency(subMemberCurrency);
+        mCurrencySpinner.setAdapter(mCurrenciesAdapter);
+        //Retrieve Currency From The Spinner
+        Currency currency = (Currency) mCurrencySpinner.getSelectedItem();
+        //Retrieve and convert Money of the RootMember into moneyRootMember
+        try {
+            // amount take the value of price + currencyCode
+            String codeCountry = Locale.getDefault().getDisplayLanguage();
+            if (codeCountry.equals("italiano")) {
+                rootMemberStringMoney = rootMemberStringMoney.replace(".", ",");
+            } else if (codeCountry.equals("English")) {
+                rootMemberStringMoney = rootMemberStringMoney.replace(",", ".");
+            }
+            Log.d("Payment","rootMemberSMoney: "+rootMemberStringMoney);
+            BigDecimal price = (BigDecimal) BigDecimal.valueOf(mDecimalFormat.parse(rootMemberStringMoney).doubleValue());
+            //Rounding with 2 Numbers After dot
+            price = price.divide(new BigDecimal("1.00"), 2, RoundingMode.HALF_UP);
+            moneyRootMember = new Money(currency, price);
+        } catch (NoSuchElementException | ParseException exc) {
+            exc.printStackTrace();
+            Snackbar.make(mCoordinatorLayout, "Invalid Root money amount!", Snackbar.LENGTH_LONG).show();
+            return;
+        }
+        //Retrieve and convert Money of the SubMember into moneySubMember
+        try {
+            // amount take the value of price + currencyCode
+            String codeCountry = Locale.getDefault().getDisplayLanguage();
+            if (codeCountry.equals("italiano")) {
+                subMemberStringMoney = subMemberStringMoney.replace(".", ",");
+            } else if (codeCountry.equals("English")) {
+                subMemberStringMoney = subMemberStringMoney.replace(",", ".");
+            }
+            BigDecimal price = (BigDecimal) BigDecimal.valueOf(mDecimalFormat.parse(subMemberStringMoney).doubleValue());
+            //Rounding with 2 Numbers After dot
+            price = price.divide(new BigDecimal("1.00"), 2, RoundingMode.HALF_UP);
+            moneySubMember = new Money(currency, price);
+        } catch (NoSuchElementException | ParseException exc) {
+            Snackbar.make(mCoordinatorLayout, "Invalid Sub money amount!", Snackbar.LENGTH_LONG).show();
+            return;
+        }
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        resetDecimalFormat();
+    }
+
+    private void resetDecimalFormat() {
+        // Reset the decimal format configuration, in case the system's locale configuration
+        // has changed while the Activity was not running
+        DecimalFormatSymbols symbols = DecimalFormatSymbols.getInstance();
+        symbols.setGroupingSeparator('\'');
+        if (Locale.getDefault().getDisplayLanguage().equals("italiano")) {
+            symbols.setDecimalSeparator(',');
+        } else if (Locale.getDefault().getDisplayLanguage().equals("English")) {
+            symbols.setDecimalSeparator('.');
+        }
+        mDecimalFormat.setDecimalFormatSymbols(symbols);
+        mDecimalFormat.setParseBigDecimal(true);
+    }
 }
