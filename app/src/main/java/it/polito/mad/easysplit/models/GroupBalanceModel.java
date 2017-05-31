@@ -2,6 +2,7 @@ package it.polito.mad.easysplit.models;
 
 import android.net.Uri;
 import android.support.annotation.NonNull;
+import android.util.Log;
 
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
@@ -19,9 +20,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Currency;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.concurrent.ExecutionException;
 
 import it.polito.mad.easysplit.ConversionRateProvider;
@@ -50,7 +54,7 @@ public class GroupBalanceModel {
     }
 
 
-    private final Map<String, MemberRepresentation> mBalance = new HashMap<>();
+    private final LinkedHashMap<String, MemberRepresentation> mBalance = new LinkedHashMap<>();
     private final ArrayList<Listener> mListeners = new ArrayList<>();
     private Currency mGroupCurrency = ConversionRateProvider.getBaseCurrency();
 
@@ -163,12 +167,10 @@ public class GroupBalanceModel {
     private void distributeRest(Money amount, long numMembers, String payerId) {
         Money quote = amount.div(numMembers);
         Money totalAmountCalculated = quote.mul(numMembers);
-
         if (totalAmountCalculated.compareTo(amount) == 0)
             return;
 
         Money rest = amount.sub(totalAmountCalculated);
-
         BigDecimal d = rest.getAmount();
         int numberOfIteration = d.subtract(d.setScale(0, RoundingMode.HALF_UP))
                 .movePointRight(d.scale())
@@ -181,11 +183,12 @@ public class GroupBalanceModel {
                 continue;
 
             int cmp = rest.getAmount().compareTo(BigDecimal.ZERO);
-            if (cmp > 0)
-                member.residue = member.getResidue().add(new Money(new BigDecimal("-0.01")));
-            else if (cmp < 0)
-                member.residue = member.getResidue().add(new Money(new BigDecimal("+0.01")));
-
+            if (member.getResidue().cmpZero()!=0) {
+                if (cmp > 0)
+                    member.residue = member.getResidue().add(new Money(new BigDecimal("-0.01")));
+                else if (cmp < 0)
+                    member.residue = member.getResidue().add(new Money(new BigDecimal("+0.01")));
+            } else continue;
             numberOfIteration--;
             if (numberOfIteration == 0)
                 break;
