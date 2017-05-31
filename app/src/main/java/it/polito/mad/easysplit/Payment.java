@@ -185,7 +185,6 @@ public class Payment extends AppCompatActivity {
         mDecimalFormat.setParseBigDecimal(true);
     }
 
-
     private void acceptPayment(final Money amountOriginal) {
         new Thread(new Runnable() {
             @Override
