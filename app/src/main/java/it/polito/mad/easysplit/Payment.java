@@ -2,6 +2,7 @@ package it.polito.mad.easysplit;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -14,14 +15,25 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.ParseException;
+import java.util.Calendar;
 import java.util.Currency;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.concurrent.TimeUnit;
 
 import it.polito.mad.easysplit.models.Money;
 
@@ -33,6 +45,7 @@ public class Payment extends AppCompatActivity {
     private EditText mEditTextPayment;
     private Spinner mCurrencySpinner;
     private CoordinatorLayout mCoordinatorLayout;
+    private String mGroupId="";
 
     //RootMember
     String rootMemberName = "";
@@ -50,6 +63,8 @@ public class Payment extends AppCompatActivity {
     Money moneySubMember = new Money(new BigDecimal("0.00"));
 
     private static final DecimalFormat mDecimalFormat = new DecimalFormat("#,##0.00");
+    private static final int CONVERSION_TIMEOUT_SECS = 5;
+    private final DatabaseReference mRoot = FirebaseDatabase.getInstance().getReference();
 
 
     @Override
@@ -86,13 +101,7 @@ public class Payment extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar snack = Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG);
-                View viewSnack = snack.getView();
-                CoordinatorLayout.LayoutParams params = (CoordinatorLayout.LayoutParams)viewSnack.getLayoutParams();
-                params.gravity = Gravity.TOP;
-                viewSnack.setLayoutParams(params);
-                snack.setAction("Action", null);
-                snack.show();
+                acceptPayment(moneySubMember);
             }
         });
     }
@@ -126,7 +135,6 @@ public class Payment extends AppCompatActivity {
             } else if (codeCountry.equals("English")) {
                 rootMemberStringMoney = rootMemberStringMoney.replace(",", ".");
             }
-            Log.d("Payment","rootMemberSMoney: "+rootMemberStringMoney);
             BigDecimal price = (BigDecimal) BigDecimal.valueOf(mDecimalFormat.parse(rootMemberStringMoney).doubleValue());
             //Rounding with 2 Numbers After dot
             price = price.divide(new BigDecimal("1.00"), 2, RoundingMode.HALF_UP);
@@ -153,6 +161,8 @@ public class Payment extends AppCompatActivity {
             Snackbar.make(mCoordinatorLayout, "Invalid Sub money amount!", Snackbar.LENGTH_LONG).show();
             return;
         }
+        //Retrieve the GroupIdOfTheBalance
+        this.mGroupId = intent.getStringExtra("GroupId");
     }
 
     @Override
@@ -173,5 +183,92 @@ public class Payment extends AppCompatActivity {
         }
         mDecimalFormat.setDecimalFormatSymbols(symbols);
         mDecimalFormat.setParseBigDecimal(true);
+    }
+
+
+    private void acceptPayment(final Money amountOriginal) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                ConversionRateProvider conversionProvider = ConversionRateProvider.getInstance();
+                Money amountBase, amountConverted;
+
+                try {
+                    Task<Money> conversion = conversionProvider.convertToBase(amountOriginal);
+                    amountBase = Tasks.await(conversion, CONVERSION_TIMEOUT_SECS, TimeUnit.SECONDS);
+                } catch (Exception e) {
+                    Snackbar.make(mCoordinatorLayout,
+                            "Error while converting: " + e.getLocalizedMessage(),
+                            Snackbar.LENGTH_LONG).show();
+                    return;
+                }
+
+                try {
+                    Currency groupCurrency = (Currency) mCurrencySpinner.getSelectedItem();
+                    Task<Money> conversion = conversionProvider.convertFromBase(amountBase, groupCurrency);
+                    amountConverted = Tasks.await(conversion, CONVERSION_TIMEOUT_SECS, TimeUnit.SECONDS);
+                } catch (Exception e) {
+                    Snackbar.make(mCoordinatorLayout,
+                            "Error while converting: " + e.getLocalizedMessage(),
+                            Snackbar.LENGTH_LONG).show();
+                    return;
+                }
+
+                Date timestamp = Calendar.getInstance().getTime();
+                Map<String, Object> payment = new HashMap<>();
+                /// TODO Decide on a standard, strict format for the timestamp
+                payment.put("timestamp", timestamp.getTime());
+                payment.put("timestamp_number", -1 * timestamp.getTime());
+                payment.put("amount_original", amountOriginal.toStandardFormat());
+                payment.put("amount", amountBase.toStandardFormat());
+                payment.put("amount_converted", amountConverted.toStandardFormat());
+                //memberIds inside the payment will represent only the member that will receive the payment
+                final Map<String, String> memberIds = new HashMap<>();
+                if (moneyRootMember.cmpZero()>0) {
+                    //RootMember is a creditor and subMemberHasToPay
+                    payment.put("payer_id", subMemberId);
+                    payment.put("payer_name", subMemberName);
+                    memberIds.put(rootMemberId,rootMemberName);
+                } else if (moneyRootMember.cmpZero()<0){
+                    //SubMember is a creditor and rootMemberHasToPay
+                    payment.put("payer_id", rootMemberId);
+                    payment.put("payer_name", rootMemberName);
+                    memberIds.put(subMemberId,subMemberName);
+                }
+
+                payment.put("group_id", mGroupId);
+                payment.put("members_ids", memberIds);
+
+                String paymentId = mRoot.child("payments").push().getKey();
+
+
+                Map<String, Object> update = new HashMap<>();
+
+                update.put("payments/"+paymentId , payment);
+                update.put("users/" + payment.get("payer_id").toString() + "/payments_ids_as_payer/" + paymentId, payment);
+                update.put("groups/" + mGroupId+"/payments/"+paymentId, payment);
+
+                final String payerId4Notification = payment.get("payer_id").toString();
+
+                mRoot.updateChildren(update).addOnCompleteListener(Payment.this, new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if (!task.isSuccessful()) {
+                            String msg = task.getException().getLocalizedMessage();
+                            Snackbar.make(mCoordinatorLayout, msg, Snackbar.LENGTH_LONG).show();
+                            return;
+                        }
+
+                        if (task.isSuccessful()) {
+                            /// TODO Implement Notification To The Receiver i.e. (The only member)
+                            //sendPushUpNotifications(expenseId, title, memberIds, payerId4Notification);
+                            Snackbar.make(mCoordinatorLayout, "Payment Effettuato", Snackbar.LENGTH_LONG).show();
+                            onBackPressed();
+                        }
+                        finish();
+                    }
+                });
+            }
+        }).start();
     }
 }

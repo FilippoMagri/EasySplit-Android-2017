@@ -57,9 +57,11 @@ public class GroupBalanceModel {
     private final LinkedHashMap<String, MemberRepresentation> mBalance = new LinkedHashMap<>();
     private final ArrayList<Listener> mListeners = new ArrayList<>();
     private Currency mGroupCurrency = ConversionRateProvider.getBaseCurrency();
+    private String mGroupId="";
 
     private GroupBalanceModel(Uri groupUri) {
         DatabaseReference groupRef = Utils.findByUri(groupUri);
+        mGroupId = Utils.getIdFor(Utils.UriType.GROUP,groupUri);
 
         groupRef.addValueEventListener(new ValueEventListener() {
             @Override
@@ -99,7 +101,7 @@ public class GroupBalanceModel {
     private void addMember(String memberId, String memberName) {
         if (mBalance.containsKey(memberId))
             return;
-        mBalance.put(memberId, new MemberRepresentation(memberId, memberName));
+        mBalance.put(memberId, new MemberRepresentation(memberId, memberName, mGroupId));
     }
 
     private synchronized void resetBalance(@NonNull DataSnapshot groupSnap) {
@@ -274,15 +276,17 @@ public class GroupBalanceModel {
         private Money residue, convertedResidue;
         private Map<MemberRepresentation, Money> assignments = new HashMap<>();
         private Map<MemberRepresentation, Money> convertedAssignments = new HashMap<>();
+        private String groupId;
 
-        MemberRepresentation(String id, String name) {
-            this(id, name, Money.zero());
+        MemberRepresentation(String id, String name, String groupId) {
+            this(id, name, Money.zero(),groupId);
         }
 
-        MemberRepresentation(String id, String name, Money residue) {
+        MemberRepresentation(String id, String name, Money residue, String groupId) {
             this.id = id;
             this.name = name;
             this.residue = residue;
+            this.groupId = groupId;
         }
 
         public String getName() {
@@ -324,6 +328,11 @@ public class GroupBalanceModel {
                 current = Money.zeroLike(amount);
             current = current.add(amount);
             assignments.put(to, current);
+        }
+
+        public String getGroupId() { return groupId; }
+        public void setGroupId(String groupId) {
+            this.groupId = groupId;
         }
     }
 }
