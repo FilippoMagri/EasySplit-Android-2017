@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 
 import it.polito.mad.easysplit.ConversionRateProvider;
@@ -181,8 +182,9 @@ public class GroupBalanceModel {
         for (Entry<String, MemberRepresentation> entry : mBalance.entrySet()) {
             String memberId = entry.getKey();
             MemberRepresentation member = entry.getValue();
-            if (memberId.equals(payerId))
+            if (memberId.equals(payerId)) {
                 continue;
+            }
 
             int cmp = rest.getAmount().compareTo(BigDecimal.ZERO);
             if (member.getResidue().cmpZero()!=0) {
@@ -206,9 +208,9 @@ public class GroupBalanceModel {
         resetAssignments();
 
         // Keeps track of how much debit is left for each debtor
-        Map<MemberRepresentation, Money> availableDebit = new HashMap<>();
+        ConcurrentHashMap<MemberRepresentation, Money> availableDebit = new ConcurrentHashMap<>();
         List<MemberRepresentation> creditors = new ArrayList<>();
-
+        //Available Debit contains all the list of debtors
         for (MemberRepresentation member : mBalance.values()) {
             if (member.getResidue().cmpZero() > 0)
                 creditors.add(member);
@@ -219,24 +221,36 @@ public class GroupBalanceModel {
         for (MemberRepresentation creditor : creditors) {
             // unassignedDebit is always negative
             Money unassignedDebit = creditor.getResidue().neg();
+            while (!unassignedDebit.isZero()) {
+                for (MemberRepresentation debtor : availableDebit.keySet()) {
+                    // debtorResidue is always negative
+                    Money debtorResidue = availableDebit.get(debtor);
 
-            for (MemberRepresentation debtor : availableDebit.keySet()) {
-                // debtorResidue is always negative
-                Money debtorResidue = availableDebit.get(debtor);
+                    if (debtorResidue.compareTo(unassignedDebit) < 0) {
+                        // Case in which the debtor has to own more money (In the global Balance) respect the money that the this single creditor has to receive
+                        // I have to split the residue of the debtor
+                        // Assign to the creditor , this debtor with a positive number
+                        creditor.assign(debtor, unassignedDebit.neg());
+                        // Assign to the debtor , this creditor with a negative number
+                        debtor.assign(creditor, unassignedDebit);
+                        availableDebit.put(debtor, debtorResidue.sub(unassignedDebit));
+                        unassignedDebit = Money.zeroLike(unassignedDebit);
+                        break;
+                    } else if (debtorResidue.compareTo(unassignedDebit) >= 0) {
+                        // Case in which the debtor cover totally the amount that the creditor has to receive
+                        creditor.assign(debtor, debtorResidue.neg());
+                        debtor.assign(creditor, debtorResidue);
+                        unassignedDebit = unassignedDebit.sub(debtorResidue);
+                        // Here i directly delete the debtor from availableDebit by using ConcurrentHashMap
+                        // Other wise we could encounter into a Concurrent exception.
 
-                if (debtorResidue.compareTo(unassignedDebit) < 0) {
-                    // I have to split the residue of the debtor
-                    creditor.assign(debtor, unassignedDebit.neg());
-                    debtor.assign(creditor, unassignedDebit);
-
-                    unassignedDebit = Money.zeroLike(unassignedDebit);
-                    availableDebit.put(debtor, debtorResidue.sub(unassignedDebit));
-                } else {
-                    creditor.assign(debtor, debtorResidue.neg());
-                    debtor.assign(creditor, debtorResidue);
-
-                    unassignedDebit = unassignedDebit.sub(debtorResidue);
-                    availableDebit.put(debtor, Money.zeroLike(debtorResidue));
+                        // P.s. : If for some reason we don't wanna use ConcurrentHashMap.remove() we can always use the instruction written before
+                        // i.e. "availableDebit.put(debtor, Money.zeroLike(debtorResidue));" , but in that case we had some rows with 0.00
+                        // on the SubElements into GroupBalance Visualization. And by the way , i fixed also that problem because i've used a filter
+                        // before the visualization into GroupBalance Screen.
+                        // So right now , if we wanna change only this instruction we can.
+                        availableDebit.remove(debtor);
+                    }
                 }
             }
         }

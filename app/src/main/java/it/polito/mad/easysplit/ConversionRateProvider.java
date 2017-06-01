@@ -2,6 +2,7 @@ package it.polito.mad.easysplit;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
+import android.util.Log;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -59,7 +60,7 @@ public class ConversionRateProvider {
                 if (task.getException() != null)
                     throw task.getException();
                 BigDecimal rate = task.getResult();
-                BigDecimal amount = money.getAmount().divide(rate, RoundingMode.HALF_UP);
+                BigDecimal amount = money.getAmount().divide(rate, RoundingMode.HALF_UP).setScale(12,RoundingMode.HALF_UP);
                 return new Money(mBaseCurrency, amount);
             }
         });
@@ -82,7 +83,7 @@ public class ConversionRateProvider {
                 if (task.getException() != null)
                     throw task.getException();
                 BigDecimal rate = task.getResult();
-                BigDecimal amount = money.getAmount().multiply(rate);
+                BigDecimal amount = money.getAmount().multiply(rate).setScale(12,RoundingMode.HALF_UP);
                 return new Money(currency, amount);
             }
         });

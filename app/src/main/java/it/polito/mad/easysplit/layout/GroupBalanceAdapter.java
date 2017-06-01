@@ -82,24 +82,25 @@ class GroupBalanceAdapter extends ArrayAdapter<MemberRepresentation> implements 
         for (Map.Entry<MemberRepresentation, Money> entry : memberRepr.getConvertedAssignments().entrySet()) {
             final MemberRepresentation debtor = entry.getKey();
             final Money debt = entry.getValue();
+            if (!debt.isZero()) {
+                View child = LayoutInflater.from(getContext()).inflate(R.layout.catch_up_group_item, parent, false);
+                TextView messageText = (TextView) child.findViewById(R.id.text_view_catch_up_item);
+                TextView debtText = (TextView) child.findViewById(R.id.residue_catch_up_item);
+                ImageView imageView = (ImageView) child.findViewById(R.id.ic_next_catch_up_item);
 
-            View child = LayoutInflater.from(getContext()).inflate(R.layout.catch_up_group_item, parent, false);
-            TextView messageText = (TextView) child.findViewById(R.id.text_view_catch_up_item);
-            TextView debtText = (TextView) child.findViewById(R.id.residue_catch_up_item);
-            ImageView imageView = (ImageView) child.findViewById(R.id.ic_next_catch_up_item);
+                int messageRes = cmp > 0 ? R.string.balance_debtor_message : R.string.balance_creditor_message;
+                String messageFmt = getContext().getResources().getString(messageRes);
+                String message = String.format(messageFmt, debtor.getName());
+                messageText.setText(message);
 
-            int messageRes = cmp > 0 ? R.string.balance_debtor_message : R.string.balance_creditor_message;
-            String messageFmt = getContext().getResources().getString(messageRes);
-            String message = String.format(messageFmt, debtor.getName());
-            messageText.setText(message);
+                debtText.setText(debt.abs().toString());
 
-            debtText.setText(debt.abs().toString());
-
-            OnClickCatchUpItemListener onClickCatchUpItemListener = new OnClickCatchUpItemListener(memberRepr,debtor,debt,getContext());
-            messageText.setOnClickListener(onClickCatchUpItemListener);
-            debtText.setOnClickListener(onClickCatchUpItemListener);
-            imageView.setOnClickListener(onClickCatchUpItemListener);
-            layout.addView(child);
+                OnClickCatchUpItemListener onClickCatchUpItemListener = new OnClickCatchUpItemListener(memberRepr, debtor, debt, getContext());
+                messageText.setOnClickListener(onClickCatchUpItemListener);
+                debtText.setOnClickListener(onClickCatchUpItemListener);
+                imageView.setOnClickListener(onClickCatchUpItemListener);
+                layout.addView(child);
+            } else continue;
         }
         return convertView;
     }
