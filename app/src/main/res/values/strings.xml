@@ -33,6 +33,9 @@
     <string name="tab_name_members">Members</string>
     <string name="tab_name_balance">Balance</string>
     <string name="tab_name_expenses">Expenses</string>
+    <string name="tab_name_payments">Payments</string>
+    <string name="tab_name_payments_message">Has payed </string>
+
     <string name="your_groups">Your groups</string>
     <string name="title_activity_login">Sign in</string>
 

@@ -50,4 +50,6 @@
     <string name="save">Salva</string>
     <string name="title_edit_expenes">Modifica spesa</string>
     <string name="wanna_pay">"vuole pagare a "</string>
+    <string name="tab_name_payments">Pagamenti</string>
+    <string name="tab_name_payments_message">"Ha pagato "</string>
 </resources>

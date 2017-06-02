@@ -29,6 +29,7 @@ import java.util.Map;
 
 import it.polito.mad.easysplit.layout.ExpenseListFragment;
 import it.polito.mad.easysplit.layout.MemberListFragment;
+import it.polito.mad.easysplit.layout.PaymentListFragment;
 import it.polito.mad.easysplit.models.GroupBalanceModel;
 import it.polito.mad.easysplit.models.Money;
 
@@ -85,6 +86,8 @@ public class GroupDetailsActivity extends AppCompatActivity {
                 return ExpenseListFragment.newInstance(mGroupUri);
             if (i == 1)
                 return MemberListFragment.newInstance(mGroupUri);
+            if (i == 2)
+                return PaymentListFragment.newInstance(mGroupUri);
             return null;
         }
 
@@ -94,12 +97,14 @@ public class GroupDetailsActivity extends AppCompatActivity {
                 return getString(R.string.tab_name_expenses);
             else if (position == 1)
                 return getString(R.string.tab_name_balance);
+            else if (position == 2)
+                return getString(R.string.tab_name_payments);
             return null;
         }
 
         @Override
         public int getCount() {
-            return 2;
+            return 3;
         }
     }
 
