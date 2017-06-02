@@ -59,7 +59,7 @@ public class InvitePerson extends AppCompatActivity implements View.OnClickListe
 
         Intent i = getIntent();
         idGroup = i.getStringExtra("groupId");
-        root.child("groups").child(idGroup)
+        mRoot.child("groups").child(idGroup)
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot groupSnap) {
