@@ -57,4 +57,5 @@
     <string name="hint_name_of_group">Name of the group</string>
     <string name="currency">Moneta:</string>
     <string name="currency_change_warning">Si può cambiare moneta solo se tutti sono in pari!</string>
+    <string name="action_logout">Cambia utente</string>
 </resources>

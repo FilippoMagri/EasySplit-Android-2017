@@ -27,6 +27,10 @@ import com.google.firebase.database.ValueEventListener;
 
 public class Group extends AppCompatActivity {
     private static String TAG = Group.class.getName();
+    private ListView mGroupListView;
+    private TextView mUserNameText;
+    private TextView mNoGroupsText;
+    private AuthListener mAuthListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,45 +38,55 @@ public class Group extends AppCompatActivity {
         setContentView(R.layout.activity_group);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar.setNavigationIcon(R.drawable.ic_home_white_48dp);
         setSupportActionBar(toolbar);
 
-        toolbar.setNavigationIcon(R.drawable.ic_home_white_48dp);
+        mGroupListView = (ListView) findViewById(R.id.group_list);
+        mUserNameText = (TextView) findViewById(R.id.user_name);
+        mNoGroupsText = (TextView) findViewById(R.id.noGroupsText);
+        mAuthListener = new AuthListener();
+    }
 
-        FirebaseAuth.getInstance().addAuthStateListener(new AuthListener());
-
+    @Override
+    protected void onStart() {
+        super.onStart();
+        FirebaseAuth.getInstance().addAuthStateListener(mAuthListener);
         ActivityUtils.requestLogin(this);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        FirebaseAuth.getInstance().removeAuthStateListener(mAuthListener);
     }
 
     private final class AuthListener implements FirebaseAuth.AuthStateListener {
         @Override
         public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
-            final FirebaseUser user = firebaseAuth.getCurrentUser();
+            FirebaseUser user = firebaseAuth.getCurrentUser();
+            if (user == null)
+                onLogOut();
+            else
+                onLogIn(user);
+        }
 
-            ListView listView = (ListView) findViewById(R.id.group_list);
-            final TextView userNameText = (TextView) findViewById(R.id.user_name);
-            final TextView noGroupsText = (TextView) findViewById(R.id.noGroupsText);
-
-            if (user == null) {
-                listView.setAdapter(null);
-                listView.setOnItemClickListener(null);
-                userNameText.setText("(not logged in)");
-                return;
-            }
-
+        void onLogIn(final FirebaseUser user) {
             final SubscribedGroupListAdapter adapter =
                     new SubscribedGroupListAdapter(Group.this, user.getUid());
 
             adapter.registerDataSetObserver(new DataSetObserver() {
                 @Override
                 public void onChanged() {
-                    noGroupsText.setVisibility(adapter.getCount() == 0 ? View.VISIBLE : View.GONE);
+                    mNoGroupsText.setVisibility(adapter.getCount() == 0 ? View.VISIBLE : View.GONE);
                 }
 
-                @Override public void onInvalidated() { }
+                @Override
+                public void onInvalidated() {
+                }
             });
 
-            listView.setAdapter(adapter);
-            listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            mGroupListView.setAdapter(adapter);
+            mGroupListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override
                 public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                     SubscribedGroupListAdapter.Item item = (SubscribedGroupListAdapter.Item) parent.getItemAtPosition(position);
@@ -89,20 +103,28 @@ public class Group extends AppCompatActivity {
                 public void onDataChange(DataSnapshot userSnap) {
                     Log.d(TAG, "setUser: " + user.getDisplayName() + "[" + user.getEmail() + "]");
                     String userName = userSnap.child("name").getValue(String.class);
-                    userNameText.setText(userName);
+                    mUserNameText.setText(userName);
 
                     //Save Informations about email e password Internally to the phone
                     SharedPreferences sharedPref = getSharedPreferences("MyPreferences", Context.MODE_PRIVATE);
                     SharedPreferences.Editor editor = sharedPref.edit();
-                    editor.putString("signin_complete_name",userName);
+                    editor.putString("signin_complete_name", userName);
                     editor.commit();
                 }
 
                 @Override
                 public void onCancelled(DatabaseError databaseError) {
-                    userNameText.setText(user.getEmail());
+                    mUserNameText.setText(user.getEmail());
                 }
             });
+        }
+
+        void onLogOut() {
+            mGroupListView.setAdapter(null);
+            mGroupListView.setOnItemClickListener(null);
+            mUserNameText.setText("(not logged in)");
+
+            /// TODO Button for logging in
         }
     }
 
@@ -122,10 +144,9 @@ public class Group extends AppCompatActivity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            Intent intent = new Intent(Group.this, CreationGroup.class);
-            startActivity(intent);
-            return true;
+        if (id == R.id.action_logout) {
+            Intent i =new Intent(this, LoginActivity.class);
+            startActivity(i);
         }
 
         return super.onOptionsItemSelected(item);
