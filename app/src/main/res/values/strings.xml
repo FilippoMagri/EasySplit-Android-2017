@@ -84,4 +84,24 @@
     <string name="text_title">Title</string>
     <string name="save">Save</string>
     <string name="title_edit_expenes">Edit expense</string>
+    <string name="currency_EUR">Euro</string>
+    <string name="currency_USD">US dollar</string>
+    <string name="currency_JPY">Japanese Yen</string>
+    <string name="currency_GBP">British Pound</string>
+    <string name="currency_AUD">Australian dollar</string>
+    <string name="currency_CAD">Canadian dollar</string>
+    <string name="currency_CHF">Swiss franc</string>
+    <string name="currency_CNY">Chinese yuan</string>
+    <string name="currency_SEK">Swedish krona</string>
+    <string name="currency_NZD">New Zealand dollar</string>
+    <string name="currency_MXN">Mexican peso</string>
+    <string name="currency_SGD">Singapore dollar</string>
+    <string name="currency_HKD">Hong Kong dollar</string>
+    <string name="currency_NOK">Norwegian krone</string>
+    <string name="currency_KRW">South Korean won</string>
+    <string name="currency_TRY">Turkish lira</string>
+    <string name="currency_RUB">Russian ruble</string>
+    <string name="currency_INR">Indian rupee</string>
+    <string name="currency_BRL">Brazilian real</string>
+    <string name="currency_ZAR">South African rand</string>
 </resources>

@@ -58,4 +58,24 @@
     <string name="currency">Moneta:</string>
     <string name="currency_change_warning">Si può cambiare moneta solo se tutti sono in pari!</string>
     <string name="action_logout">Cambia utente</string>
+    <string name="currency_EUR">Euro</string>
+    <string name="currency_CHF">Swiss franc</string>
+    <string name="currency_AUD">Dollaro australiano</string>
+    <string name="currency_BRL">Real brasiliano</string>
+    <string name="currency_CAD">Dollaro canadese</string>
+    <string name="currency_GBP">Sterlina britannica</string>
+    <string name="currency_HKD">Dollaro di Hong Kong</string>
+    <string name="currency_INR">Rupia indiana</string>
+    <string name="currency_JPY">Yen giapponese</string>
+    <string name="currency_KRW">Won sud coreano</string>
+    <string name="currency_MXN">Peso messicano</string>
+    <string name="currency_NOK">Corona norvegese</string>
+    <string name="currency_NZD">Dollaro neozelandese</string>
+    <string name="currency_RUB">Rublo russo</string>
+    <string name="currency_SEK">Corona svizzera</string>
+    <string name="currency_SGD">Dollaro di Singapore</string>
+    <string name="currency_TRY">Lira turca</string>
+    <string name="currency_USD">Dollaro statunitense</string>
+    <string name="currency_ZAR">Rand sudafricano</string>
+    <string name="currency_CNY">Yuan cinese</string>
 </resources>

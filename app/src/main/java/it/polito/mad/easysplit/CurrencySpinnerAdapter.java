@@ -57,9 +57,11 @@ public class CurrencySpinnerAdapter extends ArrayAdapter<Currency> {
         if (curr != null) {
             TextView symbolText = (TextView) convertView.findViewById(R.id.currencySymbolText);
             TextView codeText = (TextView) convertView.findViewById(R.id.currencyCodeText);
+            TextView nameText = (TextView) convertView.findViewById(R.id.currencyNameText);
 
             symbolText.setText(curr.getSymbol());
             codeText.setText(curr.getCurrencyCode());
+            nameText.setText(ActivityUtils.getCurrencyName(getContext(), curr));
         }
 
         return convertView;
