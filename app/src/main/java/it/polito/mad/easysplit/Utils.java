@@ -13,7 +13,7 @@ public final class Utils {
     private final static String CANONICAL_HOSTNAME = "it.polito.mad.easysplit";
 
     public enum UriType {
-        GROUP, EXPENSE, USER;
+        GROUP, EXPENSE, USER, PAYMENT;
 
         @Nullable
         String getTag() {
@@ -24,6 +24,8 @@ public final class Utils {
                     return "expenses";
                 case GROUP:
                     return "groups";
+                case PAYMENT:
+                    return "payments";
             }
             return null;
         }

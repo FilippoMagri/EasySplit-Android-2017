@@ -30,6 +30,8 @@ import java.util.Collections;
 
 import it.polito.mad.easysplit.EditExpenseActivity;
 import it.polito.mad.easysplit.ExpenseDetailsActivity;
+import it.polito.mad.easysplit.Payment;
+import it.polito.mad.easysplit.PaymentDetailsActivity;
 import it.polito.mad.easysplit.R;
 import it.polito.mad.easysplit.R.id;
 import it.polito.mad.easysplit.R.layout;
@@ -76,8 +78,8 @@ public class PaymentListFragment extends Fragment {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 ListItem payment = (ListItem) parent.getItemAtPosition(position);
-                Intent showPayment = new Intent(getContext(), ExpenseDetailsActivity.class);
-                showPayment.setData(Utils.getUriFor(UriType.EXPENSE, payment.id));
+                Intent showPayment = new Intent(getContext(), PaymentDetailsActivity.class);
+                showPayment.setData(Utils.getUriFor(UriType.PAYMENT, payment.id));
                 startActivity(showPayment);
             }
         });
@@ -141,6 +143,10 @@ public class PaymentListFragment extends Fragment {
             TextView amountText = (TextView) convertView.findViewById(id.amount);
 
             ListItem item = getItem(position);
+
+            String messageHasPayed = getString(R.string.tab_name_payments_message);
+            item.amount = messageHasPayed.concat(" ").concat(item.amount);
+
             nameText.setText(item.name);
             amountText.setText(item.amount);
 
@@ -168,8 +174,6 @@ public class PaymentListFragment extends Fragment {
                 Money amountConverted = Money.parseOrFail(convAmountStdStr);
 
                 String amountText = amountConverted.toString().replace("-","");
-                String message = getString(R.string.tab_name_payments_message);
-                amountText = message.concat(" ").concat(amountText);
                 if (! amountOriginal.getCurrency().equals(amountConverted.getCurrency()))
                     amountText += " (" + amountOriginal.toString() + ")";
 

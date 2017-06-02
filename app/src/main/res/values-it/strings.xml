@@ -52,4 +52,6 @@
     <string name="wanna_pay">"vuole pagare a "</string>
     <string name="tab_name_payments">Pagamenti</string>
     <string name="tab_name_payments_message">"Ha pagato "</string>
+    <string name="to_payment">a</string>
+    <string name="standard_payment">Pagamento effettuato</string>
 </resources>

@@ -81,4 +81,7 @@
     <string name="title_activity_payment">Payment</string>
     <!--String related to Payment-->
     <string name="wanna_pay">wants pay to</string>
+    <string name="title_activity_payment_details">PaymentDetailsActivity</string>
+    <string name="to_payment">to</string>
+    <string name="standard_payment">Payment realized</string>
 </resources>

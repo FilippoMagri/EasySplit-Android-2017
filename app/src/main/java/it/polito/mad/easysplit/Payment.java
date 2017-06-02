@@ -262,7 +262,6 @@ public class Payment extends AppCompatActivity {
                             /// TODO Implement Notification To The Receiver i.e. (The only member)
                             //sendPushUpNotifications(expenseId, title, memberIds, payerId4Notification);
                             Snackbar.make(mCoordinatorLayout, "Payment Effettuato", Snackbar.LENGTH_LONG).show();
-                            onBackPressed();
                         }
                         finish();
                     }
