@@ -43,6 +43,7 @@
             <EditText
                 android:text="54.99"
                 android:digits="0123456789.,"
+                android:inputType="numberDecimal"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 app:layout_constraintLeft_toRightOf="@+id/textView4"
