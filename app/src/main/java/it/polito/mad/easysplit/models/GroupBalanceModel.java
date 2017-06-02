@@ -157,6 +157,8 @@ public class GroupBalanceModel {
             distributeRest(amount, numMembers, payerId);
         }
 
+        consideringPayments(groupSnap);
+
         decideWhoHasToGiveBackTo();
         convertToGroupCurrency().addOnSuccessListener(new OnSuccessListener<Void>() {
             @Override
@@ -164,6 +166,33 @@ public class GroupBalanceModel {
                 notifyListeners();
             }
         });
+    }
+
+    private void consideringPayments(DataSnapshot groupSnap) {
+        if (groupSnap.hasChild("payments")) {
+            for (DataSnapshot expense : groupSnap.child("payments").getChildren()) {
+                String payerId = expense.child("payer_id").getValue(String.class);
+                String amountStr = expense.child("amount").getValue(String.class);
+                Money amount = Money.parseOrFail(amountStr);
+
+                DataSnapshot membersIds = expense.child("members_ids");
+                long numMembers = membersIds.getChildrenCount();
+                if (numMembers == 0)
+                    continue;
+                // Actually this cycle is performed only once
+                // Because of the logical structure of a payment , with only one member inside
+                // members_ids
+                for (DataSnapshot member : membersIds.getChildren()) {
+                    String memberId = member.getKey();
+                    // Update the balance of the receiver with a negative amount
+                    MemberRepresentation memberReprReceiver = mBalance.get(memberId);
+                    memberReprReceiver.residue = memberReprReceiver.residue.add(amount);
+                    // Update the balance of the payer with a positive amount
+                    MemberRepresentation memberReprPayer = mBalance.get(payerId);
+                    memberReprPayer.residue = memberReprPayer.residue.add(amount.neg());
+                }
+            }
+        }
     }
 
     /// TODO Deduplicate with ExpenseDetailsActivity.distributeRest or clarify difference
