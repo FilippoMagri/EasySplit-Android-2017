@@ -28,11 +28,13 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.HashMap;
 import java.util.Map;
 
+import it.polito.mad.easysplit.cloudMessaging.MessagingUtils;
 import it.polito.mad.easysplit.email.GMailSender;
 
 public class InvitePerson extends AppCompatActivity implements View.OnClickListener{
     private static final String TAG = "InvitePersonActivity";
     FirebaseDatabase database = FirebaseDatabase.getInstance();
+    private final DatabaseReference mRoot = FirebaseDatabase.getInstance().getReference();
     final DatabaseReference usersUriRef = database.getReference().child("users");
     final DatabaseReference groupsUriRef = database.getReference().child("groups");
     static String defaultTemporaryUserRegistrationPassword = "CA_FI_SE_FL_AN_MAD_2017";
@@ -163,6 +165,13 @@ public class InvitePerson extends AppCompatActivity implements View.OnClickListe
                     childUpdates.put("/groups/" + idGroup + "/members_ids/" + existingUserId, userNameExistingUser); // add user to group
                     childUpdates.put("/users/" + existingUserId + "/groups_ids/" + idGroup, groupName); // add group to user
                     database.getReference().updateChildren(childUpdates);
+
+                    //Retrieve fields for the notification to the new Member
+                    Map<String,String> newMembersToNotify = new HashMap<String,String>();
+                    newMembersToNotify.put(existingUserId,userNameExistingUser);
+                    String title4Notification = getResources().getString(R.string.join_group);
+                    String message4Notification = getResources().getString(R.string.new_group_created);
+                    MessagingUtils.sendPushUpNotifications(mRoot,idGroup,title4Notification,newMembersToNotify,message4Notification);
                 }
             }
 
