@@ -9,11 +9,11 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 
 import java.util.Comparator;
 
@@ -46,30 +46,46 @@ public class SubscribedGroupListAdapter extends ArrayAdapter<SubscribedGroupList
     SubscribedGroupListAdapter(Context context, String userId) {
         super(context, R.layout.row_item_group);
         DatabaseReference groupsRef = root.child("users").child(userId).child("groups_ids");
-        groupsRef.addValueEventListener(mGroupsListener);
+        groupsRef.addChildEventListener(mGroupsListener);
     }
 
 
-    private class SubscribedGroupListener implements ValueEventListener {
+    private class SubscribedGroupListener implements ChildEventListener {
         @Override
-        public void onDataChange(DataSnapshot groupsIdsSnap) {
-            clear();
-            for (DataSnapshot groupId : groupsIdsSnap.getChildren()) {
-                final String itemId = groupId.getKey();
-                final DatabaseReference nameRef = root.child("groups").child(itemId).child("name");
-                nameRef.addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot nameSnap) {
-                        String itemName = nameSnap.getValue(String.class);
-                        add(new Item(itemId, itemName));
-                        sort(mComparator);
-                    }
+        public void onChildAdded(DataSnapshot item, String s) {
+            add(new Item(item.getKey(), item.getValue(String.class)));
+            sort(mComparator);
+        }
 
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) { cancel(); }
-                });
+        @Override
+        public void onChildChanged(DataSnapshot itemSnap, String s) {
+            int count = getCount();
+            for (int i = 0; i < count; i++) {
+                Item item = getItem(i);
+                if (item.id.equals(itemSnap.getKey())) {
+                    item.name = itemSnap.getValue(String.class);
+                    sort(mComparator);
+                    return;
+                }
+            }
+
+            onChildAdded(itemSnap, null);
+        }
+
+        @Override
+        public void onChildRemoved(DataSnapshot itemSnap) {
+            int count = getCount();
+            for (int i = 0; i < count; i++) {
+                Item item = getItem(i);
+                if (item.id.equals(itemSnap.getKey())) {
+                    remove(item);
+                    return;
+                }
             }
         }
+
+        @Override
+        public void onChildMoved(DataSnapshot dataSnapshot, String s) {}
 
         @Override
         public void onCancelled(DatabaseError error) {

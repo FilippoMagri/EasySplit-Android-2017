@@ -44,8 +44,6 @@ class GroupBalanceAdapter extends ArrayAdapter<MemberRepresentation> implements 
         MemberRepresentation memberRepr = getItem(position);
         TextView name = (TextView) convertView.findViewById(id.name);
         TextView residueText = (TextView) convertView.findViewById(id.residue);
-        TextView typeOfMember = (TextView) convertView.findViewById(id.typeOfMember);
-        TextView keyItemMember = (TextView) convertView.findViewById(id.key_item_member);
 
         // access to nested linear layout, in order to attach the list of creditors or debtors
         LinearLayout layout = (LinearLayout) convertView.findViewById(id.linearLayout_catch_up_list);
@@ -53,7 +51,6 @@ class GroupBalanceAdapter extends ArrayAdapter<MemberRepresentation> implements 
 
         //TODO implement general Version For All Currencies
         name.setText(memberRepr.getName());
-        keyItemMember.setText(memberRepr.getId());
 
         Resources res = getContext().getResources();
 
@@ -68,11 +65,9 @@ class GroupBalanceAdapter extends ArrayAdapter<MemberRepresentation> implements 
         if (cmp > 0) {
             // This member is a creditor
             residueText.setTextColor(res.getColor(R.color.balance_creditor));
-            typeOfMember.setText(R.string.balance_creditor);
         } else {
             // Member is a debtor
             residueText.setTextColor(res.getColor(R.color.balance_debtor));
-            typeOfMember.setText(R.string.balance_debtor);
         }
 
         for (Map.Entry<MemberRepresentation, Money> entry : memberRepr.getConvertedAssignments().entrySet()) {

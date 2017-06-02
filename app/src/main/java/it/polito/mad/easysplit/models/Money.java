@@ -54,7 +54,7 @@ public class Money {
         sLocaleFormat.setDecimalFormatSymbols(symbols);
     }
 
-    
+
 
     private Currency mCurrency;
     private BigDecimal mAmount;

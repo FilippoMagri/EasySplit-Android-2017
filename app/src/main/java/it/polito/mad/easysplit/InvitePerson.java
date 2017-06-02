@@ -35,8 +35,8 @@ public class InvitePerson extends AppCompatActivity implements View.OnClickListe
     private static final String TAG = "InvitePersonActivity";
     FirebaseDatabase database = FirebaseDatabase.getInstance();
     private final DatabaseReference mRoot = FirebaseDatabase.getInstance().getReference();
-    final DatabaseReference usersUriRef = database.getReference().child("users");
-    final DatabaseReference groupsUriRef = database.getReference().child("groups");
+    final DatabaseReference usersUriRef = mRoot.child("users");
+    final DatabaseReference groupsUriRef = mRoot.child("groups");
     static String defaultTemporaryUserRegistrationPassword = "CA_FI_SE_FL_AN_MAD_2017";
 
     CoordinatorLayout mCoordinatorLayout;
@@ -50,7 +50,6 @@ public class InvitePerson extends AppCompatActivity implements View.OnClickListe
     EditText mEmail;
 
     ValueEventListener emailValueEventListener;
-    ValueEventListener groupNameValueEventListener;
     ValueEventListener userGroupIdsValueEventListener;
 
     @Override
@@ -59,15 +58,25 @@ public class InvitePerson extends AppCompatActivity implements View.OnClickListe
         setContentView(R.layout.activity_invite_person);
 
         Intent i = getIntent();
-        groupName = i.getStringExtra("Group Name");
-        setTitle(groupName);
+        idGroup = i.getStringExtra("groupId");
+        root.child("groups").child(idGroup)
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot groupSnap) {
+                        groupName = groupSnap.child("name").getValue(String.class);
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
 
         mCoordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinator_layout_invite_person);
         mEmail = (EditText) findViewById(R.id.email_invite_person);
         emailToCheck = mEmail.getText().toString();
 
         createEventListeners();
-        retrieveGroupIdByName();
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -81,11 +90,6 @@ public class InvitePerson extends AppCompatActivity implements View.OnClickListe
 
     }
 
-    private void retrieveGroupIdByName() {
-        Log.d(TAG,"Let's find the Group Id of this Group");
-        Log.d(TAG,"MyRef: "+groupsUriRef.toString());
-        groupsUriRef.addValueEventListener(groupNameValueEventListener);
-    }
 
     public void createEventListeners () {
         emailValueEventListener = new ValueEventListener() {
@@ -126,25 +130,6 @@ public class InvitePerson extends AppCompatActivity implements View.OnClickListe
             }
         };
 
-        groupNameValueEventListener = new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                for (DataSnapshot child : dataSnapshot.getChildren()) {
-                    Map<String, Object> model = (Map<String, Object>) child.getValue();
-                    if(model.get("name").equals(groupName)) {
-                        idGroup = child.getKey();
-                        Log.d(TAG,"IdGroup: "+idGroup);
-                        break;
-                    }
-                }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        };
-
         userGroupIdsValueEventListener = new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -166,12 +151,12 @@ public class InvitePerson extends AppCompatActivity implements View.OnClickListe
                     childUpdates.put("/users/" + existingUserId + "/groups_ids/" + idGroup, groupName); // add group to user
                     database.getReference().updateChildren(childUpdates);
 
-                    //Retrieve fields for the notification to the new Member
-                    Map<String,String> newMembersToNotify = new HashMap<String,String>();
+                    // Retrieve fields for the notification to the new Member
+                    Map<String, String> newMembersToNotify = new HashMap<String, String>();
                     newMembersToNotify.put(existingUserId,userNameExistingUser);
                     String title4Notification = getResources().getString(R.string.join_group);
                     String message4Notification = getResources().getString(R.string.new_group_created);
-                    MessagingUtils.sendPushUpNotifications(mRoot,idGroup,title4Notification,newMembersToNotify,message4Notification);
+                    MessagingUtils.sendPushUpNotifications(mRoot, idGroup, title4Notification, newMembersToNotify, message4Notification);
                 }
             }
 

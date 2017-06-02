@@ -43,7 +43,7 @@ public class GroupDetailsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_group_details);
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        final Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
         toolbar.setNavigationIcon(R.drawable.ic_home_white_48dp);
@@ -60,7 +60,7 @@ public class GroupDetailsActivity extends AppCompatActivity {
         groupRefName.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot groupNameSnap) {
-                setTitle(groupNameSnap.getValue(String.class));
+                toolbar.setTitle(groupNameSnap.getValue(String.class));
             }
 
             @Override public void onCancelled(DatabaseError databaseError) { }
@@ -117,8 +117,12 @@ public class GroupDetailsActivity extends AppCompatActivity {
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_invite) {
+        if (id == R.id.action_edit) {
+            Intent i = new Intent(getApplicationContext(), EditGroupActivity.class);
+            i.setData(mGroupUri);
+            startActivity(i);
+            return true;
+        } else if (id == R.id.action_invite) {
             Intent i = new Intent(getApplicationContext(), InvitePerson.class);
             i.putExtra("Group Name", getTitle());
             startActivity(i);

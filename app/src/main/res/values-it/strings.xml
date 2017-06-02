@@ -53,4 +53,8 @@
     <string name="expense_deleted">Spesa eliminata</string>
     <string name="join_group">Unisciti al nuovo gruppo</string>
     <string name="new_group_created">Sei stato aggiunto</string>
+    <string name="action_name_group_edit">Modifica dettagli</string>
+    <string name="hint_name_of_group">Name of the group</string>
+    <string name="currency">Moneta:</string>
+    <string name="currency_change_warning">Si può cambiare moneta solo se tutti sono in pari!</string>
 </resources>

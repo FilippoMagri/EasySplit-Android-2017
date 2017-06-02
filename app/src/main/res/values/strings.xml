@@ -72,6 +72,10 @@
     <string name="permission_imei">Accept for receiving notifications</string>
     <!--Strings related to PushUp Notifications-->
     <string name="new_expense_notification">New Expense Added</string>
+    <string name="action_name_group_edit">Edit details</string>
+    <string name="hint_name_of_group">Name of the group</string>
+    <string name="currency">Currency:</string>
+    <string name="currency_change_warning">The currency can only be changed if everybody is caught up!</string>
     <string name="expense_modified">Expense modified</string>
     <string name="expense_deleted">Expense deleted</string>
     <string name="join_group">Join the new group</string>
