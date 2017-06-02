@@ -160,7 +160,7 @@ public class GroupBalanceModel {
     }
 
     /// TODO Deduplicate with ExpenseDetailsActivity.distributeRest or clarify difference
-    private void distributeRest(Money amount, long numMembers, String payerId) {
+    private synchronized void distributeRest(Money amount, long numMembers, String payerId) {
         Money quote = amount.div(numMembers);
         Money totalAmountCalculated = quote.mul(numMembers);
 
@@ -192,12 +192,12 @@ public class GroupBalanceModel {
         }
     }
 
-    private void resetAssignments() {
+    private synchronized void resetAssignments() {
         for (MemberRepresentation member : mBalance.values())
             member.resetAssignments();
     }
 
-    private void decideWhoHasToGiveBackTo() {
+    private synchronized void decideWhoHasToGiveBackTo() {
         resetAssignments();
 
         // Keeps track of how much debit is left for each debtor
@@ -245,19 +245,21 @@ public class GroupBalanceModel {
         new Thread() {
             @Override
             public void run() {
-                try {
-                    for (final MemberRepresentation member : mBalance.values()) {
-                        member.convertedResidue = Tasks.await(converter.convertFromBase(member.residue, mGroupCurrency));
-                        member.convertedAssignments.clear();
-                        for (final MemberRepresentation otherMember : member.assignments.keySet()) {
-                            Money amount = member.assignments.get(otherMember);
-                            Money convertedAmount = Tasks.await(converter.convertFromBase(amount, mGroupCurrency));
-                            member.convertedAssignments.put(otherMember, convertedAmount);
+                synchronized (GroupBalanceModel.this) {
+                    try {
+                        for (final MemberRepresentation member : mBalance.values()) {
+                            member.convertedResidue = Tasks.await(converter.convertFromBase(member.residue, mGroupCurrency));
+                            member.convertedAssignments.clear();
+                            for (final MemberRepresentation otherMember : member.assignments.keySet()) {
+                                Money amount = member.assignments.get(otherMember);
+                                Money convertedAmount = Tasks.await(converter.convertFromBase(amount, mGroupCurrency));
+                                member.convertedAssignments.put(otherMember, convertedAmount);
+                            }
                         }
+                        completion.setResult(null);
+                    } catch (InterruptedException | ExecutionException exc) {
+                        completion.setException(exc);
                     }
-                    completion.setResult(null);
-                } catch(InterruptedException | ExecutionException exc) {
-                    completion.setException(exc);
                 }
             }
         }.start();
