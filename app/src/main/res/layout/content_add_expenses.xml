@@ -1,145 +1,150 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    tools:context="it.polito.mad.easysplit.EditExpenseActivity"
-    tools:showIn="@layout/activity_add_expenses">
+    android:layout_height="match_parent">
 
-    <android.support.constraint.ConstraintLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp">
+        android:orientation="vertical"
+        tools:context="it.polito.mad.easysplit.EditExpenseActivity"
+        tools:showIn="@layout/activity_add_expenses">
+
+        <android.support.constraint.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:id="@+id/textView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:layout_marginRight="8dp"
+                android:text="When:"
+                app:layout_constraintBaseline_toBaselineOf="@+id/dateButton"
+                app:layout_constraintRight_toLeftOf="@+id/guideline" />
+
+            <EditText
+                android:id="@+id/titleEdit"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="fill"
+                android:layout_margin="10dp"
+                android:layout_marginEnd="8dp"
+                android:layout_marginLeft="8dp"
+                android:layout_marginRight="8dp"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="8dp"
+                android:gravity="fill_horizontal"
+                android:hint="@string/text_title"
+                android:inputType="text"
+                android:textAppearance="@android:style/TextAppearance.Material.Large.Inverse"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <EditText
+                android:id="@+id/amountEdit"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="fill"
+                android:layout_marginRight="8dp"
+                android:layout_marginStart="8dp"
+                android:digits="0123456789.,"
+                android:gravity="fill_horizontal"
+                android:inputType="numberDecimal"
+                android:paddingLeft="15dp"
+                android:singleLine="true"
+                android:text="5.65"
+                android:textAppearance="@android:style/TextAppearance.Material.Large.Inverse"
+                app:layout_constraintBaseline_toBaselineOf="@+id/currencySpinner"
+                app:layout_constraintRight_toLeftOf="@+id/currencySpinner" />
+
+            <Spinner
+                android:id="@+id/currencySpinner"
+                android:layout_width="94dp"
+                android:layout_height="38dp"
+                android:layout_gravity="center_vertical"
+                android:layout_marginRight="8dp"
+                android:layout_marginStart="0dp"
+                android:layout_marginTop="8dp"
+                android:entries="@array/CurrencyListItem"
+                android:gravity="center_vertical|end"
+                android:textAlignment="textEnd"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/titleEdit" />
+
+            <Button
+                android:id="@+id/dateButton"
+                style="@android:style/Widget.Material.Button.Borderless"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="8dp"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="8dp"
+                android:text="27 mag 2017, 12:50"
+                android:textAppearance="@android:style/TextAppearance.Material.Medium"
+                app:layout_constraintLeft_toLeftOf="@+id/guideline"
+                app:layout_constraintTop_toBottomOf="@+id/currencySpinner" />
+
+            <TextView
+                android:id="@+id/payerLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="right|center_vertical"
+                android:layout_margin="10dp"
+                android:layout_marginEnd="8dp"
+                android:layout_marginRight="8dp"
+                android:text="Paid by"
+                android:textAppearance="@android:style/TextAppearance.Material.Small"
+                app:layout_constraintBaseline_toBaselineOf="@+id/payerSpinner"
+                app:layout_constraintRight_toLeftOf="@+id/guideline" />
+
+            <Spinner
+                android:id="@+id/payerSpinner"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="fill"
+                android:layout_marginLeft="8dp"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="8dp"
+                android:entries="@array/CurrencyListItem"
+                android:gravity="fill_horizontal"
+                android:textAlignment="textEnd"
+                app:layout_constraintLeft_toLeftOf="@+id/guideline"
+                app:layout_constraintTop_toBottomOf="@+id/dateButton" />
+
+            <android.support.constraint.Guideline
+                android:id="@+id/guideline"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                app:layout_constraintGuide_begin="80dp"
+                tools:layout_editor_absoluteX="80dp"
+                tools:layout_editor_absoluteY="81dp" />
+
+        </android.support.constraint.ConstraintLayout>
 
         <TextView
-            android:id="@+id/textView"
-            android:layout_width="wrap_content"
+            android:id="@+id/textView3"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="8dp"
-            android:layout_marginRight="8dp"
-            android:text="When:"
-            app:layout_constraintBaseline_toBaselineOf="@+id/dateButton"
-            app:layout_constraintRight_toLeftOf="@+id/guideline" />
-
-        <EditText
-            android:id="@+id/titleEdit"
-            android:layout_width="0dp"
-            android:layout_height="42dp"
-            android:layout_gravity="fill"
-            android:layout_margin="10dp"
-            android:layout_marginEnd="8dp"
-            android:layout_marginLeft="8dp"
-            android:layout_marginRight="8dp"
-            android:layout_marginStart="8dp"
-            android:layout_marginTop="8dp"
-            android:gravity="fill_horizontal"
-            android:hint="@string/text_title"
-            android:inputType="text"
-            android:textAppearance="@android:style/TextAppearance.Material.Large.Inverse"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <EditText
-            android:id="@+id/amountEdit"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="fill"
-            android:layout_marginStart="8dp"
-            android:digits="0123456789.,"
-            android:gravity="fill_horizontal"
-            android:inputType="numberDecimal"
-            android:paddingLeft="15dp"
-            android:singleLine="true"
-            android:text="5.65"
-            android:textAppearance="@android:style/TextAppearance.Material.Large.Inverse"
-            app:layout_constraintBaseline_toBaselineOf="@+id/currencySpinner"
-            app:layout_constraintRight_toLeftOf="@+id/currencySpinner"
-            android:layout_marginRight="8dp" />
-
-        <Spinner
-            android:id="@+id/currencySpinner"
-            android:layout_width="94dp"
-            android:layout_height="38dp"
-            android:layout_gravity="center_vertical"
-            android:layout_marginStart="0dp"
-            android:layout_marginTop="8dp"
-            android:entries="@array/CurrencyListItem"
-            android:gravity="center_vertical|end"
-            android:textAlignment="textEnd"
-            app:layout_constraintTop_toBottomOf="@+id/titleEdit"
-            android:layout_marginRight="8dp"
-            app:layout_constraintRight_toRightOf="parent" />
-
-        <Button
-            android:id="@+id/dateButton"
-            style="@android:style/Widget.Material.Button.Borderless"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="8dp"
-            android:layout_marginStart="8dp"
-            android:layout_marginTop="8dp"
-            android:text="27 mag 2017, 12:50"
-            android:textAppearance="@android:style/TextAppearance.Material.Medium"
-            app:layout_constraintLeft_toLeftOf="@+id/guideline"
-            app:layout_constraintTop_toBottomOf="@+id/currencySpinner" />
-
-        <TextView
-            android:id="@+id/payerLabel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="right|center_vertical"
-            android:layout_margin="10dp"
-            android:layout_marginEnd="8dp"
-            android:layout_marginRight="8dp"
-            android:text="Paid by"
-            android:textAppearance="@android:style/TextAppearance.Material.Small"
-            app:layout_constraintBaseline_toBaselineOf="@+id/payerSpinner"
-            app:layout_constraintRight_toLeftOf="@+id/guideline" />
-
-        <Spinner
-            android:id="@+id/payerSpinner"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="fill"
-            android:layout_marginLeft="8dp"
-            android:layout_marginStart="8dp"
-            android:layout_marginTop="8dp"
-            android:entries="@array/CurrencyListItem"
-            android:gravity="fill_horizontal"
-            android:textAlignment="textEnd"
-            app:layout_constraintLeft_toLeftOf="@+id/guideline"
-            app:layout_constraintTop_toBottomOf="@+id/dateButton" />
-
-        <android.support.constraint.Guideline
-            android:id="@+id/guideline"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            app:layout_constraintGuide_begin="80dp"
-            tools:layout_editor_absoluteX="80dp"
+            android:paddingStart="20dp"
+            android:paddingTop="10dp"
+            android:text="Who participates:"
+            tools:layout_editor_absoluteX="8dp"
             tools:layout_editor_absoluteY="81dp" />
 
-    </android.support.constraint.ConstraintLayout>
+        <it.polito.mad.easysplit.layout.ExpandedListView
+            android:id="@+id/membersList"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:choiceMode="multipleChoice"
+            />
 
-    <TextView
-        android:id="@+id/textView3"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingStart="20dp"
-        android:paddingTop="10dp"
-        android:text="Who participates:"
-        tools:layout_editor_absoluteX="8dp"
-        tools:layout_editor_absoluteY="81dp" />
-
-    <ListView
-        android:id="@+id/membersList"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginBottom="50sp"
-        android:choiceMode="multipleChoice" />
-
-</LinearLayout>
+    </LinearLayout>
+</ScrollView>
