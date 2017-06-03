@@ -33,6 +33,7 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.concurrent.TimeUnit;
 
+import it.polito.mad.easysplit.cloudMessaging.MessagingUtils;
 import it.polito.mad.easysplit.models.Money;
 
 public class Payment extends AppCompatActivity {
@@ -189,7 +190,7 @@ public class Payment extends AppCompatActivity {
             @Override
             public void run() {
                 ConversionRateProvider conversionProvider = ConversionRateProvider.getInstance();
-                Money amountBase, amountConverted;
+                final Money amountBase, amountConverted;
 
                 try {
                     Task<Money> conversion = conversionProvider.convertToBase(amountOriginal);
@@ -237,7 +238,7 @@ public class Payment extends AppCompatActivity {
                 payment.put("group_id", mGroupId);
                 payment.put("members_ids", memberIds);
 
-                String paymentId = mRoot.child("payments").push().getKey();
+                final String paymentId = mRoot.child("payments").push().getKey();
 
 
                 Map<String, Object> update = new HashMap<>();
@@ -258,8 +259,8 @@ public class Payment extends AppCompatActivity {
                         }
 
                         if (task.isSuccessful()) {
-                            /// TODO Implement Notification To The Receiver i.e. (The only member) When I'll Merge with the master
-                            //sendPushUpNotifications(expenseId, title, memberIds, payerId4Notification);
+                            String message4Notification = getResources().getString(R.string.payment_received);
+                            MessagingUtils.sendPushUpNotifications(mRoot, mGroupId, amountOriginal.getAmount().abs().toString(),memberIds,message4Notification);
                             Snackbar.make(mCoordinatorLayout, "Payment Effettuato", Snackbar.LENGTH_LONG).show();
                             onBackPressed();
                         }

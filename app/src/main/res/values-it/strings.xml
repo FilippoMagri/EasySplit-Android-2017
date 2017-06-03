@@ -84,4 +84,6 @@
     <string name="to_payment">a</string>
     <string name="standard_payment">Pagamento effettuato</string>
     <string name="message_confirm_delete_payment">Vuoi cancellare questo pagamento?</string>
+    <string name="payment_received">Pagamento ricevuto</string>
+    <string name="payment_deleted">Pagamento cancellato da</string>
 </resources>

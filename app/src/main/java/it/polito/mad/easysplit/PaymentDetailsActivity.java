@@ -14,25 +14,36 @@ import android.widget.TextView;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import it.polito.mad.easysplit.cloudMessaging.MessagingUtils;
 import it.polito.mad.easysplit.models.Money;
 
 public class PaymentDetailsActivity extends AppCompatActivity {
     private static final DateFormat sUIDateFormat = DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.SHORT);
 
     private DatabaseReference mRef;
+    private final DatabaseReference mRoot = FirebaseDatabase.getInstance().getReference();
 
     private ValueEventListener mListener;
     private String mGroupId, mPayerId;
+
+    // memberIds , originalTotal , payerName
+    // are used also in order to build a correct pushUpNotifications(...)
+    Money originalTotal=new Money(new BigDecimal("0.00"));
+    final Map<String, String> memberIds = new HashMap<>();
+    private String payerName="";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,7 +83,8 @@ public class PaymentDetailsActivity extends AppCompatActivity {
             mGroupId = paymentSnap.child("group_id").getValue(String.class);
             mPayerId = paymentSnap.child("payer_id").getValue(String.class);
 
-            payerNameText.setText(paymentSnap.child("payer_name").getValue(String.class));
+            payerName = paymentSnap.child("payer_name").getValue(String.class);
+            payerNameText.setText(payerName);
             paymentStandardNameText.setText(getString(R.string.standard_payment));
             Date timestamp = new Date(paymentSnap.child("timestamp").getValue(Long.class));
             creationDateText.setText(sUIDateFormat.format(timestamp));
@@ -90,7 +102,7 @@ public class PaymentDetailsActivity extends AppCompatActivity {
                 convertedTotalStr = totalStr;
 
             Money convertedTotal = Money.parseOrFail(convertedTotalStr);
-            Money originalTotal = Money.parseOrFail(originalTotalStr);
+            originalTotal = Money.parseOrFail(originalTotalStr);
 
             if (convertedTotal.getCurrency().equals(originalTotal.getCurrency()))
                 setTitle(originalTotal.toString().replace("-",""));
@@ -104,6 +116,7 @@ public class PaymentDetailsActivity extends AppCompatActivity {
             for (DataSnapshot member : paymentSnap.child("members_ids").getChildren()) {
                 String memberId = member.getKey();
                 String memberName = member.getValue(String.class);
+                memberIds.put(memberId,memberName);
                 receiverNameText.setText(memberName);
             }
         }
@@ -162,6 +175,9 @@ public class PaymentDetailsActivity extends AppCompatActivity {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
                 if (task.isSuccessful()) {
+                    String message4Notification = getResources().getString(R.string.payment_deleted);
+                    message4Notification = message4Notification.concat(" "+payerName);
+                    MessagingUtils.sendPushUpNotifications(mRoot, mGroupId, originalTotal.getAmount().abs().toString(),memberIds,message4Notification);
                     finish();
                     return;
                 }
