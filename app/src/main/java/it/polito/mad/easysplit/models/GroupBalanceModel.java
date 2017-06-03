@@ -34,6 +34,9 @@ import it.polito.mad.easysplit.Utils;
 
 public class GroupBalanceModel {
 
+    public LinkedHashMap<String, MemberRepresentation> getmBalance() {
+        return mBalance;
+    }
 
     public interface Listener {
         void onBalanceChanged(Map<String, MemberRepresentation> balance);
@@ -60,7 +63,7 @@ public class GroupBalanceModel {
     private Currency mGroupCurrency = ConversionRateProvider.getBaseCurrency();
     private String mGroupId="";
 
-    private GroupBalanceModel(Uri groupUri) {
+    public GroupBalanceModel(Uri groupUri) {
         DatabaseReference groupRef = Utils.findByUri(groupUri);
         mGroupId = Utils.getIdFor(Utils.UriType.GROUP,groupUri);
 

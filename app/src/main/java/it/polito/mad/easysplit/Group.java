@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.DataSetObserver;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
@@ -24,6 +25,12 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+
+import it.polito.mad.easysplit.models.GroupBalanceModel;
 
 
 public class Group extends AppCompatActivity {
@@ -153,16 +160,83 @@ public class Group extends AppCompatActivity {
             startActivity(intent);
             return true;
         } else if (id == R.id.action_show_fused_total_balance) {
-            LinearLayout linearLayout = (LinearLayout) findViewById(R.id.ll_fused_global_balance);
-            if (linearLayout.getVisibility() == View.GONE) {
-                linearLayout.setVisibility(View.VISIBLE);
-            } else {
-                linearLayout.setVisibility(View.GONE);
-            }
+            mergeAllBalances();
             return true;
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void mergeAllBalances() {
+        DatabaseReference root = FirebaseDatabase.getInstance().getReference();
+        final FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        DatabaseReference groupsUserRef = root.child("users").child(user.getUid()).child("groups_ids");
+        groupsUserRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot groupsSnapshot) {
+                DatabaseReference root = FirebaseDatabase.getInstance().getReference();
+                ArrayList<String> groupsKeys = new ArrayList<String>();
+                final long numberOfGroupsOwnership = groupsSnapshot.getChildrenCount();
+                final ArrayList<Float> counterMBalances = new ArrayList<Float>();
+                for (DataSnapshot group :groupsSnapshot.getChildren()) {
+                    final String groupKey = group.getKey();
+                    DatabaseReference groupRef = root.child("groups").child(groupKey);
+                    groupRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot groupSnapshot) {
+                            final Uri mGroupUri = Utils.getUriFor(Utils.UriType.GROUP,groupKey);
+                            GroupBalanceModel groupBalanceModel = new GroupBalanceModel(mGroupUri);
+                            GroupBalanceModel.Listener listener = new GroupBalanceModel.Listener() {
+                                @Override
+                                public void onBalanceChanged(Map<String, GroupBalanceModel.MemberRepresentation> balance) {
+                                    if (balance.size()>0) {
+                                        String amountString = balance.get(user.getUid()).getResidue().getAmount().toString();
+                                        counterMBalances.add(new Float(amountString));
+                                    }
+                                    if (counterMBalances.size() == numberOfGroupsOwnership) {
+                                        Float totalAmountPositive = new Float("0.00");
+                                        Float totalAmountNegative = new Float("0.00");
+                                        Float totalAmount = new Float("0.00");
+                                        for (int i=0;i<counterMBalances.size();i++) {
+                                            Float singleBalance = counterMBalances.get(i);
+                                            if (singleBalance.compareTo(new Float("0.00"))>0) {
+                                                totalAmountPositive = totalAmountPositive+counterMBalances.get(i);
+                                            } else if (singleBalance.compareTo(new Float("0.00"))<0) {
+                                                totalAmountNegative = totalAmountNegative+counterMBalances.get(i);
+                                            }
+                                        }
+                                        totalAmount = totalAmountPositive + totalAmountNegative;
+                                        LinearLayout linearLayout = (LinearLayout) findViewById(R.id.ll_fused_global_balance);
+                                        TextView tvAmountToOWn = (TextView) findViewById(R.id.amountToOwn);
+                                        TextView tvAmountToReceive = (TextView) findViewById(R.id.amountToReceive);
+                                        TextView tvAmountTotal = (TextView) findViewById(R.id.amountTotal);
+                                        tvAmountToOWn.setText(totalAmountNegative.toString()+ " €");
+                                        tvAmountToReceive.setText(totalAmountPositive.toString()+" €");
+                                        tvAmountTotal.setText(totalAmount.toString()+" €");
+                                        if (linearLayout.getVisibility() == View.GONE) {
+                                            linearLayout.setVisibility(View.VISIBLE);
+                                        } else {
+                                            linearLayout.setVisibility(View.GONE);
+                                        }
+                                    }
+                                }
+                            };
+                            groupBalanceModel.addListener(listener);
+                        }
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+
+                        }
+                    });
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
     }
 
 }
