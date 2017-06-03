@@ -101,6 +101,14 @@ public class Payment extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                // We have to be sure that regardless
+                // what the user is inserting , or what we are receiving from the intent
+                // the MoneySubMember internally must be always a number < 0. Otherwise the insert
+                // into the DB will not be considered from the groupBalance calculation like something
+                // to deduct from the creditor-balance.
+                if (moneySubMember.cmpZero()>0) {
+                    moneySubMember = moneySubMember.neg();
+                }
                 acceptPayment(moneySubMember);
             }
         });
@@ -262,6 +270,7 @@ public class Payment extends AppCompatActivity {
                             /// TODO Implement Notification To The Receiver i.e. (The only member)
                             //sendPushUpNotifications(expenseId, title, memberIds, payerId4Notification);
                             Snackbar.make(mCoordinatorLayout, "Payment Effettuato", Snackbar.LENGTH_LONG).show();
+                            onBackPressed();
                         }
                         finish();
                     }
