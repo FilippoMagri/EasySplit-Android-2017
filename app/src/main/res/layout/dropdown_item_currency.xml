@@ -18,10 +18,21 @@
 
     <TextView
         android:id="@+id/currencyCodeText"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:layout_gravity="center_vertical"
         android:gravity="center_vertical"
+        android:paddingLeft="10sp"
         android:text="EUR" />
+
+    <TextView
+        android:id="@+id/currencyNameText"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:gravity="center_vertical"
+        android:paddingLeft="10sp"
+        android:paddingRight="10sp"
+        android:text="Euro" />
 
 </LinearLayout>
