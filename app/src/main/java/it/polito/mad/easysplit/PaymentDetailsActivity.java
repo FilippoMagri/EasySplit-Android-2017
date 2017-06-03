@@ -1,15 +1,19 @@
 package it.polito.mad.easysplit;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
+import android.support.annotation.NonNull;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -17,6 +21,8 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.text.DateFormat;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import it.polito.mad.easysplit.models.Money;
 
@@ -106,5 +112,73 @@ public class PaymentDetailsActivity extends AppCompatActivity {
         public void onCancelled(DatabaseError databaseError) {
             /// TODO
         }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_payment_details, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        if (id == R.id.action_delete) {
+            new AlertDialog.Builder(this)
+                    .setTitle(R.string.title_confirm)
+                    .setMessage(R.string.message_confirm_delete_payment)
+                    .setPositiveButton(R.string.button_delete, new AlertDialog.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            deletePayment();
+                            dialog.dismiss();
+                        }
+                    })
+                    .setNegativeButton(R.string.button_cancel, new AlertDialog.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.cancel();
+                        }
+                    })
+                    .create().show();
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void deletePayment() {
+        String paymentId = mRef.getKey();
+        Map<String, Object> update = new HashMap<>();
+        update.put("/payments/"+paymentId, null);
+        update.put("/users/"+mPayerId+"/payments_ids_as_payer/"+paymentId, null);
+        update.put("/groups/"+mGroupId+"/payments/"+paymentId, null);
+
+        mRef.getRoot().updateChildren(update).addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                if (task.isSuccessful()) {
+                    finish();
+                    return;
+                }
+
+                AlertDialog dialog = new AlertDialog.Builder(PaymentDetailsActivity.this)
+                        .setTitle(R.string.title_error_dialog)
+                        .setMessage(task.getException().getLocalizedMessage())
+                        .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                                finish();
+                            }
+                        })
+                        .create();
+                dialog.show();
+            }
+        });
     }
 }

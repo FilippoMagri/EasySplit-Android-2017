@@ -54,4 +54,5 @@
     <string name="tab_name_payments_message">"Ha pagato "</string>
     <string name="to_payment">a</string>
     <string name="standard_payment">Pagamento effettuato</string>
+    <string name="message_confirm_delete_payment">Vuoi cancellare questo pagamento?</string>
 </resources>
