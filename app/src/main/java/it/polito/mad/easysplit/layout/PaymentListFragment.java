@@ -27,6 +27,7 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Locale;
 
 import it.polito.mad.easysplit.EditExpenseActivity;
 import it.polito.mad.easysplit.ExpenseDetailsActivity;
@@ -144,9 +145,6 @@ public class PaymentListFragment extends Fragment {
 
             ListItem item = getItem(position);
 
-            String messageHasPayed = getString(R.string.tab_name_payments_message);
-            item.amount = messageHasPayed.concat(" ").concat(item.amount);
-
             nameText.setText(item.name);
             amountText.setText(item.amount);
 
@@ -176,6 +174,20 @@ public class PaymentListFragment extends Fragment {
                 String amountText = amountConverted.toString().replace("-","");
                 if (! amountOriginal.getCurrency().equals(amountConverted.getCurrency()))
                     amountText += " (" + amountOriginal.toString() + ")";
+
+                // Change the message programmatically ,depending on the codeCountry,
+                // by avoiding "fragment not attached to activity exception".
+                // And avoiding also the problem of duplication of the message Has Payed
+                // In case we use concat in the getView Method , of the fragment
+
+                String codeCountry = Locale.getDefault().getDisplayLanguage();
+                if (codeCountry.equals("italiano")) {
+                    String messageHasPayed = "Ha pagato";
+                    amountText = messageHasPayed.concat(" ").concat(amountText);
+                } else if (codeCountry.equals("English")) {
+                    String messageHasPayed = "Has payed";
+                    amountText = messageHasPayed.concat(" ").concat(amountText);
+                }
 
                 items.add(new ListItem(paymentId, name, amountText));
             }
