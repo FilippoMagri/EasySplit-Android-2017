@@ -147,6 +147,10 @@ public class Group extends AppCompatActivity {
         if (id == R.id.action_logout) {
             Intent i =new Intent(this, LoginActivity.class);
             startActivity(i);
+        } else if (id == R.id.action_create_group) {
+            Intent intent = new Intent(Group.this, CreationGroup.class);
+            startActivity(intent);
+            return true;
         }
 
         return super.onOptionsItemSelected(item);

@@ -124,7 +124,8 @@ public class GroupDetailsActivity extends AppCompatActivity {
             return true;
         } else if (id == R.id.action_invite) {
             Intent i = new Intent(getApplicationContext(), InvitePerson.class);
-            i.putExtra("Group Name", getTitle());
+            String groupId = Utils.getIdFor(Utils.UriType.GROUP, mGroupUri);
+            i.putExtra("groupId", groupId);
             startActivity(i);
             return true;
         } else if (id == R.id.action_leave) {

@@ -22,7 +22,6 @@ import android.widget.TextView;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -219,9 +218,7 @@ public class ExpenseDetailsActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        } else if (id == R.id.action_delete) {
+        if (id == R.id.action_delete) {
             new AlertDialog.Builder(this)
                     .setTitle(R.string.title_confirm)
                     .setMessage(R.string.message_confirm_delete_expense)
