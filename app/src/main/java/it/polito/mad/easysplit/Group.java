@@ -13,6 +13,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -150,6 +151,14 @@ public class Group extends AppCompatActivity {
         } else if (id == R.id.action_create_group) {
             Intent intent = new Intent(Group.this, CreationGroup.class);
             startActivity(intent);
+            return true;
+        } else if (id == R.id.action_show_fused_total_balance) {
+            LinearLayout linearLayout = (LinearLayout) findViewById(R.id.ll_fused_global_balance);
+            if (linearLayout.getVisibility() == View.GONE) {
+                linearLayout.setVisibility(View.VISIBLE);
+            } else {
+                linearLayout.setVisibility(View.GONE);
+            }
             return true;
         }
 

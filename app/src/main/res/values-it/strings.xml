@@ -86,4 +86,8 @@
     <string name="message_confirm_delete_payment">Vuoi cancellare questo pagamento?</string>
     <string name="payment_received">Pagamento ricevuto</string>
     <string name="payment_deleted">Pagamento cancellato da</string>
+    <string name="fusing_gb_own">Devi dare</string>
+    <string name="fusing_gb_receive">Devi ricevere</string>
+    <string name="fusing_gb_total">Bilancio totale</string>
+    <string name="action_fusing_gb">Unisci tutti i bilanci</string>
 </resources>

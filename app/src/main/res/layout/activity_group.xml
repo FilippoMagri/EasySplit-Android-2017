@@ -29,6 +29,124 @@
         android:orientation="vertical"
         android:layout_marginTop="?attr/actionBarSize" >
 
+        <LinearLayout
+            android:visibility="gone"
+            android:id="@+id/ll_fused_global_balance"
+            android:elevation="100dp"
+            android:layout_marginTop="2dp"
+            android:layout_marginBottom="2dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+            <View
+                style="@style/AppTheme"
+                android:layout_width="match_parent"
+                android:layout_height="2dp"
+                android:layout_gravity="center"
+                android:background="@color/colorBackgroundMaterialLight" />
+            <LinearLayout
+                android:background="@color/colorFusingGroupBalance"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <LinearLayout
+                    android:layout_marginTop="5dp"
+                    android:layout_marginBottom="5dp"
+                    android:gravity="center"
+                    android:layout_weight="0.33"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+                    <TextView
+                        android:fontFamily="sans-serif-condensed"
+                        android:textStyle="italic"
+                        android:textColor="@color/colorAccent"
+                        android:textSize="13dp"
+                        android:textAlignment="center"
+                        android:gravity="center_horizontal"
+                        android:text="@string/fusing_gb_own"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+                    <TextView
+                        android:fontFamily="cursive"
+                        android:textColor="@color/balance_debtor"
+                        android:layout_margin="3dp"
+                        android:id="@+id/amountToOwn"
+                        android:textSize="16dp"
+                        android:textAlignment="center"
+                        android:gravity="center_horizontal"
+                        android:text="15 €"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+                </LinearLayout>
+                <LinearLayout
+                    android:layout_marginTop="5dp"
+                    android:layout_marginBottom="5dp"
+                    android:gravity="center"
+                    android:layout_weight="0.33"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+                    <TextView
+                        android:fontFamily="sans-serif-condensed"
+                        android:textStyle="italic"
+                        android:textColor="@color/colorAccent"
+                        android:textSize="13dp"
+                        android:textAlignment="center"
+                        android:layout_weight="0.33"
+                        android:text="@string/fusing_gb_receive"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+                    <TextView
+                        android:fontFamily="cursive"
+                        android:textColor="@color/balance_creditor"
+                        android:layout_margin="3dp"
+                        android:id="@+id/amountToReceive"
+                        android:textSize="16dp"
+                        android:textAlignment="center"
+                        android:gravity="center_horizontal"
+                        android:text="20 €"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+                </LinearLayout>
+                <LinearLayout
+                    android:layout_marginTop="5dp"
+                    android:layout_marginBottom="5dp"
+                    android:gravity="center"
+                    android:layout_weight="0.33"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+                    <TextView
+                        android:fontFamily="sans-serif-condensed"
+                        android:textStyle="italic"
+                        android:textColor="@color/colorAccent"
+                        android:textSize="13dp"
+                        android:textAlignment="center"
+                        android:layout_weight="0.33"
+                        android:text="@string/fusing_gb_total"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+                    <TextView
+                        android:fontFamily="cursive"
+                        android:layout_margin="3dp"
+                        android:id="@+id/amountTotal"
+                        android:textSize="16dp"
+                        android:textAlignment="center"
+                        android:gravity="center_horizontal"
+                        android:text="+ 5 €"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+                </LinearLayout>
+            </LinearLayout>
+            <View
+                style="@style/AppTheme"
+                android:layout_width="match_parent"
+                android:layout_height="2dp"
+                android:layout_gravity="center"
+                android:background="@color/colorBackgroundMaterialLight" />
+        </LinearLayout>
+
         <TextView
             android:id="@+id/user_name"
             android:layout_width="match_parent"
