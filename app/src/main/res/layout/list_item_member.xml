@@ -36,9 +36,20 @@
                 android:lines="1"
                 android:text="Name Of The Member"
                 android:textAppearance="?attr/textAppearanceListItem" />
+            <TextView
+                android:text=""
+                android:id="@+id/typeOfMember"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginLeft="@dimen/text_margin"/>
 
         </LinearLayout>
-
+        <TextView
+            android:id="@+id/key_item_member"
+            android:visibility="gone"
+            android:text="id_item_member"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
         <TextView
             android:id="@+id/residue"
             android:layout_width="wrap_content"

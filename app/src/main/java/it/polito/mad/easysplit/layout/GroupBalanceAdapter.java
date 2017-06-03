@@ -131,7 +131,7 @@ class OnClickCatchUpItemListener implements View.OnClickListener {
         //Sub Member
         intent.putExtra("SubMemberName",debtor.getName());
         intent.putExtra("SubMemberId",debtor.getId());
-        intent.putExtra("SubMemberMoney",debt.toString());
+        intent.putExtra("SubMemberMoney",debt.getAmount().toString());
         intent.putExtra("SubMemberSymbol",debt.getCurrency().getSymbol());
         intent.putExtra("SubMemberCurrency",debt.getCurrency().toString());
         //GroupId Of The Balance

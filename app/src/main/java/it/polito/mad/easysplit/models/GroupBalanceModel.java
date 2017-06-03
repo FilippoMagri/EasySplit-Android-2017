@@ -196,7 +196,7 @@ public class GroupBalanceModel {
     }
 
     /// TODO Deduplicate with ExpenseDetailsActivity.distributeRest or clarify difference
-    private synchronized void distributeRest(Money amount, long numMembers, String payerId) {
+    private void distributeRest(Money amount, long numMembers, String payerId) {
         Money quote = amount.div(numMembers);
         Money totalAmountCalculated = quote.mul(numMembers);
         if (totalAmountCalculated.compareTo(amount) == 0)
@@ -228,12 +228,12 @@ public class GroupBalanceModel {
         }
     }
 
-    private synchronized void resetAssignments() {
+    private void resetAssignments() {
         for (MemberRepresentation member : mBalance.values())
             member.resetAssignments();
     }
 
-    private synchronized void decideWhoHasToGiveBackTo() {
+    private void decideWhoHasToGiveBackTo() {
         resetAssignments();
 
         // Keeps track of how much debit is left for each debtor
