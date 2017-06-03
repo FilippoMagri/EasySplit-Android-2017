@@ -30,6 +30,12 @@ public class CurrencySpinnerAdapter extends ArrayAdapter<Currency> {
         return -1;
     }
 
+    public void setOnlyGroupCurrency (String groupCurrency) {
+        this.clear();
+        Currency currency = Currency.getInstance(groupCurrency);
+        add(currency);
+    }
+
     @NonNull
     @Override
     public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {

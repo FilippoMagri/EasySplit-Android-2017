@@ -6,6 +6,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Currency;
@@ -45,6 +46,9 @@ public class Money {
     private static DecimalFormat sStdFormat = new DecimalFormat("0.00");
     private static DecimalFormat sLocaleFormat = new DecimalFormat("####,###,##0.00");
     static {
+        DecimalFormatSymbols sStdFormatSymbol=new DecimalFormatSymbols();
+        sStdFormatSymbol.setDecimalSeparator('.');
+        sStdFormat.setDecimalFormatSymbols(sStdFormatSymbol);
         sStdFormat.setParseBigDecimal(true);
         sLocaleFormat.setParseBigDecimal(true);
     }

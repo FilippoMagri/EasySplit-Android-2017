@@ -2,6 +2,7 @@ package it.polito.mad.easysplit.models;
 
 import android.net.Uri;
 import android.support.annotation.NonNull;
+import android.util.Log;
 
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
@@ -19,9 +20,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Currency;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.SortedMap;
+import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 
 import it.polito.mad.easysplit.ConversionRateProvider;
@@ -50,12 +55,14 @@ public class GroupBalanceModel {
     }
 
 
-    private final Map<String, MemberRepresentation> mBalance = new HashMap<>();
+    private final LinkedHashMap<String, MemberRepresentation> mBalance = new LinkedHashMap<>();
     private final ArrayList<Listener> mListeners = new ArrayList<>();
     private Currency mGroupCurrency = ConversionRateProvider.getBaseCurrency();
+    private String mGroupId="";
 
     private GroupBalanceModel(Uri groupUri) {
         DatabaseReference groupRef = Utils.findByUri(groupUri);
+        mGroupId = Utils.getIdFor(Utils.UriType.GROUP,groupUri);
 
         groupRef.addValueEventListener(new ValueEventListener() {
             @Override
@@ -95,7 +102,7 @@ public class GroupBalanceModel {
     private void addMember(String memberId, String memberName) {
         if (mBalance.containsKey(memberId))
             return;
-        mBalance.put(memberId, new MemberRepresentation(memberId, memberName));
+        mBalance.put(memberId, new MemberRepresentation(memberId, memberName, mGroupId));
     }
 
     private synchronized void resetBalance(@NonNull DataSnapshot groupSnap) {
@@ -150,6 +157,8 @@ public class GroupBalanceModel {
             distributeRest(amount, numMembers, payerId);
         }
 
+        consideringPayments(groupSnap);
+
         decideWhoHasToGiveBackTo();
         convertToGroupCurrency().addOnSuccessListener(new OnSuccessListener<Void>() {
             @Override
@@ -159,16 +168,41 @@ public class GroupBalanceModel {
         });
     }
 
+    private void consideringPayments(DataSnapshot groupSnap) {
+        if (groupSnap.hasChild("payments")) {
+            for (DataSnapshot expense : groupSnap.child("payments").getChildren()) {
+                String payerId = expense.child("payer_id").getValue(String.class);
+                String amountStr = expense.child("amount").getValue(String.class);
+                Money amount = Money.parseOrFail(amountStr);
+
+                DataSnapshot membersIds = expense.child("members_ids");
+                long numMembers = membersIds.getChildrenCount();
+                if (numMembers == 0)
+                    continue;
+                // Actually this cycle is performed only once
+                // Because of the logical structure of a payment , with only one member inside
+                // members_ids
+                for (DataSnapshot member : membersIds.getChildren()) {
+                    String memberId = member.getKey();
+                    // Update the balance of the receiver with a negative amount
+                    MemberRepresentation memberReprReceiver = mBalance.get(memberId);
+                    memberReprReceiver.residue = memberReprReceiver.residue.add(amount);
+                    // Update the balance of the payer with a positive amount
+                    MemberRepresentation memberReprPayer = mBalance.get(payerId);
+                    memberReprPayer.residue = memberReprPayer.residue.add(amount.neg());
+                }
+            }
+        }
+    }
+
     /// TODO Deduplicate with ExpenseDetailsActivity.distributeRest or clarify difference
     private synchronized void distributeRest(Money amount, long numMembers, String payerId) {
         Money quote = amount.div(numMembers);
         Money totalAmountCalculated = quote.mul(numMembers);
-
         if (totalAmountCalculated.compareTo(amount) == 0)
             return;
 
         Money rest = amount.sub(totalAmountCalculated);
-
         BigDecimal d = rest.getAmount();
         int numberOfIteration = d.subtract(d.setScale(0, RoundingMode.HALF_UP))
                 .movePointRight(d.scale())
@@ -177,15 +211,17 @@ public class GroupBalanceModel {
         for (Entry<String, MemberRepresentation> entry : mBalance.entrySet()) {
             String memberId = entry.getKey();
             MemberRepresentation member = entry.getValue();
-            if (memberId.equals(payerId))
+            if (memberId.equals(payerId)) {
                 continue;
+            }
 
             int cmp = rest.getAmount().compareTo(BigDecimal.ZERO);
-            if (cmp > 0)
-                member.residue = member.getResidue().add(new Money(new BigDecimal("-0.01")));
-            else if (cmp < 0)
-                member.residue = member.getResidue().add(new Money(new BigDecimal("+0.01")));
-
+            if (member.getResidue().cmpZero()!=0) {
+                if (cmp > 0)
+                    member.residue = member.getResidue().add(new Money(new BigDecimal("-0.01")));
+                else if (cmp < 0)
+                    member.residue = member.getResidue().add(new Money(new BigDecimal("+0.01")));
+            } else continue;
             numberOfIteration--;
             if (numberOfIteration == 0)
                 break;
@@ -201,9 +237,9 @@ public class GroupBalanceModel {
         resetAssignments();
 
         // Keeps track of how much debit is left for each debtor
-        Map<MemberRepresentation, Money> availableDebit = new HashMap<>();
+        ConcurrentHashMap<MemberRepresentation, Money> availableDebit = new ConcurrentHashMap<>();
         List<MemberRepresentation> creditors = new ArrayList<>();
-
+        //Available Debit contains all the list of debtors
         for (MemberRepresentation member : mBalance.values()) {
             if (member.getResidue().cmpZero() > 0)
                 creditors.add(member);
@@ -214,24 +250,36 @@ public class GroupBalanceModel {
         for (MemberRepresentation creditor : creditors) {
             // unassignedDebit is always negative
             Money unassignedDebit = creditor.getResidue().neg();
+            while (!unassignedDebit.isZero()) {
+                for (MemberRepresentation debtor : availableDebit.keySet()) {
+                    // debtorResidue is always negative
+                    Money debtorResidue = availableDebit.get(debtor);
 
-            for (MemberRepresentation debtor : availableDebit.keySet()) {
-                // debtorResidue is always negative
-                Money debtorResidue = availableDebit.get(debtor);
+                    if (debtorResidue.compareTo(unassignedDebit) < 0) {
+                        // Case in which the debtor has to own more money (In the global Balance) respect the money that the this single creditor has to receive
+                        // I have to split the residue of the debtor
+                        // Assign to the creditor , this debtor with a positive number
+                        creditor.assign(debtor, unassignedDebit.neg());
+                        // Assign to the debtor , this creditor with a negative number
+                        debtor.assign(creditor, unassignedDebit);
+                        availableDebit.put(debtor, debtorResidue.sub(unassignedDebit));
+                        unassignedDebit = Money.zeroLike(unassignedDebit);
+                        break;
+                    } else if (debtorResidue.compareTo(unassignedDebit) >= 0) {
+                        // Case in which the debtor cover totally the amount that the creditor has to receive
+                        creditor.assign(debtor, debtorResidue.neg());
+                        debtor.assign(creditor, debtorResidue);
+                        unassignedDebit = unassignedDebit.sub(debtorResidue);
+                        // Here i directly delete the debtor from availableDebit by using ConcurrentHashMap
+                        // Other wise we could encounter into a Concurrent exception.
 
-                if (debtorResidue.compareTo(unassignedDebit) < 0) {
-                    // I have to split the residue of the debtor
-                    creditor.assign(debtor, unassignedDebit.neg());
-                    debtor.assign(creditor, unassignedDebit);
-
-                    unassignedDebit = Money.zeroLike(unassignedDebit);
-                    availableDebit.put(debtor, debtorResidue.sub(unassignedDebit));
-                } else {
-                    creditor.assign(debtor, debtorResidue.neg());
-                    debtor.assign(creditor, debtorResidue);
-
-                    unassignedDebit = unassignedDebit.sub(debtorResidue);
-                    availableDebit.put(debtor, Money.zeroLike(debtorResidue));
+                        // P.s. : If for some reason we don't wanna use ConcurrentHashMap.remove() we can always use the instruction written before
+                        // i.e. "availableDebit.put(debtor, Money.zeroLike(debtorResidue));" , but in that case we had some rows with 0.00
+                        // on the SubElements into GroupBalance Visualization. And by the way , i fixed also that problem because i've used a filter
+                        // before the visualization into GroupBalance Screen.
+                        // So right now , if we wanna change only this instruction we can.
+                        availableDebit.remove(debtor);
+                    }
                 }
             }
         }
@@ -273,15 +321,17 @@ public class GroupBalanceModel {
         private Money residue, convertedResidue;
         private Map<MemberRepresentation, Money> assignments = new HashMap<>();
         private Map<MemberRepresentation, Money> convertedAssignments = new HashMap<>();
+        private String groupId;
 
-        MemberRepresentation(String id, String name) {
-            this(id, name, Money.zero());
+        MemberRepresentation(String id, String name, String groupId) {
+            this(id, name, Money.zero(),groupId);
         }
 
-        MemberRepresentation(String id, String name, Money residue) {
+        MemberRepresentation(String id, String name, Money residue, String groupId) {
             this.id = id;
             this.name = name;
             this.residue = residue;
+            this.groupId = groupId;
         }
 
         public String getName() {
@@ -323,6 +373,11 @@ public class GroupBalanceModel {
                 current = Money.zeroLike(amount);
             current = current.add(amount);
             assignments.put(to, current);
+        }
+
+        public String getGroupId() { return groupId; }
+        public void setGroupId(String groupId) {
+            this.groupId = groupId;
         }
     }
 }

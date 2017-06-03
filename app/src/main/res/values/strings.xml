@@ -33,6 +33,9 @@
     <string name="tab_name_members">Members</string>
     <string name="tab_name_balance">Balance</string>
     <string name="tab_name_expenses">Expenses</string>
+    <string name="tab_name_payments">Payments</string>
+    <string name="tab_name_payments_message">Has payed </string>
+
     <string name="your_groups">Your groups</string>
     <string name="title_activity_login">Sign in</string>
 
@@ -104,4 +107,11 @@
     <string name="currency_INR">Indian rupee</string>
     <string name="currency_BRL">Brazilian real</string>
     <string name="currency_ZAR">South African rand</string>
+    <string name="title_activity_payment">Payment</string>
+    <!--String related to Payment-->
+    <string name="wanna_pay">wants pay to</string>
+    <string name="title_activity_payment_details">PaymentDetailsActivity</string>
+    <string name="to_payment">to</string>
+    <string name="standard_payment">Payment realized</string>
+    <string name="message_confirm_delete_payment">Do you want to delete this payment?</string>
 </resources>
