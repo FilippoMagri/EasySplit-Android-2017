@@ -258,7 +258,7 @@ public class Payment extends AppCompatActivity {
                         }
 
                         if (task.isSuccessful()) {
-                            /// TODO Implement Notification To The Receiver i.e. (The only member)
+                            /// TODO Implement Notification To The Receiver i.e. (The only member) When I'll Merge with the master
                             //sendPushUpNotifications(expenseId, title, memberIds, payerId4Notification);
                             Snackbar.make(mCoordinatorLayout, "Payment Effettuato", Snackbar.LENGTH_LONG).show();
                             onBackPressed();
