@@ -87,15 +87,8 @@ public class PaymentListFragment extends Fragment {
 
         /// TODO Support multiple groups
         final FloatingActionButton btnAdd = (FloatingActionButton) view.findViewById(id.add_button_expense);
-        btnAdd.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent i = new Intent(getContext(), EditExpenseActivity.class);
-                String groupId = Uri.parse(mGroupUri).getPathSegments().get(1);
-                i.putExtra("groupId", groupId);
-                startActivity(i);
-            }
-        });
+        btnAdd.hide();
+
         lv.setOnScrollListener(new AbsListView.OnScrollListener() {
             @Override
             public void onScrollStateChanged(AbsListView absListView, int scrollState) {

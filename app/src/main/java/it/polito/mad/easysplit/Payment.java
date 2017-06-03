@@ -8,8 +8,6 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
-import android.view.Gravity;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.Spinner;
@@ -101,14 +99,7 @@ public class Payment extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                // We have to be sure that regardless
-                // what the user is inserting , or what we are receiving from the intent
-                // the MoneySubMember internally must be always a number < 0. Otherwise the insert
-                // into the DB will not be considered from the groupBalance calculation like something
-                // to deduct from the creditor-balance.
-                if (moneySubMember.cmpZero()>0) {
-                    moneySubMember = moneySubMember.neg();
-                }
+                consistencyCheckMoneySubMember();
                 acceptPayment(moneySubMember);
             }
         });
@@ -277,5 +268,41 @@ public class Payment extends AppCompatActivity {
                 });
             }
         }).start();
+    }
+
+    private void consistencyCheckMoneySubMember() {
+        // If the user decided to insert a new amount of payment
+        // different from what the application is suggesting
+        // it's necessary to make again the conversion of the amount
+        if (!mEditTextPayment.getText().toString().equals(moneySubMember.abs().toString().replace(subMemberSymbol,"").replace(" ",""))) {
+            //Retrieve Currency From The Spinner
+            Currency currency = (Currency) mCurrencySpinner.getSelectedItem();
+            subMemberStringMoney = mEditTextPayment.getText().toString();
+            //Retrieve and convert Money of the SubMember into moneySubMember
+            try {
+                // amount take the value of price + currencyCode
+                String codeCountry = Locale.getDefault().getDisplayLanguage();
+                if (codeCountry.equals("italiano")) {
+                    subMemberStringMoney = subMemberStringMoney.replace(".", ",");
+                } else if (codeCountry.equals("English")) {
+                    subMemberStringMoney = subMemberStringMoney.replace(",", ".");
+                }
+                BigDecimal price = (BigDecimal) BigDecimal.valueOf(mDecimalFormat.parse(subMemberStringMoney).doubleValue());
+                //Rounding with 2 Numbers After dot
+                price = price.divide(new BigDecimal("1.00"), 2, RoundingMode.HALF_UP);
+                moneySubMember = new Money(currency, price);
+            } catch (NoSuchElementException | ParseException exc) {
+                Snackbar.make(mCoordinatorLayout, "Invalid Sub money amount!", Snackbar.LENGTH_LONG).show();
+                return;
+            }
+        }
+        // We have to be sure that regardless
+        // what the user is inserting , or what we are receiving from the intent
+        // the MoneySubMember internally must be always a number < 0. Otherwise the insert
+        // into the DB will not be considered from the groupBalance calculation like something
+        // to deduct from the creditor-balance.
+        if (moneySubMember.cmpZero()>0) {
+            moneySubMember = moneySubMember.neg();
+        }
     }
 }
