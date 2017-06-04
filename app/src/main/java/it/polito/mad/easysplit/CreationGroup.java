@@ -4,12 +4,15 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.auth.FirebaseAuth;
@@ -26,8 +29,7 @@ import java.util.concurrent.Callable;
 
 public class CreationGroup extends AppCompatActivity {
     private static final DatabaseReference mRoot = FirebaseDatabase.getInstance().getReference();
-
-    private static CurrencySpinnerAdapter mCurrenciesAdapter;
+    private Handler mHandler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,8 +53,21 @@ public class CreationGroup extends AppCompatActivity {
         final Spinner currencySpinner = (Spinner) findViewById(R.id.currencySpinner);
         ImageView submit = (ImageView) findViewById(R.id.valid);
 
-        mCurrenciesAdapter = new CurrencySpinnerAdapter(this);
+        CurrencySpinnerAdapter mCurrenciesAdapter = new CurrencySpinnerAdapter(this);
         currencySpinner.setAdapter(mCurrenciesAdapter);
+
+        mHandler = new Handler(new Handler.Callback() {
+            @Override
+            public boolean handleMessage(Message msg) {
+                if (msg.what == ValidationException.EMPTY_TITLE) {
+                    Toast.makeText(CreationGroup.this, R.string.error_validate_title_empty, Toast.LENGTH_LONG)
+                        .show();
+                    return true;
+                }
+
+                return false;
+            }
+        });
 
         submit.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -66,8 +81,12 @@ public class CreationGroup extends AppCompatActivity {
 
                         Tasks.call(new Callable<Void>() {
                             @Override
-                            public Void call() throws Exception {
-                                createGroup(groupName, currency.getCurrencyCode());
+                            public Void call() {
+                                try {
+                                    createGroup(groupName, currency.getCurrencyCode());
+                                } catch (ValidationException validationExc) {
+                                    mHandler.sendEmptyMessage(validationExc.getKind());
+                                }
                                 return null;
                             }
                         });
@@ -81,7 +100,31 @@ public class CreationGroup extends AppCompatActivity {
         });
     }
 
-    private void createGroup(String groupName, String currencyCode) {
+    @Override
+    public void onBackPressed() {
+        ActivityUtils.confirmDiscardChanges(this);
+    }
+
+    static class ValidationException extends Exception {
+        public static final int EMPTY_TITLE = 1;
+
+        private int kind;
+
+        public ValidationException(int kind) {
+            super();
+            this.kind = kind;
+        }
+
+        public int getKind() {
+            return kind;
+        }
+    }
+
+    private void createGroup(String groupName, String currencyCode) throws ValidationException {
+        groupName = groupName.trim();
+        if (groupName.length() == 0)
+            throw new ValidationException(ValidationException.EMPTY_TITLE);
+
         HashMap<String, String> groupMembers = new HashMap<>();
         HashMap<String, Object> childUpdates = new HashMap<>();
 

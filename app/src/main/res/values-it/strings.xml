@@ -92,4 +92,11 @@
     <string name="error_network_retry">Mh, the network is acting up, let\'s try again...</string>
     <string name="error_database_generic">We\'re having some problems with our database...</string>
     <string name="error_validate_title_empty">Title should not be empty!</string>
+    <string name="new_expense_notification">Nuova spesa aggiunta</string>
+    <string name="prompt_email"></string>
+    <string name="text_choose_currency">Che moneta userete per saldare i debiti?</string>
+    <string name="text_choose_group_name">Scegli il nome del gruppo</string>
+    <string name="text_group_name_examples">Viaggio, Appartamento, ...</string>
+    <string name="title_activity_payment">Pagamento</string>
+    <string name="title_activity_payment_details"></string>
 </resources>
