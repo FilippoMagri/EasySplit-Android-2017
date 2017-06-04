@@ -347,8 +347,15 @@ public class GroupBalanceModel {
         public Money getResidue() {
             return residue;
         }
+        public void setResidue(Money residue) {
+            this.residue = residue;
+        }
+
         public Money getConvertedResidue() {
             return convertedResidue;
+        }
+        public void setConvertedResidue(Money convertedResidue) {
+            this.convertedResidue = convertedResidue;
         }
 
         public String getId() {

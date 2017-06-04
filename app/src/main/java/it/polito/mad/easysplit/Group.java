@@ -23,6 +23,11 @@ import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.TaskCompletionSource;
+import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -32,11 +37,14 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.Currency;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
 
 import it.polito.mad.easysplit.models.GroupBalanceModel;
+import it.polito.mad.easysplit.models.Money;
 
 
 public class Group extends AppCompatActivity {
@@ -53,6 +61,7 @@ public class Group extends AppCompatActivity {
     // This Concurrent Map represent for each GroupBalanceModel its Listener.
     // It will be populated with exactly one listener for each single GroupBalanceModel.
     private final ConcurrentHashMap<GroupBalanceModel,GroupBalanceModel.Listener> mListeners = new ConcurrentHashMap<>();
+    ArrayList<Task> arrayListTask = new ArrayList<Task>();
 
     // ProgressDialog management
     private ProgressDialog progressBar;
@@ -226,43 +235,50 @@ public class Group extends AppCompatActivity {
                             @Override
                             public void onDataChange(DataSnapshot groupSnapshot) {
                                 final Uri mGroupUri = Utils.getUriFor(Utils.UriType.GROUP, groupKey);
-                                GroupBalanceModel groupBalanceModel = new GroupBalanceModel(mGroupUri);
+                                final GroupBalanceModel groupBalanceModel = new GroupBalanceModel(mGroupUri);
                                 GroupBalanceModel.Listener listener = new GroupBalanceModel.Listener() {
                                     @Override
                                     public void onBalanceChanged(Map<String, GroupBalanceModel.MemberRepresentation> balance) {
+                                        final GroupBalanceModel.MemberRepresentation memberInGroupModel= balance.get(user.getUid());
                                         if (balance.size() > 0) {
-                                            String amountString = balance.get(user.getUid()).getResidue().getAmount().toString();
-                                            counterMBalances.add(new Float(amountString));
-                                        }
-                                        if (counterMBalances.size() == numberOfGroupsOwnership) {
-                                            Float totalAmountPositive = new Float("0.00");
-                                            Float totalAmountNegative = new Float("0.00");
-                                            Float totalAmount = new Float("0.00");
-                                            for (int i = 0; i < counterMBalances.size(); i++) {
-                                                Float singleBalance = counterMBalances.get(i);
-                                                if (singleBalance.compareTo(new Float("0.00")) > 0) {
-                                                    totalAmountPositive = totalAmountPositive + counterMBalances.get(i);
-                                                } else if (singleBalance.compareTo(new Float("0.00")) < 0) {
-                                                    totalAmountNegative = totalAmountNegative + counterMBalances.get(i);
-                                                }
-                                            }
-                                            totalAmount = totalAmountPositive + totalAmountNegative;
-                                            TextView tvAmountToOWn = (TextView) findViewById(R.id.amountToOwn);
-                                            TextView tvAmountToReceive = (TextView) findViewById(R.id.amountToReceive);
-                                            TextView tvAmountTotal = (TextView) findViewById(R.id.amountTotal);
-                                            tvAmountToOWn.setText(totalAmountNegative.toString() + " €");
-                                            tvAmountToReceive.setText(totalAmountPositive.toString() + " €");
-                                            tvAmountTotal.setText(totalAmount.toString() + " €");
-
-                                            mLinearLayout.animate().alpha(1.0f).setDuration(300).setListener(new AnimatorListenerAdapter() {
+                                            Task taskConversion = convertToLocalCurrency(groupBalanceModel);
+                                            arrayListTask.add(taskConversion);
+                                            taskConversion.addOnSuccessListener(new OnSuccessListener<Void>() {
                                                 @Override
-                                                public void onAnimationStart(Animator animation) {
-                                                    super.onAnimationStart(animation);
-                                                    mLinearLayout.setVisibility(View.VISIBLE);
+                                                public void onSuccess(Void aVoid) {
+                                                    counterMBalances.add(new Float(memberInGroupModel.getConvertedResidue().getAmount().toString()));
+                                                    if (counterMBalances.size() == numberOfGroupsOwnership) {
+                                                        Float totalAmountPositive = new Float("0.00");
+                                                        Float totalAmountNegative = new Float("0.00");
+                                                        Float totalAmount = new Float("0.00");
+                                                        for (int i = 0; i < counterMBalances.size(); i++) {
+                                                            Float singleBalance = counterMBalances.get(i);
+                                                            if (singleBalance.compareTo(new Float("0.00")) > 0) {
+                                                                totalAmountPositive = totalAmountPositive + counterMBalances.get(i);
+                                                            } else if (singleBalance.compareTo(new Float("0.00")) < 0) {
+                                                                totalAmountNegative = totalAmountNegative + counterMBalances.get(i);
+                                                            }
+                                                        }
+                                                        totalAmount = totalAmountPositive + totalAmountNegative;
+                                                        TextView tvAmountToOWn = (TextView) findViewById(R.id.amountToOwn);
+                                                        TextView tvAmountToReceive = (TextView) findViewById(R.id.amountToReceive);
+                                                        TextView tvAmountTotal = (TextView) findViewById(R.id.amountTotal);
+                                                        tvAmountToOWn.setText(totalAmountNegative.toString() + " "+memberInGroupModel.getConvertedResidue().getCurrency().getSymbol());
+                                                        tvAmountToReceive.setText(totalAmountPositive.toString() + " "+memberInGroupModel.getConvertedResidue().getCurrency().getSymbol());
+                                                        tvAmountTotal.setText(totalAmount.toString() + " "+memberInGroupModel.getConvertedResidue().getCurrency().getSymbol());
+
+                                                        mLinearLayout.animate().alpha(1.0f).setDuration(300).setListener(new AnimatorListenerAdapter() {
+                                                            @Override
+                                                            public void onAnimationStart(Animator animation) {
+                                                                super.onAnimationStart(animation);
+                                                                mLinearLayout.setVisibility(View.VISIBLE);
+                                                            }
+                                                        });
+                                                        detatchListeners();
+                                                        dismissProgressBar();
+                                                    }
                                                 }
                                             });
-                                            detatchListeners();
-                                            dismissProgressBar();
                                         }
                                     }
                                 };
@@ -281,6 +297,7 @@ public class Group extends AppCompatActivity {
                         @Override
                         public void onAnimationEnd(Animator animation) {
                             super.onAnimationEnd(animation);
+                            counterMBalances.clear();
                             mLinearLayout.clearAnimation();
                             mLinearLayout.setVisibility(View.GONE);
                         }
@@ -324,5 +341,29 @@ public class Group extends AppCompatActivity {
                 progressBar.dismiss();
             }
         });
+    }
+
+    /** Do all of the necessary conversions to the Local currency */
+    private Task<Void> convertToLocalCurrency(final GroupBalanceModel groupBalanceModel) {
+        final ConversionRateProvider converter = ConversionRateProvider.getInstance();
+        final TaskCompletionSource completion = new TaskCompletionSource();
+
+        new Thread() {
+            @Override
+            public void run() {
+                synchronized (groupBalanceModel) {
+                    try {
+                        GroupBalanceModel.MemberRepresentation userMemberRepresentation = groupBalanceModel.getmBalance().get(FirebaseAuth.getInstance().getCurrentUser().getUid());
+                        Money userMemberResidue = userMemberRepresentation.getResidue();
+                        userMemberRepresentation.setConvertedResidue(Tasks.await(converter.convertFromBase(userMemberResidue, ConversionRateProvider.getLocaleCurrency())));
+                        completion.setResult(null);
+                    } catch (InterruptedException | ExecutionException exc) {
+                        completion.setException(exc);
+                    }
+                }
+            }
+        }.start();
+
+        return completion.getTask();
     }
 }
