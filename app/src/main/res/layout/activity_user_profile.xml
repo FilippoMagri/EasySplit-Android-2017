@@ -55,6 +55,7 @@
 
         <ImageButton
             android:id="@+id/imageButton"
+            android:background="@color/colorBackgroundMaterialLight"
             style="@style/Widget.AppCompat.ImageButton"
             android:layout_width="200dp"
             android:layout_height="200dp"
