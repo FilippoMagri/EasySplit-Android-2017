@@ -15,7 +15,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -137,7 +136,7 @@ public class Group extends AppCompatActivity {
                 }
             });
 
-            Button profileButton = (Button) findViewById(R.id.profile_button);
+            View profileButton = findViewById(R.id.profile_button_layout);
             profileButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
