@@ -28,6 +28,7 @@ public class UserProfileActivity extends AppCompatActivity {
     private ProgressBar mProfilePicProgressBar;
 
     private ProfilePictureManager mPicManager;
+    private ProfilePictureManager.Listener mPicListener;
 
     private void setInProgress(boolean inProgress) {
         setProgressBarIndeterminateVisibility(inProgress);
@@ -81,8 +82,7 @@ public class UserProfileActivity extends AppCompatActivity {
         });
 
 
-        mPicManager = ProfilePictureManager.forUser(this, userId);
-        mPicManager.addListener(new ProfilePictureManager.Listener() {
+        mPicListener = new ProfilePictureManager.Listener() {
             @Override
             public void onThumbnailReceived(Bitmap pic) {
 
@@ -104,7 +104,10 @@ public class UserProfileActivity extends AppCompatActivity {
                 mImageButton.setVisibility(View.VISIBLE);
                 mImageButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_default_profile_pic));
             }
-        });
+        };
+
+        mPicManager = ProfilePictureManager.forUser(this, userId);
+        mPicManager.addListener(mPicListener);
 
         mImageButton.setOnClickListener(new View.OnClickListener() {
             @Override
