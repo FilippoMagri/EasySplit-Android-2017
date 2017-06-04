@@ -2,9 +2,6 @@ package it.polito.mad.easysplit;
 
 import android.app.Application;
 import android.content.res.Configuration;
-import android.util.Log;
-
-import java.util.Currency;
 
 import it.polito.mad.easysplit.models.Money;
 

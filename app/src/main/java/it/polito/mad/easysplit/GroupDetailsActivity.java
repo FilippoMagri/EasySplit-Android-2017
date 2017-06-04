@@ -64,7 +64,9 @@ public class GroupDetailsActivity extends AppCompatActivity {
                 toolbar.setTitle(groupNameSnap.getValue(String.class));
             }
 
-            @Override public void onCancelled(DatabaseError databaseError) { }
+            @Override public void onCancelled(DatabaseError databaseError) {
+                ActivityUtils.showDatabaseError(GroupDetailsActivity.this, databaseError);
+            }
         });
 
         LocalPagerAdapter pagerAdapter = new LocalPagerAdapter(getSupportFragmentManager());

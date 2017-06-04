@@ -52,7 +52,7 @@ public class MessagingUtils {
 
                 @Override
                 public void onCancelled(DatabaseError databaseError) {
-
+                    Log.e("MessagingUtils", "Database error: " + databaseError);
                 }
             });
         }

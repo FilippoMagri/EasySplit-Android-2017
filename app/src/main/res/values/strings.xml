@@ -2,7 +2,6 @@
     <string name="app_name" translatable="false">€asy$plit</string>
     <string name="action_settings">Settings</string>
     <string name="action_invite">Invite</string>
-    <string name="invite_succeeded">User invited</string>
 
     <string name="action_leave">Leave group</string>
     <string name="leave_confirm_title">Leave group?</string>

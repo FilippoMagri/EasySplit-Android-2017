@@ -1,13 +1,14 @@
 package it.polito.mad.easysplit;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.support.v7.app.AlertDialog;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseError;
 
 import java.util.Currency;
 import java.util.HashMap;
@@ -59,6 +60,20 @@ public class ActivityUtils {
 
     public static String getCurrencyName(Context ctx, Currency currency) {
         return getCurrencyName(ctx, currency.getCurrencyCode());
+    }
+
+    public static void showDatabaseError(final Activity activity, DatabaseError databaseError) {
+        new AlertDialog.Builder(activity)
+                .setCancelable(false)
+                .setTitle(R.string.error_generic_title)
+                .setMessage(activity.getString(R.string.error_database_generic) + databaseError.getMessage())
+                .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        activity.finish();
+                    }
+                })
+                .show();
     }
 
     static void confirmDiscardChanges(final Activity activity) {

@@ -25,11 +25,8 @@ import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.TaskCompletionSource;
 import com.google.android.gms.tasks.Tasks;
@@ -43,14 +40,11 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
 import java.util.Currency;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutionException;
@@ -301,6 +295,10 @@ public class Group extends AppCompatActivity {
             Intent i =new Intent(this, LoginActivity.class);
             startActivity(i);
             FirebaseAuth.getInstance().signOut();
+        } else if (id == R.id.action_create_group) {
+            Intent intent = new Intent(Group.this, CreationGroup.class);
+            startActivity(intent);
+            return true;
         } else if (id == R.id.action_show_fused_total_balance) {
             mergeAllBalances();
             return true;

@@ -69,7 +69,7 @@ public class EditGroupActivity extends AppCompatActivity implements GroupBalance
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
-
+                ActivityUtils.showDatabaseError(EditGroupActivity.this, databaseError);
             }
         });
     }

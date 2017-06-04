@@ -24,8 +24,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.SortedMap;
-import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 
@@ -33,6 +31,7 @@ import it.polito.mad.easysplit.ConversionRateProvider;
 import it.polito.mad.easysplit.Utils;
 
 public class GroupBalanceModel {
+    private static final String TAG = "GroupBalanceModel";
 
     public LinkedHashMap<String, MemberRepresentation> getmBalance() {
         return mBalance;
@@ -93,7 +92,9 @@ public class GroupBalanceModel {
             }
 
             @Override
-            public void onCancelled(DatabaseError databaseError) { }
+            public void onCancelled(DatabaseError databaseError) {
+                Log.e(TAG, "Database error: " + databaseError.getMessage());
+            }
         });
     }
 

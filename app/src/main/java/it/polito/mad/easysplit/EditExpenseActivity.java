@@ -112,7 +112,9 @@ public class EditExpenseActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onCancelled(DatabaseError databaseError) { /* TODO */ }
+            public void onCancelled(DatabaseError databaseError) {
+                ActivityUtils.showDatabaseError(EditExpenseActivity.this, databaseError);
+            }
         });
 
         String expenseId = i.getStringExtra("expenseId");
@@ -162,18 +164,16 @@ public class EditExpenseActivity extends AppCompatActivity {
         @Override
         public void onCancelled(DatabaseError databaseError) {
             mProgressBarOverlay.setVisibility(View.GONE);
-            AlertDialog.OnClickListener onClickGoBack = new AlertDialog.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    EditExpenseActivity.this.finish();
-                }
-            };
             AlertDialog dialog = new Builder(EditExpenseActivity.this)
                     .setTitle("Error")
                     .setMessage(databaseError.getMessage())
-                    .setNegativeButton(string.cancel, onClickGoBack)
-                    .create();
-            dialog.show();
+                    .setNegativeButton(string.cancel, new AlertDialog.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog1, int which) {
+                            EditExpenseActivity.this.finish();
+                        }
+                    })
+                    .show();
         }
     }
 
@@ -266,7 +266,7 @@ public class EditExpenseActivity extends AppCompatActivity {
             @Override
             public void onCancelled(DatabaseError databaseError) {
                 spinner.setEnabled(false);
-                Snackbar.make(spinner, databaseError.getMessage(), Snackbar.LENGTH_LONG).show();
+                ActivityUtils.showDatabaseError(EditExpenseActivity.this, databaseError);
             }
         });
     }
@@ -299,8 +299,7 @@ public class EditExpenseActivity extends AppCompatActivity {
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
-                Snackbar.make(listView, databaseError.getMessage(), Snackbar.LENGTH_LONG)
-                        .show();
+                ActivityUtils.showDatabaseError(EditExpenseActivity.this, databaseError);
             }
         });
     }
