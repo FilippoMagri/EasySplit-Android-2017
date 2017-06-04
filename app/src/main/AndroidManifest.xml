@@ -7,7 +7,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
     <uses-permission android:name="android.permission.READ_PROFILE" />
-    <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
 
@@ -21,7 +21,7 @@
         <activity
             android:name=".CreationGroup"
             android:label="Group Creation"
-            android:theme="@style/AppTheme.NoActionBar"/>
+            android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".GroupDetailsActivity"
             android:theme="@style/AppTheme.NoActionBar" />
@@ -38,7 +38,6 @@
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -48,12 +47,11 @@
         <activity
             android:name=".InvitePerson"
             android:label="@string/title_activity_invite_person"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
+            android:theme="@style/AppTheme.NoActionBar" />
 
-        <service
-            android:name=".cloudMessaging.MyFirebaseInstanceIdService">
+        <service android:name=".cloudMessaging.MyFirebaseInstanceIdService">
             <intent-filter>
-                <action android:name="com.google.firebase.INSTANCE_ID_EVENT"/>
+                <action android:name="com.google.firebase.INSTANCE_ID_EVENT" />
             </intent-filter>
         </service>
         <service android:name=".cloudMessaging.MyFirebaseMessagingService">
@@ -61,6 +59,7 @@
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
         </service>
+
         <!--
             Set custom default icon. This is used when no icon is set for incoming notification messages.
             See README(https://goo.gl/l4GJaQ) for more.
@@ -86,6 +85,10 @@
             android:name=".PaymentDetailsActivity"
             android:label="@string/title_activity_payment_details"
             android:theme="@style/AppTheme.NoActionBar"></activity>
+        <activity android:name=".EditGroupActivity" />
+        <activity
+            android:name=".UserProfileActivity"
+            android:label="@string/activity_label_user_profile" />
     </application>
 
 </manifest>

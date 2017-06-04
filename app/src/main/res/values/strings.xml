@@ -107,6 +107,9 @@
     <string name="currency_INR">Indian rupee</string>
     <string name="currency_BRL">Brazilian real</string>
     <string name="currency_ZAR">South African rand</string>
+    <string name="activity_label_user_profile">User profile</string>
+    <string name="edit">Edit</string>
+    <string name="error_profile_pic">Can\'t get profile picture!</string>
     <string name="title_activity_payment">Payment</string>
     <!--String related to Payment-->
     <string name="wanna_pay">wants pay to</string>
