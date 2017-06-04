@@ -92,7 +92,10 @@ public class UserProfileActivity extends AppCompatActivity {
             public void onPictureReceived(Bitmap pic) {
                 mProfilePicProgressBar.setVisibility(View.INVISIBLE);
                 mImageButton.setVisibility(View.VISIBLE);
-                mImageButton.setImageBitmap(pic);
+                if (pic != null)
+                    mImageButton.setImageBitmap(pic);
+                else
+                    mImageButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_default_profile_pic));
             }
 
             @Override

@@ -5,8 +5,10 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -18,6 +20,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -35,6 +38,7 @@ import java.text.DateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.WeakHashMap;
 
 import it.polito.mad.easysplit.R.drawable;
 import it.polito.mad.easysplit.R.id;
@@ -297,9 +301,34 @@ public class ExpenseDetailsActivity extends AppCompatActivity {
     }
 
     private class ParticipantsAdapter extends ArrayAdapter<Participant> {
+        private ProfilePictureManager mPicManager;
+        private WeakHashMap<Participant, ProfilePictureListener> mListeners = new WeakHashMap<>();
+
         ParticipantsAdapter(Context context) {
             super(context, 0);
         }
+
+        private class ProfilePictureListener implements ProfilePictureManager.Listener {
+            private ImageView mImageView;
+
+            public ProfilePictureListener(ImageView imageView) {
+                this.mImageView = imageView;
+            }
+
+            @Override
+            public void onPictureReceived(@Nullable Bitmap pic) { }
+
+            @Override
+            public void onThumbnailReceived(@Nullable Bitmap pic) {
+                mImageView.setImageBitmap(pic);
+            }
+
+            @Override
+            public void onFailure(Exception e) {
+                mImageView.setImageDrawable(getContext().getResources().getDrawable(drawable.ic_default_profile_pic));
+            }
+        }
+
 
         @NonNull
         @Override
@@ -315,6 +344,16 @@ public class ExpenseDetailsActivity extends AppCompatActivity {
 
             tvNameParticipant.setText(participant.name);
             tvResidueParticipant.setText(participant.quota.toString());
+
+            if (! mListeners.containsKey(participant)) {
+                ImageView ivProfilePic = (ImageView) convertView.findViewById(id.profile_picture_participant);
+
+                ProfilePictureListener listener = new ProfilePictureListener(ivProfilePic);
+                mListeners.put(participant, listener);
+
+                mPicManager = ProfilePictureManager.forUser(getContext(), participant.id);
+                mPicManager.addListener(listener);
+            }
 
             return convertView;
         }

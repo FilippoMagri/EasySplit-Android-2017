@@ -37,7 +37,7 @@
 
             <ImageView
                 android:id="@+id/profilePicView"
-                android:layout_width="50sp"
+                android:layout_width="45sp"
                 android:layout_height="45sp"
                 android:layout_gravity="center_vertical"
                 android:layout_marginRight="8dp"

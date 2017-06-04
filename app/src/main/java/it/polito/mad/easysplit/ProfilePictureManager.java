@@ -12,6 +12,7 @@ import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Handler;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -27,12 +28,14 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
-import java.util.concurrent.TimeUnit;
+import java.util.Set;
+import java.util.WeakHashMap;
 
 public class ProfilePictureManager {
     public static final int THUMBNAIL_SIZE = 200;
-    public static final long RELOAD_PERIOD_MILLIS = TimeUnit.SECONDS.convert(10, TimeUnit.MINUTES);
+    public static final long RELOAD_PERIOD_MILLIS = 7000;  // TimeUnit.SECONDS.convert(10, TimeUnit.MINUTES);
 
     //
     // Maintain a single instance (at the most) for each user, so different activities can share
@@ -59,15 +62,17 @@ public class ProfilePictureManager {
     }
 
     public interface Listener {
-        void onPictureReceived(Bitmap pic);
-        void onThumbnailReceived(Bitmap pic);
+        void onPictureReceived(@Nullable Bitmap pic);
+        void onThumbnailReceived(@Nullable Bitmap pic);
         void onFailure(Exception e);
     }
 
     private final String mProfilePicFilename;
     private StorageReference mStorageRef;
     private Context mContext;
-    private ArrayList<Listener> mListeners = new ArrayList<>();
+    // Listeners are kept with weak references, so that they're automatically deleted once they're
+    // no longer used.
+    private Set<Listener> mListeners = Collections.newSetFromMap(new WeakHashMap<Listener, Boolean>());
 
 
     private ProfilePictureManager(Context ctx, String userId) {
@@ -126,19 +131,22 @@ public class ProfilePictureManager {
         mListeners.remove(listener);
     }
 
-    private void notifyProfilePicture(Bitmap picture) {
-        // Create scaled version of the picture, maintaining the aspect ratio
-        double ratio = (double)picture.getWidth() / picture.getHeight();
-        int dstWidth, dstHeight;
-        if (picture.getWidth() > picture.getHeight()) {
-            dstWidth = THUMBNAIL_SIZE;
-            dstHeight = (int)(dstWidth / ratio);
-        } else {
-            dstHeight = THUMBNAIL_SIZE;
-            dstWidth = (int)(dstHeight * ratio);
-        }
+    private void notifyProfilePicture(@Nullable Bitmap picture) {
+        Bitmap thumbnail = null;
+        if (picture != null) {
+            // Create scaled version of the picture, maintaining the aspect ratio
+            double ratio = (double) picture.getWidth() / picture.getHeight();
+            int dstWidth, dstHeight;
+            if (picture.getWidth() > picture.getHeight()) {
+                dstWidth = THUMBNAIL_SIZE;
+                dstHeight = (int) (dstWidth / ratio);
+            } else {
+                dstHeight = THUMBNAIL_SIZE;
+                dstWidth = (int) (dstHeight * ratio);
+            }
 
-        Bitmap thumbnail = Bitmap.createScaledBitmap(picture, dstWidth, dstHeight, true);
+            thumbnail = Bitmap.createScaledBitmap(picture, dstWidth, dstHeight, true);
+        }
 
         mPicture = picture;
         mThumbnail = thumbnail;

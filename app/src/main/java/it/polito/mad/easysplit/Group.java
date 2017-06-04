@@ -148,20 +148,25 @@ public class Group extends AppCompatActivity {
             });
 
             mPicManager = ProfilePictureManager.forUser(Group.this, user.getUid());
-            mPicListener = new ProfilePictureManager.Listener() {
-                @Override public void onPictureReceived(Bitmap pic) { }
+            if (mPicListener == null) {
+                mPicListener = new ProfilePictureManager.Listener() {
+                    @Override
+                    public void onPictureReceived(Bitmap pic) {
+                    }
 
-                @Override
-                public void onThumbnailReceived(Bitmap pic) {
-                    mProfilePicView.setImageBitmap(pic);
-                }
+                    @Override
+                    public void onThumbnailReceived(Bitmap pic) {
+                        mProfilePicView.setImageBitmap(pic);
+                    }
 
-                @Override
-                public void onFailure(Exception e) {
-                    Snackbar.make(mProfilePicView, getString(R.string.error_profile_pic) + e.getMessage(),
-                            Snackbar.LENGTH_LONG);
-                }
-            };
+                    @Override
+                    public void onFailure(Exception e) {
+                        mProfilePicView.setImageDrawable(getResources().getDrawable(R.drawable.ic_default_profile_pic));
+                        Snackbar.make(mProfilePicView, getString(R.string.error_profile_pic) + e.getMessage(),
+                                Snackbar.LENGTH_LONG);
+                    }
+                };
+            }
             mPicManager.addListener(mPicListener);
         }
 

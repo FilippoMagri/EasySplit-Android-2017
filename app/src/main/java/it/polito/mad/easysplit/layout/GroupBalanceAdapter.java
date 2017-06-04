@@ -3,6 +3,7 @@ package it.polito.mad.easysplit.layout;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
+import android.graphics.Bitmap;
 import android.media.Image;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -15,7 +16,9 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import java.util.Map;
+import java.util.WeakHashMap;
 
+import it.polito.mad.easysplit.ProfilePictureManager;
 import it.polito.mad.easysplit.Payment;
 import it.polito.mad.easysplit.R;
 import it.polito.mad.easysplit.R.id;
@@ -37,6 +40,29 @@ class GroupBalanceAdapter extends ArrayAdapter<MemberRepresentation> implements 
         addAll(balance.values());
     }
 
+    private WeakHashMap<MemberRepresentation, ProfilePictureListener> mListeners = new WeakHashMap<>();
+
+    private final class ProfilePictureListener implements ProfilePictureManager.Listener {
+        private ImageView mImageView;
+
+        public ProfilePictureListener(ImageView imageView) {
+            mImageView = imageView;
+        }
+
+        @Override
+        public void onPictureReceived(@Nullable Bitmap pic) { /* Nothing to do */ }
+
+        @Override
+        public void onThumbnailReceived(@Nullable Bitmap pic) {
+            mImageView.setImageBitmap(pic);
+        }
+
+        @Override
+        public void onFailure(Exception e) {
+            mImageView.setImageDrawable(getContext().getResources().getDrawable(R.drawable.ic_default_profile_pic));
+        }
+    }
+
     @NonNull
     @Override
     public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
@@ -48,8 +74,16 @@ class GroupBalanceAdapter extends ArrayAdapter<MemberRepresentation> implements 
         final MemberRepresentation memberRepr = getItem(position);
         TextView name = (TextView) convertView.findViewById(id.name);
         TextView residueText = (TextView) convertView.findViewById(id.residue);
-        final TextView typeOfMember = (TextView) convertView.findViewById(id.typeOfMember);
-        TextView keyItemMember = (TextView) convertView.findViewById(id.key_item_member);
+
+        if (! mListeners.containsKey(memberRepr)) {
+            ImageView picView = (ImageView) convertView.findViewById(id.profile_picture);
+
+            ProfilePictureListener listener = new ProfilePictureListener(picView);
+            mListeners.put(memberRepr, listener);
+
+            ProfilePictureManager picManager = ProfilePictureManager.forUser(getContext(), memberRepr.getId());
+            picManager.addListener(new ProfilePictureListener(picView));
+        }
 
         // access to nested linear layout, in order to attach the list of creditors or debtors
         LinearLayout layout = (LinearLayout) convertView.findViewById(id.linearLayout_catch_up_list);
@@ -57,7 +91,6 @@ class GroupBalanceAdapter extends ArrayAdapter<MemberRepresentation> implements 
 
         //TODO implement general Version For All Currencies
         name.setText(memberRepr.getName());
-        keyItemMember.setText(memberRepr.getId());
 
         Resources res = getContext().getResources();
 
@@ -72,11 +105,9 @@ class GroupBalanceAdapter extends ArrayAdapter<MemberRepresentation> implements 
         if (cmp > 0) {
             // This member is a creditor
             residueText.setTextColor(res.getColor(R.color.balance_creditor));
-            typeOfMember.setText(R.string.balance_creditor);
         } else {
             // Member is a debtor
             residueText.setTextColor(res.getColor(R.color.balance_debtor));
-            typeOfMember.setText(R.string.balance_debtor);
         }
 
         for (Map.Entry<MemberRepresentation, Money> entry : memberRepr.getConvertedAssignments().entrySet()) {
