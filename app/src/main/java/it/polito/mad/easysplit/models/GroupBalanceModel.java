@@ -45,6 +45,8 @@ public class GroupBalanceModel {
     // There's a small leak of Uri objects... If this gets critical, it might be a good idea to
     // switch to using group IDs as String keys
     private static final HashMap<Uri, WeakReference<GroupBalanceModel>> sInstances = new HashMap<>();
+    private static final ConcurrentHashMap<Uri, WeakReference<GroupBalanceModel>> sInstancesWithSpecificCurrencyCode = new ConcurrentHashMap<>();
+
     public static GroupBalanceModel forGroup(Uri groupUri) {
         WeakReference<GroupBalanceModel> instance = sInstances.get(groupUri);
 
@@ -57,13 +59,24 @@ public class GroupBalanceModel {
         return instance.get();
     }
 
+    public static GroupBalanceModel forGroup(Uri groupUri,String currencyCode) {
+        WeakReference<GroupBalanceModel> instance = sInstances.get(groupUri);
+
+        if (instance == null || instance.get() == null) {
+            GroupBalanceModel newInstance = new GroupBalanceModel(groupUri,currencyCode);
+            sInstances.put(groupUri, new WeakReference<>(newInstance));
+            return newInstance;
+        }
+
+        return instance.get();
+    }
 
     private final LinkedHashMap<String, MemberRepresentation> mBalance = new LinkedHashMap<>();
     private final ArrayList<Listener> mListeners = new ArrayList<>();
     private Currency mGroupCurrency = ConversionRateProvider.getBaseCurrency();
     private String mGroupId="";
 
-    public GroupBalanceModel(Uri groupUri) {
+    private GroupBalanceModel(Uri groupUri) {
         DatabaseReference groupRef = Utils.findByUri(groupUri);
         mGroupId = Utils.getIdFor(Utils.UriType.GROUP,groupUri);
 
@@ -71,6 +84,26 @@ public class GroupBalanceModel {
             @Override
             public void onDataChange(DataSnapshot groupSnap) {
                 String currencyCode = groupSnap.child("currency").getValue(String.class);
+                if (currencyCode != null)
+                    mGroupCurrency = Currency.getInstance(currencyCode);
+                else
+                    mGroupCurrency = ConversionRateProvider.getBaseCurrency();
+
+                updateBalance(groupSnap);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) { }
+        });
+    }
+
+    private GroupBalanceModel(Uri groupUri,final String currencyCode) {
+        DatabaseReference groupRef = Utils.findByUri(groupUri);
+        mGroupId = Utils.getIdFor(Utils.UriType.GROUP,groupUri);
+
+        groupRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot groupSnap) {
                 if (currencyCode != null)
                     mGroupCurrency = Currency.getInstance(currencyCode);
                 else
