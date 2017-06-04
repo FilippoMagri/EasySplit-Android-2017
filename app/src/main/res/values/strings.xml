@@ -121,4 +121,5 @@
     <string name="fusing_gb_receive">You have to receive</string>
     <string name="fusing_gb_total">Total balance</string>
     <string name="action_fusing_gb">Merge all balances</string>
+    <string name="message_progress_bar_during_fusing">Merging all balances</string>
 </resources>

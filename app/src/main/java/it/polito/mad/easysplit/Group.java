@@ -1,11 +1,15 @@
 package it.polito.mad.easysplit;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.DataSetObserver;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -16,6 +20,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.google.firebase.auth.FirebaseAuth;
@@ -29,6 +34,7 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import it.polito.mad.easysplit.models.GroupBalanceModel;
 
@@ -39,6 +45,19 @@ public class Group extends AppCompatActivity {
     private TextView mUserNameText;
     private TextView mNoGroupsText;
     private AuthListener mAuthListener;
+    private LinearLayout mLinearLayout;
+
+    // counterMBalances is used internally when the user ask to perform the merge of all groups balance
+    final ArrayList<Float> counterMBalances = new ArrayList<Float>();
+
+    // This Concurrent Map represent for each GroupBalanceModel its Listener.
+    // It will be populated with exactly one listener for each single GroupBalanceModel.
+    private final ConcurrentHashMap<GroupBalanceModel,GroupBalanceModel.Listener> mListeners = new ConcurrentHashMap<>();
+
+    // ProgressDialog management
+    private ProgressDialog progressBar;
+    private int progressBarStatus = 0;
+    private Handler progressBarbHandler = new Handler();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,6 +71,8 @@ public class Group extends AppCompatActivity {
         mGroupListView = (ListView) findViewById(R.id.group_list);
         mUserNameText = (TextView) findViewById(R.id.user_name);
         mNoGroupsText = (TextView) findViewById(R.id.noGroupsText);
+        mLinearLayout = (LinearLayout) findViewById(R.id.ll_fused_global_balance);
+
         mAuthListener = new AuthListener();
     }
 
@@ -60,6 +81,25 @@ public class Group extends AppCompatActivity {
         super.onStart();
         FirebaseAuth.getInstance().addAuthStateListener(mAuthListener);
         ActivityUtils.requestLogin(this);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (counterMBalances.size()>0) {
+            dismissProgressBar();
+            detatchListeners();
+            counterMBalances.clear();
+            mLinearLayout.clearAnimation();
+            mLinearLayout.animate().alpha(0.0f).setDuration(300).setListener(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    super.onAnimationEnd(animation);
+                    mLinearLayout.clearAnimation();
+                    mLinearLayout.setVisibility(View.GONE);
+                }
+            });
+        }
     }
 
     @Override
@@ -176,57 +216,73 @@ public class Group extends AppCompatActivity {
             public void onDataChange(DataSnapshot groupsSnapshot) {
                 DatabaseReference root = FirebaseDatabase.getInstance().getReference();
                 ArrayList<String> groupsKeys = new ArrayList<String>();
-                final long numberOfGroupsOwnership = groupsSnapshot.getChildrenCount();
-                final ArrayList<Float> counterMBalances = new ArrayList<Float>();
-                for (DataSnapshot group :groupsSnapshot.getChildren()) {
-                    final String groupKey = group.getKey();
-                    DatabaseReference groupRef = root.child("groups").child(groupKey);
-                    groupRef.addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(DataSnapshot groupSnapshot) {
-                            final Uri mGroupUri = Utils.getUriFor(Utils.UriType.GROUP,groupKey);
-                            GroupBalanceModel groupBalanceModel = new GroupBalanceModel(mGroupUri);
-                            GroupBalanceModel.Listener listener = new GroupBalanceModel.Listener() {
-                                @Override
-                                public void onBalanceChanged(Map<String, GroupBalanceModel.MemberRepresentation> balance) {
-                                    if (balance.size()>0) {
-                                        String amountString = balance.get(user.getUid()).getResidue().getAmount().toString();
-                                        counterMBalances.add(new Float(amountString));
-                                    }
-                                    if (counterMBalances.size() == numberOfGroupsOwnership) {
-                                        Float totalAmountPositive = new Float("0.00");
-                                        Float totalAmountNegative = new Float("0.00");
-                                        Float totalAmount = new Float("0.00");
-                                        for (int i=0;i<counterMBalances.size();i++) {
-                                            Float singleBalance = counterMBalances.get(i);
-                                            if (singleBalance.compareTo(new Float("0.00"))>0) {
-                                                totalAmountPositive = totalAmountPositive+counterMBalances.get(i);
-                                            } else if (singleBalance.compareTo(new Float("0.00"))<0) {
-                                                totalAmountNegative = totalAmountNegative+counterMBalances.get(i);
+                if (mLinearLayout.getVisibility() == View.GONE) {
+                    final long numberOfGroupsOwnership = groupsSnapshot.getChildrenCount();
+                    initializeProgressBar();
+                    for (DataSnapshot group : groupsSnapshot.getChildren()) {
+                        final String groupKey = group.getKey();
+                        DatabaseReference groupRef = root.child("groups").child(groupKey);
+                        groupRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot groupSnapshot) {
+                                final Uri mGroupUri = Utils.getUriFor(Utils.UriType.GROUP, groupKey);
+                                GroupBalanceModel groupBalanceModel = new GroupBalanceModel(mGroupUri);
+                                GroupBalanceModel.Listener listener = new GroupBalanceModel.Listener() {
+                                    @Override
+                                    public void onBalanceChanged(Map<String, GroupBalanceModel.MemberRepresentation> balance) {
+                                        if (balance.size() > 0) {
+                                            String amountString = balance.get(user.getUid()).getResidue().getAmount().toString();
+                                            counterMBalances.add(new Float(amountString));
+                                        }
+                                        if (counterMBalances.size() == numberOfGroupsOwnership) {
+                                            Float totalAmountPositive = new Float("0.00");
+                                            Float totalAmountNegative = new Float("0.00");
+                                            Float totalAmount = new Float("0.00");
+                                            for (int i = 0; i < counterMBalances.size(); i++) {
+                                                Float singleBalance = counterMBalances.get(i);
+                                                if (singleBalance.compareTo(new Float("0.00")) > 0) {
+                                                    totalAmountPositive = totalAmountPositive + counterMBalances.get(i);
+                                                } else if (singleBalance.compareTo(new Float("0.00")) < 0) {
+                                                    totalAmountNegative = totalAmountNegative + counterMBalances.get(i);
+                                                }
                                             }
-                                        }
-                                        totalAmount = totalAmountPositive + totalAmountNegative;
-                                        LinearLayout linearLayout = (LinearLayout) findViewById(R.id.ll_fused_global_balance);
-                                        TextView tvAmountToOWn = (TextView) findViewById(R.id.amountToOwn);
-                                        TextView tvAmountToReceive = (TextView) findViewById(R.id.amountToReceive);
-                                        TextView tvAmountTotal = (TextView) findViewById(R.id.amountTotal);
-                                        tvAmountToOWn.setText(totalAmountNegative.toString()+ " €");
-                                        tvAmountToReceive.setText(totalAmountPositive.toString()+" €");
-                                        tvAmountTotal.setText(totalAmount.toString()+" €");
-                                        if (linearLayout.getVisibility() == View.GONE) {
-                                            linearLayout.setVisibility(View.VISIBLE);
-                                        } else {
-                                            linearLayout.setVisibility(View.GONE);
+                                            totalAmount = totalAmountPositive + totalAmountNegative;
+                                            TextView tvAmountToOWn = (TextView) findViewById(R.id.amountToOwn);
+                                            TextView tvAmountToReceive = (TextView) findViewById(R.id.amountToReceive);
+                                            TextView tvAmountTotal = (TextView) findViewById(R.id.amountTotal);
+                                            tvAmountToOWn.setText(totalAmountNegative.toString() + " €");
+                                            tvAmountToReceive.setText(totalAmountPositive.toString() + " €");
+                                            tvAmountTotal.setText(totalAmount.toString() + " €");
+
+                                            mLinearLayout.animate().alpha(1.0f).setDuration(300).setListener(new AnimatorListenerAdapter() {
+                                                @Override
+                                                public void onAnimationStart(Animator animation) {
+                                                    super.onAnimationStart(animation);
+                                                    mLinearLayout.setVisibility(View.VISIBLE);
+                                                }
+                                            });
+                                            detatchListeners();
+                                            dismissProgressBar();
                                         }
                                     }
-                                }
-                            };
-                            groupBalanceModel.addListener(listener);
-                        }
+                                };
+                                mListeners.put(groupBalanceModel,listener);
+                                groupBalanceModel.addListener(listener);
+                            }
 
+                            @Override
+                            public void onCancelled(DatabaseError databaseError) {
+
+                            }
+                        });
+                    }
+                } else {
+                    mLinearLayout.animate().alpha(0.0f).setDuration(300).setListener(new AnimatorListenerAdapter() {
                         @Override
-                        public void onCancelled(DatabaseError databaseError) {
-
+                        public void onAnimationEnd(Animator animation) {
+                            super.onAnimationEnd(animation);
+                            mLinearLayout.clearAnimation();
+                            mLinearLayout.setVisibility(View.GONE);
                         }
                     });
                 }
@@ -239,4 +295,34 @@ public class Group extends AppCompatActivity {
         });
     }
 
+    private void detatchListeners() {
+        for (Map.Entry<GroupBalanceModel,GroupBalanceModel.Listener> entry : mListeners.entrySet()) {
+            GroupBalanceModel groupBalanceModel = entry.getKey();
+            GroupBalanceModel.Listener listener = entry.getValue();
+            groupBalanceModel.removeListener(listener);
+        }
+    }
+
+    private void initializeProgressBar() {
+        progressBar = new ProgressDialog(mLinearLayout.getContext());
+        progressBar.setCancelable(true);
+        progressBar.setMessage(getString(R.string.message_progress_bar_during_fusing)+" ...");
+        progressBar.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        progressBar.setProgress(0);
+        progressBar.setMax(100);
+        progressBar.show();
+        progressBarStatus = 0;
+    }
+
+    private void dismissProgressBar() {
+        progressBarbHandler.post(new Runnable() {
+            public void run() {
+                progressBar.setProgress(0);
+                progressBar.setMax(0);
+                progressBarStatus = 0;
+                progressBar.hide();
+                progressBar.dismiss();
+            }
+        });
+    }
 }
