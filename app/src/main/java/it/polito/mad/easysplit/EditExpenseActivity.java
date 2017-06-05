@@ -2,8 +2,10 @@ package it.polito.mad.easysplit;
 
 import android.R.layout;
 import android.R.string;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
@@ -220,26 +222,28 @@ public class EditExpenseActivity extends AppCompatActivity {
     }
 
     public void setupPayerSpinner() {
-        final Spinner spinner = (Spinner) findViewById(id.payerSpinner);
         final ArrayAdapter<MemberListItem> adapter =
                 new ArrayAdapter<>(this, layout.simple_spinner_item);
         adapter.setDropDownViewResource(layout.simple_spinner_dropdown_item);
 
+        final Spinner spinner = (Spinner) findViewById(id.payerSpinner);
+        spinner.setAdapter(adapter);
+
         final String currentUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        SharedPreferences sharedPref = getSharedPreferences("MyPreferences", Context.MODE_PRIVATE);
+        String currentUserName = sharedPref.getString("signin_complete_name", null);
+
+        adapter.clear();
+        adapter.add(new MemberListItem(currentUid, currentUserName));
 
         final DatabaseReference membersIdsRef = mRoot.child("groups/"+mGroupId+"/members_ids");
         membersIdsRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot membersIdsSnap) {
-                adapter.clear();
-
                 // Make the owner of the phone the first member in the spinner
                 ArrayList<String> keys = new ArrayList<>();
                 for (DataSnapshot child : membersIdsSnap.getChildren())
                     keys.add(child.getKey());
-
-                String currentUserName = membersIdsSnap.child(currentUid).getValue(String.class);
-                adapter.add(new MemberListItem(currentUid, currentUserName));
 
                 String currentPayerId = null;
                 if (isEditing())
@@ -259,8 +263,6 @@ public class EditExpenseActivity extends AppCompatActivity {
 
                     index++;
                 }
-
-                spinner.setAdapter(adapter);
             }
 
             @Override
@@ -278,10 +280,16 @@ public class EditExpenseActivity extends AppCompatActivity {
 
         listView.setAdapter(adapter);
 
+        String currentUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        SharedPreferences sharedPref = getSharedPreferences("MyPreferences", Context.MODE_PRIVATE);
+        String currentUserName = sharedPref.getString("signin_complete_name", null);
+        adapter.add(new MemberListItem(currentUid, currentUserName));
+
         DatabaseReference membersIdsRef = mRoot.child("groups/"+mGroupId+"/members_ids");
         membersIdsRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot membersIdsSnap) {
+                adapter.clear();
                 for (DataSnapshot child : membersIdsSnap.getChildren()) {
                     String userId = child.getKey();
                     String userName = child.getValue(String.class);
@@ -480,9 +488,10 @@ public class EditExpenseActivity extends AppCompatActivity {
                             String message4Notification = getResources().getString(R.string.expense_modified);
                             MessagingUtils.sendPushUpNotifications(mRoot, mGroupId, title, memberIds,message4Notification);
                         }
-                        finish();
                     }
                 });
+
+                finish();
             }
         }).start();
     }

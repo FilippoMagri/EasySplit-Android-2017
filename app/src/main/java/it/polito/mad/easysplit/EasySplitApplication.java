@@ -3,6 +3,8 @@ package it.polito.mad.easysplit;
 import android.app.Application;
 import android.content.res.Configuration;
 
+import com.google.firebase.database.FirebaseDatabase;
+
 import it.polito.mad.easysplit.models.Money;
 
 
@@ -11,6 +13,7 @@ public class EasySplitApplication extends Application {
     public void onCreate() {
         super.onCreate();
         ConversionRateProvider.setupInstance(this);
+        FirebaseDatabase.getInstance().setPersistenceEnabled(true);
     }
 
     @Override

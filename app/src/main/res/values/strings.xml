@@ -136,4 +136,6 @@
     <string name="fusing_gb_total">Total balance</string>
     <string name="action_fusing_gb">Merge all balances</string>
     <string name="message_progress_bar_during_fusing">Merging all balances</string>
+    <string name="not_logged_in">(not logged in)</string>
+    <string name="text_no_groups">We can\'t see any of your groups!</string>
 </resources>

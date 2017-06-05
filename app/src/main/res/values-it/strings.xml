@@ -107,4 +107,6 @@
     <string name="error_validate_email_or_password_empty">Email e password non dovrebbero essere vuoti!</string>
     <string name="invite_succeeded">Utente invitato</string>
     <string name="error_validate_email">L\'email non dovrebbe essere vuota!</string>
+    <string name="not_logged_in">(not logged in)</string>
+    <string name="text_no_groups">Non vediamo nessun gruppo di cui fai parte!</string>
 </resources>

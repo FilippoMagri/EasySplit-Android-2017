@@ -196,20 +196,50 @@
 
         </LinearLayout>
 
-        <TextView
-            android:id="@+id/noGroupsText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="30dp"
-            android:text="You don't belong to any groups yet!"
-            android:textAlignment="center"
-            android:visibility="gone" />
-
         <ListView
             android:id="@+id/group_list"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:descendantFocusability="blocksDescendants" />
+            android:descendantFocusability="blocksDescendants"
+            android:visibility="gone" />
+
+        <android.support.constraint.ConstraintLayout
+            android:id="@+id/no_groups_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            tools:layout_editor_absoluteX="0dp"
+            tools:layout_editor_absoluteY="61dp">
+
+            <TextView
+                android:id="@+id/noGroupsText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="8dp"
+                android:layout_marginRight="8dp"
+                android:layout_marginTop="32dp"
+                android:text="@string/text_no_groups"
+                android:textAlignment="center"
+                app:layout_constraintHorizontal_bias="0.505"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <Button
+                android:id="@+id/create_group_button"
+                style="@style/Widget.AppCompat.Button.Colored"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="8dp"
+                android:layout_marginRight="8dp"
+                android:layout_marginTop="8dp"
+                android:text="@string/action_create_group"
+                app:layout_constraintHorizontal_bias="0.497"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/noGroupsText" />
+
+        </android.support.constraint.ConstraintLayout>
+
     </LinearLayout>
 
     <android.support.design.widget.FloatingActionButton

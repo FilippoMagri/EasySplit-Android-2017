@@ -6,7 +6,6 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.database.DataSetObserver;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
@@ -22,6 +21,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -73,7 +73,7 @@ public class Group extends AppCompatActivity {
 
     // ProgressDialog management
     private ProgressDialog progressBar;
-    private int progressBarStatus = 0;
+    private int progressBarStatus;
     private Handler progressBarbHandler = new Handler();
 
     @Override
@@ -189,17 +189,6 @@ public class Group extends AppCompatActivity {
             final SubscribedGroupListAdapter adapter =
                     new SubscribedGroupListAdapter(Group.this, user.getUid());
 
-            adapter.registerDataSetObserver(new DataSetObserver() {
-                @Override
-                public void onChanged() {
-                    mNoGroupsText.setVisibility(adapter.getCount() == 0 ? View.VISIBLE : View.GONE);
-                }
-
-                @Override
-                public void onInvalidated() {
-                }
-            });
-
             mGroupListView.setAdapter(adapter);
             mGroupListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override
@@ -210,6 +199,21 @@ public class Group extends AppCompatActivity {
                     startActivity(i);
                 }
             });
+
+            View emptyView = findViewById(R.id.no_groups_view);
+            Button createGroupButton = (Button) findViewById(R.id.create_group_button);
+            createGroupButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(Group.this, CreationGroup.class);
+                    startActivity(intent);
+                }
+            });
+            mGroupListView.setEmptyView(emptyView);
+
+            SharedPreferences sharedPref = getSharedPreferences("MyPreferences", Context.MODE_PRIVATE);
+            final String currentUserName = sharedPref.getString("signin_complete_name", null);
+            mUserNameText.setText(currentUserName);
 
             DatabaseReference root = FirebaseDatabase.getInstance().getReference();
             DatabaseReference userRef = root.child("users").child(user.getUid());
@@ -229,7 +233,7 @@ public class Group extends AppCompatActivity {
 
                 @Override
                 public void onCancelled(DatabaseError databaseError) {
-                    mUserNameText.setText(user.getEmail());
+                    ActivityUtils.showDatabaseError(Group.this, databaseError);
                 }
             });
 
@@ -269,9 +273,8 @@ public class Group extends AppCompatActivity {
         void onLogOut() {
             mGroupListView.setAdapter(null);
             mGroupListView.setOnItemClickListener(null);
-            mUserNameText.setText("(not logged in)");
+            mUserNameText.setText(R.string.not_logged_in);
             mProfilePicView.setImageDrawable(getResources().getDrawable(R.drawable.ic_person_default));
-            /// TODO Button for logging in
         }
     }
 
@@ -309,7 +312,7 @@ public class Group extends AppCompatActivity {
 
     private void mergeAllBalances() {
         DatabaseReference root = FirebaseDatabase.getInstance().getReference();
-        final FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         DatabaseReference groupsUserRef = root.child("users").child(user.getUid()).child("groups_ids");
         groupsUserRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -325,7 +328,7 @@ public class Group extends AppCompatActivity {
                         groupRef.addListenerForSingleValueEvent(new ValueEventListener() {
                             @Override
                             public void onDataChange(DataSnapshot groupSnapshot) {
-                                final Uri mGroupUri = Utils.getUriFor(Utils.UriType.GROUP, groupKey);
+                                Uri mGroupUri = Utils.getUriFor(Utils.UriType.GROUP, groupKey);
                                 Currency localCurrency = ConversionRateProvider.getLocaleCurrency();
                                 GroupBalanceModel groupBalanceModel = GroupBalanceModel.forGroup(mGroupUri,localCurrency.getCurrencyCode());
                                 MyGroupBalanceListener myGroupBalanceListener = new MyGroupBalanceListener(nBelongedGroups4User);
@@ -423,7 +426,7 @@ public class Group extends AppCompatActivity {
        }
        @Override
         public void onBalanceChanged(Map<String, GroupBalanceModel.MemberRepresentation> balance) {
-           final GroupBalanceModel.MemberRepresentation memberInGroupModel= balance.get(user.getUid());
+           GroupBalanceModel.MemberRepresentation memberInGroupModel= balance.get(user.getUid());
            // We check the size because we wanna avoid to enter in this piece of code when the
            // balance has just initialized
            if (balance.size() > 0) {
