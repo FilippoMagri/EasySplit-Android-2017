@@ -99,4 +99,9 @@
     <string name="text_group_name_examples">Viaggio, Appartamento, ...</string>
     <string name="title_activity_payment">Pagamento</string>
     <string name="title_activity_payment_details"></string>
+    <string name="fusing_gb_own">Devi dare</string>
+    <string name="fusing_gb_receive">Devi ricevere</string>
+    <string name="fusing_gb_total">Bilancio totale</string>
+    <string name="action_fusing_gb">Unisci tutti i bilanci</string>
+    <string name="message_progress_bar_during_fusing">Sto unendo i bilanci</string>
 </resources>

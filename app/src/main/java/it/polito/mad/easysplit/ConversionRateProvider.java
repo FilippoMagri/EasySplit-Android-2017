@@ -22,6 +22,7 @@ import java.math.RoundingMode;
 import java.util.Currency;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -37,6 +38,22 @@ public class ConversionRateProvider {
     }
 
     private static final Currency mBaseCurrency = Currency.getInstance("EUR");
+    private static Currency mLocaleCurrency =  Currency.getInstance(Locale.getDefault());
+
+    public static Currency getLocaleCurrency() {
+        return mLocaleCurrency;
+    }
+    public static void setLocaleCurrency(String codeLanguage) {
+        if (codeLanguage.equals("italiano")) {
+            mLocaleCurrency = Currency.getInstance("EUR");
+        } else if (codeLanguage.equals("English")) {
+            mLocaleCurrency = Currency.getInstance("GBP");
+        } else {
+            // Default Locale Currency
+            mLocaleCurrency = Currency.getInstance("GBP");
+        }
+    }
+
     public static Currency getBaseCurrency() {
         return mBaseCurrency;
     }

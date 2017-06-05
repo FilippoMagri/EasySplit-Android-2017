@@ -4,6 +4,7 @@
     <color name="colorPrimaryDark">#FF6600</color>
     <color name="colorAccent">#FF6600</color>
     <color name="colorClair"> #FFE4CE </color>
+    <color name="colorFusingGroupBalance"> #FFC107</color>
     <color name="colorBackgroundMaterialLight">#FFFAFAFA</color>
     <color name="progress_bar_overlay_background">#1e000000</color>
     <color name="balance_creditor">#ff00aa00</color>

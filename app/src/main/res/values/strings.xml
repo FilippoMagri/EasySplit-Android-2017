@@ -128,4 +128,10 @@
     <string name="text_choose_group_name">Choose the name of this group</string>
     <string name="text_group_name_examples">e.g. Trip, Flat, …</string>
     <string name="text_choose_currency">What currency will you use?</string>
+    <!--String related to Group-->
+    <string name="fusing_gb_own">You have to own</string>
+    <string name="fusing_gb_receive">You have to receive</string>
+    <string name="fusing_gb_total">Total balance</string>
+    <string name="action_fusing_gb">Merge all balances</string>
+    <string name="message_progress_bar_during_fusing">Merging all balances</string>
 </resources>
