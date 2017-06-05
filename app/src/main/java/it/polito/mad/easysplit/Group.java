@@ -36,6 +36,8 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Currency;
 import java.util.HashMap;
@@ -238,6 +240,7 @@ public class Group extends AppCompatActivity {
                             public void onDataChange(DataSnapshot groupSnapshot) {
                                 final Uri mGroupUri = Utils.getUriFor(Utils.UriType.GROUP, groupKey);
                                 Currency localCurrency = ConversionRateProvider.getLocaleCurrency();
+                                // TODO Put the change of localCurrency also when you do OnResume
                                 GroupBalanceModel groupBalanceModel = GroupBalanceModel.forGroup(mGroupUri,localCurrency.getCurrencyCode());
                                 MyGroupBalanceListener myGroupBalanceListener = new MyGroupBalanceListener(nBelongedGroups4User);
                                 mListeners.put(groupBalanceModel,myGroupBalanceListener);
@@ -338,7 +341,8 @@ public class Group extends AppCompatActivity {
            // We check the size because we wanna avoid to enter in this piece of code when the
            // balance has just initialized
            if (balance.size() > 0) {
-               counterMBalances.add(new Float(memberInGroupModel.getConvertedResidue().getAmount().toString()));
+               BigDecimal convertedResidue = memberInGroupModel.getConvertedResidue().getAmount().setScale(2, RoundingMode.HALF_UP);
+               counterMBalances.add(Float.valueOf(convertedResidue.toString()));
                // We check the size of "counterMBalances" that is a ConcurrentLinkedQueue ,
                // because we wanna be sure that all balances of all groups has been computed
                // and of course also converted in the relative currency we are interested in
@@ -361,10 +365,14 @@ public class Group extends AppCompatActivity {
                    TextView tvAmountToReceive = (TextView) findViewById(R.id.amountToReceive);
                    TextView tvAmountTotal = (TextView) findViewById(R.id.amountTotal);
 
+                   BigDecimal bigDecimalNegative = new BigDecimal(totalAmountNegative.toString()).setScale(2, RoundingMode.HALF_UP);
+                   BigDecimal bigDecimalPositive = new BigDecimal(totalAmountPositive.toString()).setScale(2, RoundingMode.HALF_UP);
+                   BigDecimal bigDecimal = new BigDecimal(totalAmount.toString()).setScale(2, RoundingMode.HALF_UP);
+
                    String symbolConvertedCurrency = memberInGroupModel.getConvertedResidue().getCurrency().getSymbol();
-                   tvAmountToOWn.setText(totalAmountNegative.toString() + " "+symbolConvertedCurrency);
-                   tvAmountToReceive.setText(totalAmountPositive.toString() + " "+symbolConvertedCurrency);
-                   tvAmountTotal.setText(totalAmount.toString() + " "+symbolConvertedCurrency);
+                   tvAmountToOWn.setText(bigDecimalNegative.toString() + " "+symbolConvertedCurrency);
+                   tvAmountToReceive.setText(bigDecimalPositive.toString() + " "+symbolConvertedCurrency);
+                   tvAmountTotal.setText(bigDecimal.toString() + " "+symbolConvertedCurrency);
 
                    mLinearLayout.animate().alpha(1.0f).setDuration(300).setListener(new AnimatorListenerAdapter() {
                        @Override
