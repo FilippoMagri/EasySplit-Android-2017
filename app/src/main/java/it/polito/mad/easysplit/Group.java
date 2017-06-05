@@ -38,10 +38,12 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
 import java.util.Currency;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
@@ -87,6 +89,21 @@ public class Group extends AppCompatActivity {
         mLinearLayout = (LinearLayout) findViewById(R.id.ll_fused_global_balance);
 
         mAuthListener = new AuthListener();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        resetLocalCurrencyFormat();
+    }
+
+    private void resetLocalCurrencyFormat() {
+        // Reset the Local Format if the language Changes
+        if (Locale.getDefault().getDisplayLanguage().equals("italiano")) {
+            ConversionRateProvider.setLocaleCurrency("italiano");
+        } else {
+            ConversionRateProvider.setLocaleCurrency("English");
+        }
     }
 
     @Override
@@ -240,7 +257,6 @@ public class Group extends AppCompatActivity {
                             public void onDataChange(DataSnapshot groupSnapshot) {
                                 final Uri mGroupUri = Utils.getUriFor(Utils.UriType.GROUP, groupKey);
                                 Currency localCurrency = ConversionRateProvider.getLocaleCurrency();
-                                // TODO Put the change of localCurrency also when you do OnResume
                                 GroupBalanceModel groupBalanceModel = GroupBalanceModel.forGroup(mGroupUri,localCurrency.getCurrencyCode());
                                 MyGroupBalanceListener myGroupBalanceListener = new MyGroupBalanceListener(nBelongedGroups4User);
                                 mListeners.put(groupBalanceModel,myGroupBalanceListener);

@@ -43,10 +43,10 @@ public class ConversionRateProvider {
     public static Currency getLocaleCurrency() {
         return mLocaleCurrency;
     }
-    public static void setLocaleCurrency(String codeCountry) {
-        if (codeCountry.equals("italiano")) {
+    public static void setLocaleCurrency(String codeLanguage) {
+        if (codeLanguage.equals("italiano")) {
             mLocaleCurrency = Currency.getInstance("EUR");
-        } else if (codeCountry.equals("English")) {
+        } else if (codeLanguage.equals("English")) {
             mLocaleCurrency = Currency.getInstance("GBP");
         } else {
             // Default Locale Currency
