@@ -105,4 +105,5 @@
     <string name="action_fusing_gb">Unisci tutti i bilanci</string>
     <string name="message_progress_bar_during_fusing">Sto unendo i bilanci</string>
     <string name="error_validate_email_or_password_empty">Email e password non dovrebbero essere vuoti!</string>
+    <string name="invite_succeeded">Utente invitato</string>
 </resources>

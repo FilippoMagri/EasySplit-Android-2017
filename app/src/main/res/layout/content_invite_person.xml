@@ -12,9 +12,9 @@
         android:id="@+id/email_invite_person"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Insert Email"
-        android:text="sebastiano.barrera@gmail.com"/>
+        android:hint="Insert Email"/>
     <Button
+        style="@android:style/Widget.Material.Button.Colored"
         android:id="@+id/invite_person_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

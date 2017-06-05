@@ -13,6 +13,7 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -157,6 +158,9 @@ public class InvitePerson extends AppCompatActivity implements View.OnClickListe
                     String title4Notification = getResources().getString(R.string.join_group);
                     String message4Notification = getResources().getString(R.string.new_group_created);
                     MessagingUtils.sendPushUpNotifications(mRoot, idGroup, title4Notification, newMembersToNotify, message4Notification);
+                    Toast.makeText(InvitePerson.this, R.string.invite_succeeded, Toast.LENGTH_LONG)
+                            .show();
+                    finish();
                 }
             }
 
@@ -275,6 +279,9 @@ public class InvitePerson extends AppCompatActivity implements View.OnClickListe
                 String signin_password = sharedPref.getString("signin_password",null);
                 FirebaseAuth auth = FirebaseAuth.getInstance();
                 auth.signInWithEmailAndPassword(signin_email,signin_password);
+                Toast.makeText(InvitePerson.this, R.string.invite_succeeded, Toast.LENGTH_LONG)
+                        .show();
+                finish();
             } else {
                 Exception exc = task.getException();
                 AlertDialog dialog = new AlertDialog.Builder(InvitePerson.this)
