@@ -4,8 +4,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.DataSetObserver;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -13,6 +15,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -30,7 +33,10 @@ public class Group extends AppCompatActivity {
     private ListView mGroupListView;
     private TextView mUserNameText;
     private TextView mNoGroupsText;
+    private ImageView mProfilePicView;
     private AuthListener mAuthListener;
+    private ProfilePictureManager mPicManager;
+    private ProfilePictureManager.Listener mPicListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,6 +50,7 @@ public class Group extends AppCompatActivity {
         mGroupListView = (ListView) findViewById(R.id.group_list);
         mUserNameText = (TextView) findViewById(R.id.user_name);
         mNoGroupsText = (TextView) findViewById(R.id.noGroupsText);
+        mProfilePicView = (ImageView) findViewById(R.id.profilePicView);
         mAuthListener = new AuthListener();
     }
 
@@ -55,9 +62,20 @@ public class Group extends AppCompatActivity {
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        if (mPicManager != null)
+            mPicManager.reload();
+    }
+
+    @Override
     protected void onStop() {
         super.onStop();
         FirebaseAuth.getInstance().removeAuthStateListener(mAuthListener);
+        if (mPicManager != null) {
+            mPicManager.removeListener(mPicListener);
+            mPicManager = null;
+        }
     }
 
     private final class AuthListener implements FirebaseAuth.AuthStateListener {
@@ -117,13 +135,45 @@ public class Group extends AppCompatActivity {
                     mUserNameText.setText(user.getEmail());
                 }
             });
+
+            View profileButton = findViewById(R.id.profile_button_layout);
+            profileButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent i = new Intent(Group.this, UserProfileActivity.class);
+                    i.setData(Utils.getUriFor(Utils.UriType.USER, user.getUid()));
+                    startActivity(i);
+                }
+            });
+
+            mPicManager = ProfilePictureManager.forUser(Group.this, user.getUid());
+            if (mPicListener == null) {
+                mPicListener = new ProfilePictureManager.Listener() {
+                    @Override
+                    public void onPictureReceived(Bitmap pic) {
+                    }
+
+                    @Override
+                    public void onThumbnailReceived(Bitmap pic) {
+                        mProfilePicView.setImageBitmap(pic);
+                    }
+
+                    @Override
+                    public void onFailure(Exception e) {
+                        mProfilePicView.setImageDrawable(getResources().getDrawable(R.drawable.ic_default_profile_pic));
+                        Snackbar.make(mProfilePicView, getString(R.string.error_profile_pic) + e.getMessage(),
+                                Snackbar.LENGTH_LONG);
+                    }
+                };
+            }
+            mPicManager.addListener(mPicListener);
         }
 
         void onLogOut() {
             mGroupListView.setAdapter(null);
             mGroupListView.setOnItemClickListener(null);
             mUserNameText.setText("(not logged in)");
-
+            mProfilePicView.setImageDrawable(getResources().getDrawable(R.drawable.ic_person_default));
             /// TODO Button for logging in
         }
     }
