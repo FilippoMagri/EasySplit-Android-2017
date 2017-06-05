@@ -60,11 +60,11 @@ public class GroupBalanceModel {
     }
 
     public static GroupBalanceModel forGroup(Uri groupUri,String currencyCode) {
-        WeakReference<GroupBalanceModel> instance = sInstances.get(groupUri);
+        WeakReference<GroupBalanceModel> instance = sInstancesWithSpecificCurrencyCode.get(groupUri);
 
         if (instance == null || instance.get() == null) {
             GroupBalanceModel newInstance = new GroupBalanceModel(groupUri,currencyCode);
-            sInstances.put(groupUri, new WeakReference<>(newInstance));
+            sInstancesWithSpecificCurrencyCode.put(groupUri, new WeakReference<>(newInstance));
             return newInstance;
         }
 
