@@ -8,6 +8,7 @@ import android.content.Intent;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseError;
 
 import java.util.Currency;
 import java.util.HashMap;
@@ -73,6 +74,20 @@ public class ActivityUtils {
                     }
                 })
                 .setNegativeButton(R.string.no, null)
+                .show();
+    }
+
+    public static void showDatabaseError(final Activity activity, DatabaseError databaseError) {
+        new AlertDialog.Builder(activity)
+                .setCancelable(false)
+                .setTitle(R.string.error_generic_title)
+                .setMessage(activity.getString(R.string.error_database_generic) + databaseError.getMessage())
+                .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        activity.finish();
+                    }
+                })
                 .show();
     }
 }
