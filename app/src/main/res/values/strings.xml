@@ -127,6 +127,7 @@
     <string name="error_database_generic">We\'re having some problems with our database…</string>
     <string name="error_validate_title_empty">Title should not be empty!</string>
     <string name="error_validate_email_or_password_empty">Email and password should not be empty!</string>
+    <string name="error_validate_email">Email should not be empty!</string>
     <string name="text_choose_group_name">Choose the name of this group</string>
     <string name="text_group_name_examples">e.g. Trip, Flat, …</string>
     <string name="text_choose_currency">What currency will you use?</string>

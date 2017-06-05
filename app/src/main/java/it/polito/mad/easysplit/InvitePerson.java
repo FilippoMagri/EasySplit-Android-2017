@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
@@ -53,6 +55,8 @@ public class InvitePerson extends AppCompatActivity implements View.OnClickListe
     ValueEventListener emailValueEventListener;
     ValueEventListener userGroupIdsValueEventListener;
 
+    private Handler mHandler;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -86,6 +90,19 @@ public class InvitePerson extends AppCompatActivity implements View.OnClickListe
             @Override
             public void onClick(View view) {
                 startActivity(new Intent(getApplicationContext(),Group.class));
+            }
+        });
+
+        mHandler = new Handler(new Handler.Callback() {
+            @Override
+            public boolean handleMessage(Message msg) {
+                if (msg.what == CreationGroup.ValidationException.EMPTY_TITLE) {
+                    Toast.makeText(InvitePerson.this, R.string.error_validate_email_or_password_empty, Toast.LENGTH_LONG)
+                            .show();
+                    return true;
+                }
+
+                return false;
             }
         });
 
@@ -175,6 +192,15 @@ public class InvitePerson extends AppCompatActivity implements View.OnClickListe
     public void onClick(View view) {
         if(view.getId()==R.id.invite_person_button) {
             emailToCheck = mEmail.getText().toString();
+
+            try {
+                if( (emailToCheck.trim().length() == 0))
+                    throw new InvitePerson.ValidationException(LoginActivity.ValidationException.EMPTY_TITLE);
+            } catch (InvitePerson.ValidationException validationExc) {
+                mHandler.sendEmptyMessage(validationExc.getKind());
+                return;
+            }
+
             Log.d(TAG,"MyRef: "+usersUriRef.toString());
             Log.d(TAG,"OnClick: Add EventListener");
             usersUriRef.addListenerForSingleValueEvent(emailValueEventListener);
@@ -294,4 +320,18 @@ public class InvitePerson extends AppCompatActivity implements View.OnClickListe
         }
     }
 
+    static class ValidationException extends Exception {
+        public static final int EMPTY_TITLE = 1;
+
+        private int kind;
+
+        public ValidationException(int kind) {
+            super();
+            this.kind = kind;
+        }
+
+        public int getKind() {
+            return kind;
+        }
+    }
 }
