@@ -11,4 +11,6 @@
     <color name="balance_debtor">#ffff0000</color>
     <color name="balance_caught_up">#ff000000</color>
     <color name="color_notifications">#B71C1C</color>
+    <color name="colorBackgroundWarning">#ffd54f</color>
+    <color name="colorTextWarning">#000000</color>
 </resources>

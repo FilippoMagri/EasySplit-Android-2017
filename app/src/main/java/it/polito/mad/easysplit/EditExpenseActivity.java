@@ -23,6 +23,7 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Spinner;
 
+import com.android.volley.NoConnectionError;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
@@ -47,6 +48,7 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import it.polito.mad.easysplit.R.id;
@@ -406,19 +408,19 @@ public class EditExpenseActivity extends AppCompatActivity {
                 Money amountBase, amountConverted;
 
                 try {
-                    Task<Money> conversion = conversionProvider.convertToBase(amountOriginal);
-                    amountBase = Tasks.await(conversion, CONVERSION_TIMEOUT_SECS, TimeUnit.SECONDS);
-                } catch (Exception e) {
-                    Snackbar.make(contentView,
-                            "Error while converting: " + e.getLocalizedMessage(),
-                            Snackbar.LENGTH_LONG).show();
-                    return;
-                }
+                    Task<Money> conversionToBase = conversionProvider.convertToBase(amountOriginal);
+                    amountBase = Tasks.await(conversionToBase, CONVERSION_TIMEOUT_SECS, TimeUnit.SECONDS);
 
-                try {
                     Currency groupCurrency = Currency.getInstance(mGroupCurrencyCode);
-                    Task<Money> conversion = conversionProvider.convertFromBase(amountBase, groupCurrency);
-                    amountConverted = Tasks.await(conversion, CONVERSION_TIMEOUT_SECS, TimeUnit.SECONDS);
+                    Task<Money> conversionToGroup = conversionProvider.convertFromBase(amountBase, groupCurrency);
+                    amountConverted = Tasks.await(conversionToGroup, CONVERSION_TIMEOUT_SECS, TimeUnit.SECONDS);
+                } catch (ExecutionException exc) {
+                    String message = exc.getMessage();
+                    if (exc.getCause() instanceof NoConnectionError)
+                        message = getString(R.string.error_conversion_require_connection);
+
+                    Snackbar.make(contentView, message, Snackbar.LENGTH_LONG).show();
+                    return;
                 } catch (Exception e) {
                     Snackbar.make(contentView,
                             "Error while converting: " + e.getLocalizedMessage(),

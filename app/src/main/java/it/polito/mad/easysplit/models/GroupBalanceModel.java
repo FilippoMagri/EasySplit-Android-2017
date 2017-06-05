@@ -4,7 +4,7 @@ import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
-import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.TaskCompletionSource;
 import com.google.android.gms.tasks.Tasks;
@@ -123,7 +123,7 @@ public class GroupBalanceModel {
             listener.onBalanceChanged(mBalance);
     }
 
-    public void addListener(Listener listener) {
+    public synchronized void addListener(Listener listener) {
         mListeners.add(listener);
         listener.onBalanceChanged(mBalance);
     }
@@ -197,9 +197,9 @@ public class GroupBalanceModel {
         consideringPayments(groupSnap);
 
         decideWhoHasToGiveBackTo();
-        convertToGroupCurrency().addOnSuccessListener(new OnSuccessListener<Void>() {
+        convertToGroupCurrency().addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
-            public void onSuccess(Void aVoid) {
+            public void onComplete(@NonNull Task<Void> task) {
                 notifyListeners();
             }
         });
@@ -390,6 +390,8 @@ public class GroupBalanceModel {
         }
 
         public Money getConvertedResidue() {
+            if (convertedResidue == null)
+                return residue;
             return convertedResidue;
         }
         public void setConvertedResidue(Money convertedResidue) {
