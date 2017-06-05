@@ -1,6 +1,9 @@
 package it.polito.mad.easysplit;
 
+import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 
 import com.google.firebase.auth.FirebaseAuth;
@@ -57,5 +60,19 @@ public class ActivityUtils {
     public static String getCurrencyName(Context ctx, Currency currency) {
         return getCurrencyName(ctx, currency.getCurrencyCode());
     }
-    
+
+    static void confirmDiscardChanges(final Activity activity) {
+        new AlertDialog.Builder(activity)
+                .setTitle(R.string.unsaved_confirm_title)
+                .setMessage(R.string.unsaved_confirm_message)
+                .setCancelable(false)
+                .setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        activity.finish();
+                    }
+                })
+                .setNegativeButton(R.string.no, null)
+                .show();
+    }
 }

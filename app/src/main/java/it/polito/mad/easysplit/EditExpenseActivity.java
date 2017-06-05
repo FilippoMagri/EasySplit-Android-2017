@@ -11,7 +11,6 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AlertDialog.Builder;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -32,18 +31,8 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import it.polito.mad.easysplit.cloudMessaging.MessagingUtils;
 import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
@@ -60,6 +49,7 @@ import java.util.concurrent.TimeUnit;
 
 import it.polito.mad.easysplit.R.id;
 import it.polito.mad.easysplit.Utils.UriType;
+import it.polito.mad.easysplit.cloudMessaging.MessagingUtils;
 import it.polito.mad.easysplit.models.Money;
 
 
@@ -347,12 +337,26 @@ public class EditExpenseActivity extends AppCompatActivity {
         });
     }
 
+    public void validateData() throws ValidationException {
+        EditText titleEdit = (EditText) findViewById(id.titleEdit);
+        if (titleEdit.getText().toString().trim().length() == 0)
+            throw new ValidationException(getString(R.string.error_validate_title_empty));
+    }
+
     private static final int CONVERSION_TIMEOUT_SECS = 5;
 
     /**
      * Save the existing expense or create the new one
      */
     public synchronized void acceptExpense() {
+        try {
+            validateData();
+        } catch (ValidationException exc) {
+            Snackbar.make(findViewById(android.R.id.content), exc.getMessage(), Snackbar.LENGTH_LONG)
+                .show();
+            return;
+        }
+
         // Everything needs to executed in a separate thread, because we need to call Tasks.await
         // in it, and doing that on the main thread is forbidden (although we would only suffer a
         // minor delay if we did, since we have a timeout).  It's a hack, but hey
@@ -482,5 +486,11 @@ public class EditExpenseActivity extends AppCompatActivity {
                 });
             }
         }).start();
+    }
+
+    private class ValidationException extends Throwable {
+        public ValidationException(String message) {
+            super(message);
+        }
     }
 }

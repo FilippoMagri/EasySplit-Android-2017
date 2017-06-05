@@ -119,4 +119,13 @@
     <string name="message_confirm_delete_payment">Do you want to delete this payment?</string>
     <string name="payment_received">Payment received</string>
     <string name="payment_deleted">Payment deleted by</string>
+    <string name="error_network_problem">We\'re having some network problems! Please try again later</string>
+    <string name="error_generic_title">Sorry!</string>
+    <string name="error_network_problem_2">The network is acting up… Maybe you can try again later?</string>
+    <string name="error_network_retry">Mh, the network is acting up, let\'s try again…</string>
+    <string name="error_database_generic">We\'re having some problems with our database…</string>
+    <string name="error_validate_title_empty">Title should not be empty!</string>
+    <string name="text_choose_group_name">Choose the name of this group</string>
+    <string name="text_group_name_examples">e.g. Trip, Flat, …</string>
+    <string name="text_choose_currency">What currency will you use?</string>
 </resources>

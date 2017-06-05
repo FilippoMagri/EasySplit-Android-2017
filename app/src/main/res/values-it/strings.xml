@@ -86,4 +86,17 @@
     <string name="message_confirm_delete_payment">Vuoi cancellare questo pagamento?</string>
     <string name="payment_received">Pagamento ricevuto</string>
     <string name="payment_deleted">Pagamento cancellato da</string>
+    <string name="error_network_problem">C\'è qualche problema di rete! Magari riprova più tardi.</string>
+    <string name="error_generic_title">Sorry!</string>
+    <string name="error_network_problem_2">The network is acting up... Maybe you can try again later?</string>
+    <string name="error_network_retry">Mh, the network is acting up, let\'s try again...</string>
+    <string name="error_database_generic">We\'re having some problems with our database...</string>
+    <string name="error_validate_title_empty">Title should not be empty!</string>
+    <string name="new_expense_notification">Nuova spesa aggiunta</string>
+    <string name="prompt_email"></string>
+    <string name="text_choose_currency">Che moneta userete per saldare i debiti?</string>
+    <string name="text_choose_group_name">Scegli il nome del gruppo</string>
+    <string name="text_group_name_examples">Viaggio, Appartamento, ...</string>
+    <string name="title_activity_payment">Pagamento</string>
+    <string name="title_activity_payment_details"></string>
 </resources>

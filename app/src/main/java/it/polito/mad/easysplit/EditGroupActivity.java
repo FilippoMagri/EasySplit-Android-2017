@@ -2,12 +2,13 @@ package it.polito.mad.easysplit;
 
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -23,25 +24,12 @@ import java.util.Map;
 import it.polito.mad.easysplit.models.GroupBalanceModel;
 
 public class EditGroupActivity extends AppCompatActivity implements GroupBalanceModel.Listener {
-    private static final long AUTOSAVE_FREQUENCY = 5000;
-
     private CurrencySpinnerAdapter mCurrencyAdapter;
     private DatabaseReference mGroupRef;
     private EditText mNameEdit;
     private GroupBalanceModel mBalanceModel;
     private View mCurrencyWarning, mCurrencyLayout;
     private Spinner mCurrencySpinner;
-    private Handler mHandler = new Handler();
-
-    public synchronized boolean isRunning() {
-        return mIsRunning;
-    }
-
-    public synchronized void setIsRunning(boolean value) {
-        mIsRunning = value;
-    }
-
-    private boolean mIsRunning = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,15 +43,6 @@ public class EditGroupActivity extends AppCompatActivity implements GroupBalance
 
         mCurrencyAdapter = new CurrencySpinnerAdapter(this);
         mCurrencySpinner.setAdapter(mCurrencyAdapter);
-        mCurrencySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                updateGroup();
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) { }
-        });
 
         Uri groupUri = getIntent().getData();
         mBalanceModel = GroupBalanceModel.forGroup(groupUri);
@@ -86,16 +65,6 @@ public class EditGroupActivity extends AppCompatActivity implements GroupBalance
                 String currencyCode = groupSnap.child("currency").getValue(String.class);
                 int currencyIndex = mCurrencyAdapter.findCurrencyByCode(currencyCode);
                 mCurrencySpinner.setSelection(currencyIndex);
-
-                // Set the handler *after* having received the first data from Firebase
-                mHandler.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        updateGroup();
-                        if (isRunning())
-                            mHandler.postDelayed(this, AUTOSAVE_FREQUENCY);
-                    }
-                }, AUTOSAVE_FREQUENCY);
             }
 
             @Override
@@ -103,15 +72,12 @@ public class EditGroupActivity extends AppCompatActivity implements GroupBalance
 
             }
         });
-
-        setIsRunning(true);
     }
 
     @Override
     protected void onStop() {
         super.onStop();
         mBalanceModel.removeListener(this);
-        setIsRunning(false);
     }
 
     @Override
@@ -120,7 +86,20 @@ public class EditGroupActivity extends AppCompatActivity implements GroupBalance
         updateGroup();
     }
 
+    private void validateData() throws ValidationException {
+        if (mNameEdit.getText().toString().trim().length() == 0)
+            throw new ValidationException(getString(R.string.error_validate_title_empty));
+    }
+
     public void updateGroup() {
+        try {
+            validateData();
+        } catch (ValidationException exc) {
+            Toast.makeText(EditGroupActivity.this, exc.getMessage(), Toast.LENGTH_SHORT)
+                .show();
+            return;
+        }
+
         Map<String, Object> update = new HashMap<>();
         String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
         String groupId = mGroupRef.getKey();
@@ -136,6 +115,8 @@ public class EditGroupActivity extends AppCompatActivity implements GroupBalance
         }
 
         FirebaseDatabase.getInstance().getReference().updateChildren(update);
+
+        finish();
     }
 
     @Override
@@ -153,4 +134,33 @@ public class EditGroupActivity extends AppCompatActivity implements GroupBalance
         mCurrencyLayout.setVisibility(View.VISIBLE);
     }
 
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_edit_group, menu);
+        return true;
+    }
+
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.action_save) {
+            updateGroup();
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    private class ValidationException extends Throwable {
+        public ValidationException(String message) {
+            super(message);
+        }
+    }
 }

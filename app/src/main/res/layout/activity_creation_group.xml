@@ -40,13 +40,13 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="60dp"
-            android:text="Choose a Group Name"
+            android:text="@string/text_choose_group_name"
             android:textSize="18sp"/>
         <EditText
             android:id="@+id/nameGroup"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Trip, Flat"
+            android:hint="@string/text_group_name_examples"
             android:drawableRight="@drawable/ic_write"
             android:textSize="18sp"/>
 
@@ -54,7 +54,8 @@
             android:id="@+id/textView2"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="What currency will you use?"
+            android:layout_marginTop="20sp"
+            android:text="@string/text_choose_currency"
             android:textSize="18sp" />
 
         <Spinner
@@ -63,8 +64,10 @@
             android:layout_height="wrap_content"
             android:layout_gravity="end"
             android:gravity="end"
-            android:minHeight="40sp"
-            android:spinnerMode="dialog" />
+            android:paddingBottom="12sp"
+            android:paddingTop="12sp"
+            android:spinnerMode="dialog"
+            android:textAlignment="textEnd" />
 
     </LinearLayout>
 </android.support.design.widget.CoordinatorLayout>
