@@ -91,7 +91,7 @@
     <string name="error_network_problem_2">The network is acting up... Maybe you can try again later?</string>
     <string name="error_network_retry">Mh, the network is acting up, let\'s try again...</string>
     <string name="error_database_generic">We\'re having some problems with our database...</string>
-    <string name="error_validate_title_empty">Title should not be empty!</string>
+    <string name="error_validate_title_empty">Il titolo non dovrebbe essere vuoto!</string>
     <string name="new_expense_notification">Nuova spesa aggiunta</string>
     <string name="prompt_email"></string>
     <string name="text_choose_currency">Che moneta userete per saldare i debiti?</string>
@@ -104,4 +104,5 @@
     <string name="fusing_gb_total">Bilancio totale</string>
     <string name="action_fusing_gb">Unisci tutti i bilanci</string>
     <string name="message_progress_bar_during_fusing">Sto unendo i bilanci</string>
+    <string name="error_validate_email_or_password_empty">Email e password non dovrebbero essere vuoti!</string>
 </resources>

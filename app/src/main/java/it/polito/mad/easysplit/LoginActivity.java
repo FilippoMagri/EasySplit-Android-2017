@@ -14,6 +14,8 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
@@ -31,6 +33,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -71,6 +74,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     private View mLoginFormView;
     private LinearLayout mLinearLayout;
     final String defaultTemporaryUserRegistrationPassword = "CA_FI_SE_FL_AN_MAD_2017";
+    private Handler mHandler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,9 +91,26 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             @Override
             public boolean onEditorAction(TextView textView, int id, KeyEvent keyEvent) {
                 if (id == R.id.login || id == EditorInfo.IME_NULL) {
-                    attemptLogin();
+                    try {
+                        attemptLogin();
+                        return true;
+                    }catch (ValidationException validationExc) {
+                            mHandler.sendEmptyMessage(validationExc.getKind());
+                        }
+                }
+                return false;
+            }
+        });
+
+        mHandler = new Handler(new Handler.Callback() {
+            @Override
+            public boolean handleMessage(Message msg) {
+                if (msg.what == CreationGroup.ValidationException.EMPTY_TITLE) {
+                    Toast.makeText(LoginActivity.this, R.string.error_validate_email_or_password_empty, Toast.LENGTH_LONG)
+                            .show();
                     return true;
                 }
+
                 return false;
             }
         });
@@ -98,7 +119,11 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         mEmailSignInButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
-                attemptLogin();
+                try {
+                    attemptLogin();
+                } catch (ValidationException validationExc) {
+                    mHandler.sendEmptyMessage(validationExc.getKind());
+                }
             }
         });
 
@@ -106,7 +131,11 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         mEmailRegisterButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
+                try {
                 attemptRegister();
+                } catch (ValidationException validationExc) {
+                    mHandler.sendEmptyMessage(validationExc.getKind());
+                }
             }
         });
 
@@ -119,10 +148,14 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
      * If there are form errors (invalid email, missing fields, etc.), the
      * errors are presented and no actual register attempt is made.
      */
-    private void attemptRegister() {
+    private void attemptRegister() throws ValidationException {
+
         // Store values at the time of the register attempt.
         String email = mEmailView.getText().toString();
         String password = mPasswordView.getText().toString();
+
+        if( (email.trim().length() == 0) || (password.trim().length() ==0))
+            throw new ValidationException(ValidationException.EMPTY_TITLE);
 
         FirebaseAuth auth = FirebaseAuth.getInstance();
         //Check if it is a temporaryPassiveUser
@@ -231,7 +264,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
      * If there are form errors (invalid email, missing fields, etc.), the
      * errors are presented and no actual login attempt is made.
      */
-    private void attemptLogin() {
+    private void attemptLogin() throws ValidationException{
         // Reset errors.
         mEmailView.setError(null);
         mPasswordView.setError(null);
@@ -239,6 +272,9 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         // Store values at the time of the login attempt.
         String email = mEmailView.getText().toString();
         String password = mPasswordView.getText().toString();
+
+        if( (email.trim().length() == 0) || (password.trim().length() ==0))
+            throw new ValidationException(ValidationException.EMPTY_TITLE);
 
         FirebaseAuth auth = FirebaseAuth.getInstance();
         auth.signInWithEmailAndPassword(email, password).addOnCompleteListener(new LoginTaskListener());
@@ -462,6 +498,21 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
         int ADDRESS = 0;
         int IS_PRIMARY = 1;
+    }
+
+    static class ValidationException extends Exception {
+        public static final int EMPTY_TITLE = 1;
+
+        private int kind;
+
+        public ValidationException(int kind) {
+            super();
+            this.kind = kind;
+        }
+
+        public int getKind() {
+            return kind;
+        }
     }
 }
 
