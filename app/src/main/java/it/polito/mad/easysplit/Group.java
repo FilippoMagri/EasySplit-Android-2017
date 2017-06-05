@@ -12,6 +12,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
+import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -19,6 +20,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -96,6 +98,34 @@ public class Group extends AppCompatActivity {
 
         mProfilePicView = (ImageView) findViewById(R.id.profilePicView);
         mAuthListener = new AuthListener();
+
+        final FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab_group);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(Group.this, CreationGroup.class);
+                startActivity(intent);
+            }
+        });
+
+        mGroupListView.setOnScrollListener(new AbsListView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(AbsListView absListView, int scrollState) {
+                int btn_initPosY=fab.getScrollY();
+                if (scrollState == SCROLL_STATE_TOUCH_SCROLL || scrollState == SCROLL_STATE_FLING) {
+                    fab.animate().cancel();
+                    fab.animate().translationYBy(200);
+                } else {
+                    fab.animate().cancel();
+                    fab.animate().translationY(btn_initPosY);
+                }
+            }
+
+            @Override
+            public void onScroll(AbsListView absListView, int i, int i1, int i2) {
+
+            }
+        });
     }
 
     private void resetLocalCurrencyFormat() {
@@ -270,10 +300,6 @@ public class Group extends AppCompatActivity {
         if (id == R.id.action_logout) {
             Intent i =new Intent(this, LoginActivity.class);
             startActivity(i);
-        } else if (id == R.id.action_create_group) {
-            Intent intent = new Intent(Group.this, CreationGroup.class);
-            startActivity(intent);
-            return true;
         } else if (id == R.id.action_show_fused_total_balance) {
             mergeAllBalances();
             return true;
