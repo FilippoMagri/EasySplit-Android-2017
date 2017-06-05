@@ -45,7 +45,7 @@
                 android:layout_gravity="center"
                 android:background="@color/colorBackgroundMaterialLight" />
             <LinearLayout
-                android:background="@color/colorFusingGroupBalance"
+                android:background="@color/colorClair"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
@@ -147,13 +147,6 @@
                 android:background="@color/colorBackgroundMaterialLight" />
         </LinearLayout>
 
-        <TextView
-            android:id="@+id/user_name"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="10sp"
-            android:textAlignment="textEnd"
-            android:textSize="20sp" />
         <LinearLayout
             android:id="@+id/profile_button_layout"
             android:layout_width="match_parent"
