@@ -3,6 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@color/colorClair"
+    android:orientation="horizontal"
     >
 
     <ImageView
@@ -12,7 +13,8 @@
         android:layout_marginLeft="12dp"
         android:layout_marginStart="12dp"
         android:gravity="center_vertical"
-        android:src="@drawable/ic_group_grey_700_36dp" />
+        android:src="@drawable/ic_group_grey_700_36dp"
+        android:layout_weight="0.0"/>
 
     <TextView
         android:id="@+id/group_name"
@@ -24,12 +26,14 @@
         android:layout_marginBottom="20dp"
         android:textSize="20sp"
         android:gravity="center_vertical|fill_horizontal"
-        android:text="@+id/group_name" />
+        android:text="@+id/group_name"
+        android:layout_weight="0.8"/>
 
     <ImageView
         android:id="@+id/icon_row_group"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:gravity="end"
-        android:src="@drawable/ic_next" />
+        android:src="@drawable/ic_next"
+        android:layout_weight="0.0"/>
 </LinearLayout>
