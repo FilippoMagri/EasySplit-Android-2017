@@ -300,6 +300,7 @@ public class Group extends AppCompatActivity {
         if (id == R.id.action_logout) {
             Intent i =new Intent(this, LoginActivity.class);
             startActivity(i);
+            FirebaseAuth.getInstance().signOut();
         } else if (id == R.id.action_show_fused_total_balance) {
             mergeAllBalances();
             return true;
