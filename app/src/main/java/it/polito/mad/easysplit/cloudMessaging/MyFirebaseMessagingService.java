@@ -70,11 +70,11 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         long[] vibrate = { 0, 100, 200, 300 };
         Uri uri= RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
         Bitmap largeIcon = BitmapFactory.decodeResource(getApplicationContext().getResources(),
-                R.drawable.ic_monetization_on_red_900_36dp);
+                R.drawable.logo_idea);
         NotificationCompat.Builder mBuilder =
                 new NotificationCompat.Builder(this)
                         .setLargeIcon(largeIcon)
-                        .setSmallIcon(R.drawable.ic_monetization_on_red_900_36dp)
+                        .setSmallIcon(R.drawable.logo_idea)
                         .setContentTitle(notificationTitle).setDefaults(Notification.DEFAULT_ALL)
                         .setContentText(body).setPriority(Notification.PRIORITY_HIGH)
                         .setSound(uri)
