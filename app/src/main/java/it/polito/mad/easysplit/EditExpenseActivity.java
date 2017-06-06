@@ -379,7 +379,7 @@ public class EditExpenseActivity extends AppCompatActivity {
                 ListView membersList = (ListView) findViewById(id.membersList);
                 Spinner currencySpinner = (Spinner) findViewById(id.currencySpinner);
 
-                Date timestamp = mDateTimePicker.getCalendar().getTime();
+                final Date timestamp = mDateTimePicker.getCalendar().getTime();
 
                 final String title = titleEdit.getText().toString();
 
@@ -405,7 +405,7 @@ public class EditExpenseActivity extends AppCompatActivity {
 
 
                 ConversionRateProvider conversionProvider = ConversionRateProvider.getInstance();
-                Money amountBase, amountConverted;
+                final Money amountBase, amountConverted;
 
                 try {
                     Task<Money> conversionToBase = conversionProvider.convertToBase(amountOriginal);
@@ -482,6 +482,9 @@ public class EditExpenseActivity extends AppCompatActivity {
                             /// TODO Go to the expense details (with the newly created URI)
                             Intent i = new Intent(getApplicationContext(), ExpenseDetailsActivity.class);
                             i.setData(Utils.getUriFor(UriType.EXPENSE, expenseId));
+                            i.putExtra("name", title);
+                            i.putExtra("amount", amountConverted.toString());
+                            i.putExtra("timestamp", timestamp.getTime());
                             startActivity(i);
                             String message4Notification = getResources().getString(R.string.new_expense_notification);
                             MessagingUtils.sendPushUpNotifications(mRoot, mGroupId, title, memberIds, message4Notification);
@@ -492,7 +495,6 @@ public class EditExpenseActivity extends AppCompatActivity {
                         }
                     }
                 });
-
                 finish();
             }
         }).start();

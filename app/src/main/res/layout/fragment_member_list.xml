@@ -7,19 +7,6 @@
     tools:context="it.polito.mad.easysplit.layout.MemberListFragment"
     android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/offline_warning"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@color/colorBackgroundWarning"
-        android:paddingBottom="10sp"
-        android:paddingLeft="15sp"
-        android:paddingRight="15sp"
-        android:paddingTop="10sp"
-        android:text="@string/warning_not_connected_compute"
-        android:textColor="@color/colorTextWarning"
-        android:visibility="gone" />
-
     <ListView
         android:id="@+id/membersList"
         android:layout_width="match_parent"

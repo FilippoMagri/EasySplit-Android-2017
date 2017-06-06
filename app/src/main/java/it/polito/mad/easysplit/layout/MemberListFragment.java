@@ -9,20 +9,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
 
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
-
 import it.polito.mad.easysplit.R;
 import it.polito.mad.easysplit.models.GroupBalanceModel;
 
 public class MemberListFragment extends Fragment {
     private Uri mGroupUri;
     private GroupBalanceAdapter mAdapter;
-    private ValueEventListener mConnectionListener;
-    private DatabaseReference mConnectedRef;
 
     public static MemberListFragment newInstance(Uri groupUri) {
         MemberListFragment frag = new MemberListFragment();
@@ -38,33 +30,6 @@ public class MemberListFragment extends Fragment {
 
         Bundle args = getArguments();
         mGroupUri = Uri.parse(args.getCharSequence("groupUri").toString());
-    }
-
-    @Override
-    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-
-        final View connectionWarning = view.findViewById(R.id.offline_warning);
-        mConnectionListener = new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot valueSnap) {
-                connectionWarning.setVisibility(
-                        valueSnap.getValue(Boolean.class) ?
-                        View.GONE : View.VISIBLE);
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) { }
-        };
-
-        mConnectedRef = FirebaseDatabase.getInstance().getReference("/.info/connected");
-        mConnectedRef.addValueEventListener(mConnectionListener);
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-        mConnectedRef.removeEventListener(mConnectionListener);
     }
 
     @Override

@@ -109,6 +109,7 @@
     <string name="error_validate_email">L\'email non dovrebbe essere vuota!</string>
     <string name="not_logged_in">(not logged in)</string>
     <string name="text_no_groups">Non vediamo nessun gruppo di cui fai parte!</string>
-    <string name="warning_not_connected_compute">Attenzione! Non siamo connessi a Internet, perciò i risultati sottostanti sono basati su quello che sappiamo al momento. Riconnettiti se vuoi avere risultati certi, con la moneta corretta.</string>
-    <string name="error_conversion_require_connection">Connection is required for conversion!</string>
+    <string name="warning_not_connected_compute">Attenzione! Non siamo connessi a Internet, perciò i dati che vedi sono basati su quello che sappiamo al momento. Riconnettiti se vuoi avere risultati certi, con la moneta corretta.</string>
+    <string name="error_conversion_require_connection">È necessario connettersi per la conversione di moneta!</string>
+    <string name="text_expense_unavailable_offline">Questa spesa non è disponibile offline!</string>
 </resources>

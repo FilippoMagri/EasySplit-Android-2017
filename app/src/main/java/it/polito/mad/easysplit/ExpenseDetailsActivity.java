@@ -9,6 +9,7 @@ import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -43,6 +44,7 @@ import it.polito.mad.easysplit.R.drawable;
 import it.polito.mad.easysplit.R.id;
 import it.polito.mad.easysplit.R.layout;
 import it.polito.mad.easysplit.cloudMessaging.MessagingUtils;
+import it.polito.mad.easysplit.layout.OfflineWarningHelper;
 import it.polito.mad.easysplit.models.Money;
 
 
@@ -55,6 +57,7 @@ public class ExpenseDetailsActivity extends AppCompatActivity {
     private ValueEventListener mListener;
     private ParticipantsAdapter mParticipantsAdapter;
     private String mGroupId, mPayerId;
+    private OfflineWarningHelper mWarningHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,6 +75,16 @@ public class ExpenseDetailsActivity extends AppCompatActivity {
             }
         });
 
+        Intent intent = getIntent();
+        TextView creationDateText = (TextView) findViewById(id.expenseCreationDate);
+        TextView expenseNameText = (TextView) findViewById(id.expenseName);
+        expenseNameText.setText(intent.getStringExtra("name"));
+        setTitle(intent.getStringExtra("amount"));
+        if (intent.hasExtra("timestamp")) {
+            Date timestamp = new Date(intent.getLongExtra("timestamp", 0));
+            creationDateText.setText(sUIDateFormat.format(timestamp));
+        }
+
         mParticipantsAdapter = new ParticipantsAdapter(this);
         ListView participantsList = (ListView) findViewById(id.participantsList);
         participantsList.setAdapter(mParticipantsAdapter);
@@ -79,6 +92,17 @@ public class ExpenseDetailsActivity extends AppCompatActivity {
         // mRef will be something like "https://easysplit-853e4.firebaseio.com/expenses/-KitTZeY14BFsnsH_rpp"
         mRef = Utils.findByUri(getIntent().getData());
         mListener = new ExpenseListener();
+
+        mWarningHelper = new OfflineWarningHelper(this);
+
+        Button editButton = (Button) findViewById(id.editButton);
+        editButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Snackbar.make(v, R.string.text_expense_unavailable_offline, Snackbar.LENGTH_LONG)
+                        .show();
+            }
+        });
     }
 
     @Override
@@ -93,6 +117,11 @@ public class ExpenseDetailsActivity extends AppCompatActivity {
         super.onPause();
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onStop();
+        mWarningHelper.detach();
+    }
 
     private class ExpenseListener implements ValueEventListener {
         private final Button editButton = (Button) findViewById(id.editButton);

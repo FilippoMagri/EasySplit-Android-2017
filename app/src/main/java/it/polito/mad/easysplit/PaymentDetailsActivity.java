@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import it.polito.mad.easysplit.cloudMessaging.MessagingUtils;
+import it.polito.mad.easysplit.layout.OfflineWarningHelper;
 import it.polito.mad.easysplit.models.Money;
 
 public class PaymentDetailsActivity extends AppCompatActivity {
@@ -43,6 +44,7 @@ public class PaymentDetailsActivity extends AppCompatActivity {
     Money originalTotal=new Money(new BigDecimal("0.00"));
     final Map<String, String> memberIds = new HashMap<>();
     private String payerName="";
+    private OfflineWarningHelper mWarningHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,10 +61,28 @@ public class PaymentDetailsActivity extends AppCompatActivity {
             }
         });
 
+        Intent intent = getIntent();
+        String intentAmount = intent.getStringExtra("amount");
+        setTitle(intentAmount);
+        TextView nameText = (TextView) findViewById(R.id.paymentStandardName);
+        nameText.setText(intent.getStringExtra("name"));
+
         // mRef will be something like "https://easysplit-853e4.firebaseio.com/payments/-KitTZeY14BFsnsH_rpp"
         mRef = Utils.findByUri(getIntent().getData());
         mListener = new PaymentDetailsActivity.PaymentListener();
         mRef.addValueEventListener(mListener);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        mWarningHelper = new OfflineWarningHelper(this);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        mWarningHelper.detach();
     }
 
     private class PaymentListener implements ValueEventListener {

@@ -138,6 +138,8 @@
     <string name="message_progress_bar_during_fusing">Merging all balances</string>
     <string name="not_logged_in">(not logged in)</string>
     <string name="text_no_groups">We can\'t see any of your groups!</string>
-    <string name="warning_not_connected_compute">Beware! We\'re not connected to the Internet, so the results below are based on what little we know at the moment.\n\nPlease connect to the Internet to get the correct sums, with the correct currency.</string>
+    <string name="warning_not_connected_compute">Beware! We\'re not connected to the Internet, so the data you see are based on what little we know at the moment.\n\nPlease connect to the Internet to get the correct sums, with the correct currency.</string>
     <string name="error_conversion_require_connection">Connection is required for conversion!</string>
+    <string name="text_unknown">\?</string>
+    <string name="text_expense_unavailable_offline">This expense is currently unavailable offline!</string>
 </resources>

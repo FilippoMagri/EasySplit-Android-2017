@@ -8,7 +8,6 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -20,14 +19,13 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Comparator;
 
 import it.polito.mad.easysplit.EditExpenseActivity;
 import it.polito.mad.easysplit.ExpenseDetailsActivity;
@@ -70,7 +68,7 @@ public class ExpenseListFragment extends Fragment {
         ListView lv = (ListView) view.findViewById(id.expensesList);
 
         ExpenseListAdapter adapter = new ExpenseListAdapter(getContext());
-        mExpensesRef.orderByChild("timestamp").addValueEventListener(adapter);
+        mExpensesRef.orderByChild("timestamp").addChildEventListener(adapter);
         lv.setAdapter(adapter);
         lv.setOnItemClickListener(new OnItemClickListener() {
             @Override
@@ -78,6 +76,9 @@ public class ExpenseListFragment extends Fragment {
                 ListItem expense = (ListItem) parent.getItemAtPosition(position);
                 Intent showExpense = new Intent(getContext(), ExpenseDetailsActivity.class);
                 showExpense.setData(Utils.getUriFor(UriType.EXPENSE, expense.id));
+                showExpense.putExtra("name", expense.name);
+                showExpense.putExtra("amount", expense.amount);
+                showExpense.putExtra("timestamp", expense.timestamp);
                 startActivity(showExpense);
             }
         });
@@ -116,15 +117,30 @@ public class ExpenseListFragment extends Fragment {
 
     private static final class ListItem {
         String id, name, amount;
+        long timestamp;
 
-        public ListItem(String id, String name, String amount) {
+        public ListItem(String id, String name, String amount, long timestamp) {
             this.id = id;
             this.name = name;
             this.amount = amount;
+            this.timestamp = timestamp;
         }
     }
 
-    private class ExpenseListAdapter extends ArrayAdapter<ListItem> implements ValueEventListener {
+    private class ExpenseListAdapter extends ArrayAdapter<ListItem> implements ChildEventListener {
+
+        private Comparator<? super ListItem> mComparator = new Comparator<ListItem>() {
+            @Override
+            public int compare(ListItem lhs, ListItem rhs) {
+                // Reverse order!
+                if (lhs.timestamp > rhs.timestamp)
+                    return -1;
+                if (lhs.timestamp < rhs.timestamp)
+                    return 1;
+                return 0;
+            }
+        };
+
         public ExpenseListAdapter(Context ctx) {
             super(ctx, layout.expense_item);
         }
@@ -147,35 +163,62 @@ public class ExpenseListFragment extends Fragment {
             return convertView;
         }
 
+
+
         @Override
-        public synchronized void onDataChange(DataSnapshot expenseIdsSnap) {
-            ArrayList<ListItem> items = new ArrayList<>();
+        public void onChildAdded(DataSnapshot expenseSnap, String previousChildName) {
+            addExpense(expenseSnap);
+            sort(mComparator);
+        }
 
-            for (DataSnapshot child : expenseIdsSnap.getChildren()) {
-                String expenseId = child.getKey();
-                String name = child.child("name").getValue(String.class);
-                String baseAmountStdStr = child.child("amount").getValue(String.class);
+        @Override
+        public void onChildChanged(DataSnapshot expenseSnap, String previousChildName) {
+            removeByKey(expenseSnap.getKey());
+            onChildAdded(expenseSnap, previousChildName);
+        }
 
-                String origAmountStdStr = child.child("amount_original").getValue(String.class);
-                if (origAmountStdStr == null)
-                    origAmountStdStr = baseAmountStdStr;
+        @Override
+        public void onChildRemoved(DataSnapshot expenseSnap) {
+            removeByKey(expenseSnap.getKey());
+        }
 
-                String convAmountStdStr = child.child("amount_converted").getValue(String.class);
-                if (convAmountStdStr == null)
-                    convAmountStdStr = baseAmountStdStr;
-
-                Money amountOriginal = Money.parseOrFail(origAmountStdStr);
-                Money amountConverted = Money.parseOrFail(convAmountStdStr);
-                String amountText = amountConverted.toString();
-                if (! amountOriginal.getCurrency().equals(amountConverted.getCurrency()))
-                    amountText += " (" + amountOriginal.toString() + ")";
-
-                items.add(new ListItem(expenseId, name, amountText));
+        void removeByKey(String key) {
+            for (int i=0; i < getCount(); i++) {
+                ListItem item = getItem(i);
+                if (item.id.equals(key)) {
+                    remove(item);
+                    break;
+                }
             }
+        }
 
-            Collections.reverse(items);
-            clear();
-            addAll(items);
+        @Override
+        public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+            sort(mComparator);
+        }
+
+        void addExpense(DataSnapshot expenseSnap) {
+            String expenseId = expenseSnap.getKey();
+            String name = expenseSnap.child("name").getValue(String.class);
+            String baseAmountStdStr = expenseSnap.child("amount").getValue(String.class);
+
+            String origAmountStdStr = expenseSnap.child("amount_original").getValue(String.class);
+            if (origAmountStdStr == null)
+                origAmountStdStr = baseAmountStdStr;
+
+            String convAmountStdStr = expenseSnap.child("amount_converted").getValue(String.class);
+            if (convAmountStdStr == null)
+                convAmountStdStr = baseAmountStdStr;
+
+            Money amountOriginal = Money.parseOrFail(origAmountStdStr);
+            Money amountConverted = Money.parseOrFail(convAmountStdStr);
+            String amountText = amountConverted.toString();
+            if (! amountOriginal.getCurrency().equals(amountConverted.getCurrency()))
+                amountText += " (" + amountOriginal.toString() + ")";
+
+            Long timestamp = expenseSnap.child("timestamp").getValue(Long.class);
+
+            add(new ListItem(expenseId, name, amountText, timestamp));
         }
 
         @Override

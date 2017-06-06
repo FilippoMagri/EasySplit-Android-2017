@@ -29,6 +29,7 @@ import java.util.Map;
 
 import it.polito.mad.easysplit.layout.ExpenseListFragment;
 import it.polito.mad.easysplit.layout.MemberListFragment;
+import it.polito.mad.easysplit.layout.OfflineWarningHelper;
 import it.polito.mad.easysplit.layout.PaymentListFragment;
 import it.polito.mad.easysplit.models.GroupBalanceModel;
 import it.polito.mad.easysplit.models.Money;
@@ -38,6 +39,7 @@ public class GroupDetailsActivity extends AppCompatActivity {
     private final DatabaseReference mRoot = FirebaseDatabase.getInstance().getReference();
 
     private Uri mGroupUri;
+    private OfflineWarningHelper mWarningHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,6 +77,18 @@ public class GroupDetailsActivity extends AppCompatActivity {
 
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(pager);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        mWarningHelper = new OfflineWarningHelper(this);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        mWarningHelper.detach();
     }
 
     private class LocalPagerAdapter extends FragmentPagerAdapter {
