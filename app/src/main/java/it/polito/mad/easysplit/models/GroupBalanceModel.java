@@ -59,15 +59,15 @@ public class GroupBalanceModel {
     }
 
     public static GroupBalanceModel forGroup(Uri groupUri,String currencyCode) {
-        WeakReference<GroupBalanceModel> instance = sInstancesWithSpecificCurrencyCode.get(groupUri);
+        // WeakReference<GroupBalanceModel> instance = sInstancesWithSpecificCurrencyCode.get(groupUri);
 
-        if (instance == null || instance.get() == null || ( (instance!=null) && !instance.get().getmGroupCurrency().getCurrencyCode().equals(currencyCode) )) {
+        // if (instance == null || instance.get() == null || ( (instance!=null) && !instance.get().getmGroupCurrency().getCurrencyCode().equals(currencyCode) )) {
             GroupBalanceModel newInstance = new GroupBalanceModel(groupUri, currencyCode);
-            sInstancesWithSpecificCurrencyCode.put(groupUri, new WeakReference<>(newInstance));
+        //   sInstancesWithSpecificCurrencyCode.put(groupUri, new WeakReference<>(newInstance));
             return newInstance;
-        }
+        // }
 
-        return instance.get();
+        // return instance.get();
     }
 
     private final LinkedHashMap<String, MemberRepresentation> mBalance = new LinkedHashMap<>();
