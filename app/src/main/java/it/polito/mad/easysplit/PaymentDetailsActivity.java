@@ -97,7 +97,6 @@ public class PaymentDetailsActivity extends AppCompatActivity {
         @Override
         public void onDataChange(DataSnapshot paymentSnap) {
             if (paymentSnap.getValue() == null) {
-                PaymentDetailsActivity.this.finish();
                 return;
             }
 
@@ -217,5 +216,6 @@ public class PaymentDetailsActivity extends AppCompatActivity {
                 dialog.show();
             }
         });
+        finish();
     }
 }
