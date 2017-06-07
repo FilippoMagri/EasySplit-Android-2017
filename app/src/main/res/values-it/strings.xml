@@ -93,7 +93,7 @@
     <string name="error_database_generic">We\'re having some problems with our database...</string>
     <string name="error_validate_title_empty">Il titolo non dovrebbe essere vuoto!</string>
     <string name="new_expense_notification">Nuova spesa aggiunta</string>
-    <string name="prompt_email"></string>
+    <string name="prompt_email">Email</string>
     <string name="text_choose_currency">Che moneta userete per saldare i debiti?</string>
     <string name="text_choose_group_name">Scegli il nome del gruppo</string>
     <string name="text_group_name_examples">Viaggio, Appartamento, ...</string>
@@ -112,4 +112,13 @@
     <string name="warning_not_connected_compute">Attenzione! Non siamo connessi a Internet, perciò i dati che vedi sono basati su quello che sappiamo al momento. Riconnettiti se vuoi avere risultati certi, con la moneta corretta.</string>
     <string name="error_conversion_require_connection">È necessario connettersi per la conversione di moneta!</string>
     <string name="text_expense_unavailable_offline">Questa spesa non è disponibile offline!</string>
+    <string name="error_cant_leave_group_Offline">Non puoi abbandonare un gruppo quando sei offline! Bisogna prima riconnettersi.</string>
+    <string name="balance_creditor">Creditore</string>
+    <string name="balance_creditor_message">"Deve restituire a %s: "</string>
+    <string name="balance_debtor">Debitore</string>
+    <string name="activity_label_user_profile">Profilo utente</string>
+    <string name="edit">Modifica</string>
+    <string name="error_profile_pic">Non riusciamo a scaricare la foto profilo!</string>
+    <string name="text_unknown">\?</string>
+    <string name="prompt_password">Password</string>
 </resources>

@@ -62,6 +62,8 @@ public class PaymentDetailsActivity extends AppCompatActivity {
         });
 
         Intent intent = getIntent();
+        mGroupId = intent.getStringExtra("groupId");
+        mPayerId = intent.getStringExtra("payerId");
         String intentAmount = intent.getStringExtra("amount");
         setTitle(intentAmount);
         TextView nameText = (TextView) findViewById(R.id.paymentStandardName);

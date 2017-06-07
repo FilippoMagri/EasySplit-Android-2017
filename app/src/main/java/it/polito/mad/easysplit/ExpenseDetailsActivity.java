@@ -76,6 +76,8 @@ public class ExpenseDetailsActivity extends AppCompatActivity {
         });
 
         Intent intent = getIntent();
+        mGroupId = intent.getStringExtra("groupId");
+        mPayerId = intent.getStringExtra("payerId");
         TextView creationDateText = (TextView) findViewById(id.expenseCreationDate);
         TextView expenseNameText = (TextView) findViewById(id.expenseName);
         expenseNameText.setText(intent.getStringExtra("name"));
@@ -119,7 +121,7 @@ public class ExpenseDetailsActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
-        super.onStop();
+        super.onDestroy();
         mWarningHelper.detach();
     }
 

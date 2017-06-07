@@ -150,37 +150,53 @@ public class GroupDetailsActivity extends AppCompatActivity {
             startActivity(i);
             return true;
         } else if (id == R.id.action_leave) {
+            mRoot.child("/.info/connected").addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot connectedSnap) {
+                    boolean connected = connectedSnap.getValue(Boolean.class);
+                    if (! connected) {
+                        new AlertDialog.Builder(GroupDetailsActivity.this)
+                                .setTitle(R.string.error_generic_title)
+                                .setMessage(R.string.error_cant_leave_group_Offline)
+                                .show();
+                        return;
+                    }
 
-            AlertDialog dialog = new AlertDialog.Builder(this)
-                    .setTitle(R.string.leave_confirm_title)
-                    .setMessage(R.string.leave_confirm_message)
-                    .setCancelable(false)
-                    .setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            Map<String, GroupBalanceModel.MemberRepresentation> balance =
-                                    GroupBalanceModel.forGroup(mGroupUri).getBalanceSnapshot();
+                    new AlertDialog.Builder(GroupDetailsActivity.this)
+                            .setTitle(R.string.leave_confirm_title)
+                            .setMessage(R.string.leave_confirm_message)
+                            .setCancelable(false)
+                            .setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    Map<String, GroupBalanceModel.MemberRepresentation> balance =
+                                            GroupBalanceModel.forGroup(mGroupUri).getBalanceSnapshot();
 
-                            final FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-                            Money residue = balance.get(user.getUid()).getResidue();
+                                    final FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+                                    Money residue = balance.get(user.getUid()).getResidue();
 
-                            // delete user from group, and group from user
-                            if (residue.isZero()) {
-                                removeUserFromGroup(user.getUid(), balance.size() == 1);
-                                Intent i = new Intent(GroupDetailsActivity.this, Group.class);
-                                startActivity(i);
-                                finish();
-                            } else {
-                                new AlertDialog.Builder(GroupDetailsActivity.this)
-                                        .setTitle(R.string.balance_problem_title)
-                                        .setMessage(R.string.balance_problem_message)
-                                        .setPositiveButton(R.string.okay, null).show();
-                            }
-                        }
-                    })
-                    .setNegativeButton(R.string.no, null)
-                    .create();
-            dialog.show();
+                                    // delete user from group, and group from user
+                                    if (residue.isZero()) {
+                                        removeUserFromGroup(user.getUid(), balance.size() == 1);
+                                        Intent i = new Intent(GroupDetailsActivity.this, Group.class);
+                                        startActivity(i);
+                                        finish();
+                                    } else {
+                                        new AlertDialog.Builder(GroupDetailsActivity.this)
+                                                .setTitle(R.string.balance_problem_title)
+                                                .setMessage(R.string.balance_problem_message)
+                                                .setPositiveButton(R.string.okay, null).show();
+                                    }
+                                }
+                            })
+                            .setNegativeButton(R.string.no, null)
+                            .show();
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) { }
+            });
+
             return true;
         }
 

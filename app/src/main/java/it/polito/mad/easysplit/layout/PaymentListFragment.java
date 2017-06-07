@@ -35,6 +35,9 @@ import it.polito.mad.easysplit.Utils.UriType;
 import it.polito.mad.easysplit.models.Money;
 
 public class PaymentListFragment extends Fragment {
+
+    private String mGroupId;
+
     public static PaymentListFragment newInstance(Uri groupUri) {
         PaymentListFragment frag = new PaymentListFragment();
 
@@ -57,6 +60,7 @@ public class PaymentListFragment extends Fragment {
         Bundle args = getArguments();
         mGroupUri = (String) args.getCharSequence("groupUri");
         DatabaseReference groupRef = Utils.findByUri(Uri.parse(mGroupUri), mRoot);
+        mGroupId = groupRef.getKey();
         mPaymentsRef = groupRef.child("payments");
     }
 
@@ -77,6 +81,8 @@ public class PaymentListFragment extends Fragment {
                 showPayment.setData(Utils.getUriFor(UriType.PAYMENT, payment.id));
                 showPayment.putExtra("name", payment.name);
                 showPayment.putExtra("amount", payment.amount);
+                showPayment.putExtra("groupId", mGroupId);
+                showPayment.putExtra("payerId", payment.payerId);
                 startActivity(showPayment);
             }
         });
@@ -107,13 +113,14 @@ public class PaymentListFragment extends Fragment {
     }
 
     private static final class ListItem {
-        String id, name, amount;
+        String id, name, amount, payerId;
         long timestamp;
 
-        public ListItem(String id, String name, String amount, long timestamp) {
+        public ListItem(String id, String name, String amount, String payerId, long timestamp) {
             this.id = id;
             this.name = name;
             this.amount = amount;
+            this.payerId = payerId;
             this.timestamp = timestamp;
         }
     }
@@ -196,8 +203,9 @@ public class PaymentListFragment extends Fragment {
             }
 
             Long timestamp = paymentSnap.child("timestamp").getValue(Long.class);
+            String payerId = paymentSnap.child("payer_id").getValue(String.class);
 
-            add(new ListItem(paymentId, name, amountText, timestamp));
+            add(new ListItem(paymentId, name, amountText, payerId, timestamp));
             sort(mComparator);
         }
 

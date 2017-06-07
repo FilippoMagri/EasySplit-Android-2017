@@ -142,4 +142,6 @@
     <string name="error_conversion_require_connection">Connection is required for conversion!</string>
     <string name="text_unknown">\?</string>
     <string name="text_expense_unavailable_offline">This expense is currently unavailable offline!</string>
+    <string name="error_cant_leave_group_Offline">You can\'t leave groups while you\'re offline!</string>
+    <string name="invite_succeeded">Invited with success</string>
 </resources>

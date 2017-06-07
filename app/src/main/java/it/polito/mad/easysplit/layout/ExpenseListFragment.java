@@ -36,6 +36,9 @@ import it.polito.mad.easysplit.Utils.UriType;
 import it.polito.mad.easysplit.models.Money;
 
 public class ExpenseListFragment extends Fragment {
+
+    private String mGroupId;
+
     public static ExpenseListFragment newInstance(Uri groupUri) {
         ExpenseListFragment frag = new ExpenseListFragment();
 
@@ -58,6 +61,7 @@ public class ExpenseListFragment extends Fragment {
         Bundle args = getArguments();
         mGroupUri = (String) args.getCharSequence("groupUri");
         DatabaseReference groupRef = Utils.findByUri(Uri.parse(mGroupUri), mRoot);
+        mGroupId = groupRef.getKey();
         mExpensesRef = groupRef.child("expenses");
     }
 
@@ -79,6 +83,8 @@ public class ExpenseListFragment extends Fragment {
                 showExpense.putExtra("name", expense.name);
                 showExpense.putExtra("amount", expense.amount);
                 showExpense.putExtra("timestamp", expense.timestamp);
+                showExpense.putExtra("groupId", mGroupId);
+                showExpense.putExtra("payerId", expense.payerId);
                 startActivity(showExpense);
             }
         });
@@ -116,14 +122,15 @@ public class ExpenseListFragment extends Fragment {
     }
 
     private static final class ListItem {
-        String id, name, amount;
+        String id, name, amount, payerId;
         long timestamp;
 
-        public ListItem(String id, String name, String amount, long timestamp) {
+        public ListItem(String id, String name, String amount, String payerId, long timestamp) {
             this.id = id;
             this.name = name;
             this.amount = amount;
             this.timestamp = timestamp;
+            this.payerId = payerId;
         }
     }
 
@@ -217,8 +224,9 @@ public class ExpenseListFragment extends Fragment {
                 amountText += " (" + amountOriginal.toString() + ")";
 
             Long timestamp = expenseSnap.child("timestamp").getValue(Long.class);
+            String payerId = expenseSnap.child("payer_id").getValue(String.class);
 
-            add(new ListItem(expenseId, name, amountText, timestamp));
+            add(new ListItem(expenseId, name, amountText, payerId, timestamp));
         }
 
         @Override

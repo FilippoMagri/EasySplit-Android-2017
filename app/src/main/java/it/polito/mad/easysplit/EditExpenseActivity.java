@@ -428,7 +428,7 @@ public class EditExpenseActivity extends AppCompatActivity {
                     return;
                 }
 
-                MemberListItem payerItem = (MemberListItem) payerSpinner.getSelectedItem();
+                final MemberListItem payerItem = (MemberListItem) payerSpinner.getSelectedItem();
                 final Map<String, String> memberIds = new HashMap<>();
                 int numMembers = membersList.getAdapter().getCount();
                 for (int i = 0; i < numMembers; i++) {
@@ -485,6 +485,8 @@ public class EditExpenseActivity extends AppCompatActivity {
                             i.putExtra("name", title);
                             i.putExtra("amount", amountConverted.toString());
                             i.putExtra("timestamp", timestamp.getTime());
+                            i.putExtra("groupId", mGroupId);
+                            i.putExtra("payerId", payerItem.id);
                             startActivity(i);
                             String message4Notification = getResources().getString(R.string.new_expense_notification);
                             MessagingUtils.sendPushUpNotifications(mRoot, mGroupId, title, memberIds, message4Notification);
