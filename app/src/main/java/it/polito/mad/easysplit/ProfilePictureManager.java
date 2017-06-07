@@ -72,9 +72,7 @@ public class ProfilePictureManager {
         void onFailure(Exception e);
     }
 
-    private final String mProfilePicFilename;
     private StorageReference mStorageRef;
-    private Context mContext;
     // Listeners are kept with weak references, so that they're automatically deleted once they're
     // no longer used.
     private Set<Listener> mListeners = Collections.newSetFromMap(new WeakHashMap<Listener, Boolean>());
@@ -82,11 +80,10 @@ public class ProfilePictureManager {
 
 
     private ProfilePictureManager(Context ctx, String userId) {
-        mContext = ctx;
-        mProfilePicFilename = "profilepic-" + userId;
+        String mProfilePicFilename = "profilepic-" + userId;
         mStorageRef = FirebaseStorage.getInstance().getReference().child(mProfilePicFilename);
 
-        String cacheDir = mContext.getCacheDir().getAbsolutePath();
+        String cacheDir = ctx.getCacheDir().getAbsolutePath();
         mLocalFile = new File(cacheDir + "/" + mProfilePicFilename);
 
         if (mLocalFile.exists()) {

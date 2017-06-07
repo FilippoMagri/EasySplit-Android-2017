@@ -10,11 +10,9 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
 
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.Currency;
@@ -100,23 +98,35 @@ public class EditGroupActivity extends AppCompatActivity implements GroupBalance
             return;
         }
 
-        Map<String, Object> update = new HashMap<>();
-        String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        String groupId = mGroupRef.getKey();
+        final String newName = mNameEdit.getText().toString();
 
-        String newName = mNameEdit.getText().toString();
-        update.put("/users/"+uid+"/groups_ids/"+groupId, newName);
-        update.put("/groups/"+groupId+"/name", newName);
+        mGroupRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot groupSnap) {
+                String groupId = mGroupRef.getKey();
 
-        Currency newCurrency = (Currency) mCurrencySpinner.getSelectedItem();
-        if (newCurrency != null) {
-            String newCurrencyCode = newCurrency.getCurrencyCode();
-            update.put("/groups/" + groupId + "/currency", newCurrencyCode);
-        }
+                Map<String, Object> update = new HashMap<>();
+                update.put("/groups/"+groupId+"/name", newName);
+                for (DataSnapshot member : groupSnap.child("members_ids").getChildren()) {
+                    String uid = member.getKey();
+                    update.put("/users/"+uid+"/groups_ids/"+groupId, newName);
+                }
 
-        FirebaseDatabase.getInstance().getReference().updateChildren(update);
+                Currency newCurrency = (Currency) mCurrencySpinner.getSelectedItem();
+                if (newCurrency != null) {
+                    String newCurrencyCode = newCurrency.getCurrencyCode();
+                    update.put("/groups/" + groupId + "/currency", newCurrencyCode);
+                }
 
-        finish();
+                mGroupRef.getRoot().updateChildren(update);
+                finish();
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                ActivityUtils.showDatabaseError(EditGroupActivity.this, databaseError);
+            }
+        });
     }
 
     @Override
