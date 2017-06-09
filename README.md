@@ -1,2 +1,2 @@
 # EasySplit
-Shard payment between people easiky
+Shared payment between people easiky
