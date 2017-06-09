@@ -2,8 +2,10 @@ package it.polito.mad.easysplit;
 
 import android.R.layout;
 import android.R.string;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
@@ -21,6 +23,7 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Spinner;
 
+import com.android.volley.NoConnectionError;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
@@ -45,6 +48,7 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import it.polito.mad.easysplit.R.id;
@@ -112,7 +116,9 @@ public class EditExpenseActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onCancelled(DatabaseError databaseError) { /* TODO */ }
+            public void onCancelled(DatabaseError databaseError) {
+                ActivityUtils.showDatabaseError(EditExpenseActivity.this, databaseError);
+            }
         });
 
         String expenseId = i.getStringExtra("expenseId");
@@ -162,18 +168,16 @@ public class EditExpenseActivity extends AppCompatActivity {
         @Override
         public void onCancelled(DatabaseError databaseError) {
             mProgressBarOverlay.setVisibility(View.GONE);
-            AlertDialog.OnClickListener onClickGoBack = new AlertDialog.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    EditExpenseActivity.this.finish();
-                }
-            };
             AlertDialog dialog = new Builder(EditExpenseActivity.this)
                     .setTitle("Error")
                     .setMessage(databaseError.getMessage())
-                    .setNegativeButton(string.cancel, onClickGoBack)
-                    .create();
-            dialog.show();
+                    .setNegativeButton(string.cancel, new AlertDialog.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog1, int which) {
+                            EditExpenseActivity.this.finish();
+                        }
+                    })
+                    .show();
         }
     }
 
@@ -220,26 +224,28 @@ public class EditExpenseActivity extends AppCompatActivity {
     }
 
     public void setupPayerSpinner() {
-        final Spinner spinner = (Spinner) findViewById(id.payerSpinner);
         final ArrayAdapter<MemberListItem> adapter =
                 new ArrayAdapter<>(this, layout.simple_spinner_item);
         adapter.setDropDownViewResource(layout.simple_spinner_dropdown_item);
 
+        final Spinner spinner = (Spinner) findViewById(id.payerSpinner);
+        spinner.setAdapter(adapter);
+
         final String currentUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        SharedPreferences sharedPref = getSharedPreferences("MyPreferences", Context.MODE_PRIVATE);
+        String currentUserName = sharedPref.getString("signin_complete_name", null);
+
+        adapter.clear();
+        adapter.add(new MemberListItem(currentUid, currentUserName));
 
         final DatabaseReference membersIdsRef = mRoot.child("groups/"+mGroupId+"/members_ids");
         membersIdsRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot membersIdsSnap) {
-                adapter.clear();
-
                 // Make the owner of the phone the first member in the spinner
                 ArrayList<String> keys = new ArrayList<>();
                 for (DataSnapshot child : membersIdsSnap.getChildren())
                     keys.add(child.getKey());
-
-                String currentUserName = membersIdsSnap.child(currentUid).getValue(String.class);
-                adapter.add(new MemberListItem(currentUid, currentUserName));
 
                 String currentPayerId = null;
                 if (isEditing())
@@ -259,14 +265,12 @@ public class EditExpenseActivity extends AppCompatActivity {
 
                     index++;
                 }
-
-                spinner.setAdapter(adapter);
             }
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
                 spinner.setEnabled(false);
-                Snackbar.make(spinner, databaseError.getMessage(), Snackbar.LENGTH_LONG).show();
+                ActivityUtils.showDatabaseError(EditExpenseActivity.this, databaseError);
             }
         });
     }
@@ -278,10 +282,16 @@ public class EditExpenseActivity extends AppCompatActivity {
 
         listView.setAdapter(adapter);
 
+        String currentUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        SharedPreferences sharedPref = getSharedPreferences("MyPreferences", Context.MODE_PRIVATE);
+        String currentUserName = sharedPref.getString("signin_complete_name", null);
+        adapter.add(new MemberListItem(currentUid, currentUserName));
+
         DatabaseReference membersIdsRef = mRoot.child("groups/"+mGroupId+"/members_ids");
         membersIdsRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot membersIdsSnap) {
+                adapter.clear();
                 for (DataSnapshot child : membersIdsSnap.getChildren()) {
                     String userId = child.getKey();
                     String userName = child.getValue(String.class);
@@ -299,8 +309,7 @@ public class EditExpenseActivity extends AppCompatActivity {
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
-                Snackbar.make(listView, databaseError.getMessage(), Snackbar.LENGTH_LONG)
-                        .show();
+                ActivityUtils.showDatabaseError(EditExpenseActivity.this, databaseError);
             }
         });
     }
@@ -370,7 +379,7 @@ public class EditExpenseActivity extends AppCompatActivity {
                 ListView membersList = (ListView) findViewById(id.membersList);
                 Spinner currencySpinner = (Spinner) findViewById(id.currencySpinner);
 
-                Date timestamp = mDateTimePicker.getCalendar().getTime();
+                final Date timestamp = mDateTimePicker.getCalendar().getTime();
 
                 final String title = titleEdit.getText().toString();
 
@@ -396,22 +405,22 @@ public class EditExpenseActivity extends AppCompatActivity {
 
 
                 ConversionRateProvider conversionProvider = ConversionRateProvider.getInstance();
-                Money amountBase, amountConverted;
+                final Money amountBase, amountConverted;
 
                 try {
-                    Task<Money> conversion = conversionProvider.convertToBase(amountOriginal);
-                    amountBase = Tasks.await(conversion, CONVERSION_TIMEOUT_SECS, TimeUnit.SECONDS);
-                } catch (Exception e) {
-                    Snackbar.make(contentView,
-                            "Error while converting: " + e.getLocalizedMessage(),
-                            Snackbar.LENGTH_LONG).show();
-                    return;
-                }
+                    Task<Money> conversionToBase = conversionProvider.convertToBase(amountOriginal);
+                    amountBase = Tasks.await(conversionToBase, CONVERSION_TIMEOUT_SECS, TimeUnit.SECONDS);
 
-                try {
                     Currency groupCurrency = Currency.getInstance(mGroupCurrencyCode);
-                    Task<Money> conversion = conversionProvider.convertFromBase(amountBase, groupCurrency);
-                    amountConverted = Tasks.await(conversion, CONVERSION_TIMEOUT_SECS, TimeUnit.SECONDS);
+                    Task<Money> conversionToGroup = conversionProvider.convertFromBase(amountBase, groupCurrency);
+                    amountConverted = Tasks.await(conversionToGroup, CONVERSION_TIMEOUT_SECS, TimeUnit.SECONDS);
+                } catch (ExecutionException exc) {
+                    String message = exc.getMessage();
+                    if (exc.getCause() instanceof NoConnectionError)
+                        message = getString(R.string.error_conversion_require_connection);
+
+                    Snackbar.make(contentView, message, Snackbar.LENGTH_LONG).show();
+                    return;
                 } catch (Exception e) {
                     Snackbar.make(contentView,
                             "Error while converting: " + e.getLocalizedMessage(),
@@ -419,7 +428,7 @@ public class EditExpenseActivity extends AppCompatActivity {
                     return;
                 }
 
-                MemberListItem payerItem = (MemberListItem) payerSpinner.getSelectedItem();
+                final MemberListItem payerItem = (MemberListItem) payerSpinner.getSelectedItem();
                 final Map<String, String> memberIds = new HashMap<>();
                 int numMembers = membersList.getAdapter().getCount();
                 for (int i = 0; i < numMembers; i++) {
@@ -473,6 +482,11 @@ public class EditExpenseActivity extends AppCompatActivity {
                             /// TODO Go to the expense details (with the newly created URI)
                             Intent i = new Intent(getApplicationContext(), ExpenseDetailsActivity.class);
                             i.setData(Utils.getUriFor(UriType.EXPENSE, expenseId));
+                            i.putExtra("name", title);
+                            i.putExtra("amount", amountConverted.toString());
+                            i.putExtra("timestamp", timestamp.getTime());
+                            i.putExtra("groupId", mGroupId);
+                            i.putExtra("payerId", payerItem.id);
                             startActivity(i);
                             String message4Notification = getResources().getString(R.string.new_expense_notification);
                             MessagingUtils.sendPushUpNotifications(mRoot, mGroupId, title, memberIds, message4Notification);
@@ -481,9 +495,9 @@ public class EditExpenseActivity extends AppCompatActivity {
                             String message4Notification = getResources().getString(R.string.expense_modified);
                             MessagingUtils.sendPushUpNotifications(mRoot, mGroupId, title, memberIds,message4Notification);
                         }
-                        finish();
                     }
                 });
+                finish();
             }
         }).start();
     }

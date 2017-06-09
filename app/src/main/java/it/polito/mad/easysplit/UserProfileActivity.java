@@ -19,6 +19,9 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class UserProfileActivity extends AppCompatActivity {
     private DatabaseReference mUser;
 
@@ -140,8 +143,38 @@ public class UserProfileActivity extends AppCompatActivity {
     }
 
     private void updateName() {
-        String newName = mNameEdit.getText().toString();
-        mUser.child("name").setValue(newName);
+        final String newName = mNameEdit.getText().toString();
+        final String userId = mUser.getKey();
+
+        mUser.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot userSnap) {
+                Map<String, Object> update = new HashMap<>();
+                update.put("/users/"+mUser.getKey()+"/name", newName);
+
+                for (DataSnapshot group : userSnap.child("groups_ids").getChildren()) {
+                    String groupId = group.getKey();
+                    update.put("/groups/"+groupId+"/members_ids/"+userId, newName);
+                }
+
+                for (DataSnapshot expense : userSnap.child("expenses_ids_as_payer").getChildren()) {
+                    String expenseId = expense.getKey();
+                    update.put("/expenses/"+expenseId+"/payer_name", newName);
+                }
+
+                for (DataSnapshot payment : userSnap.child("payments_ids_as_payer").getChildren()) {
+                    String paymentId = payment.getKey();
+                    update.put("/payments/"+paymentId+"/payer_name", newName);
+                }
+
+                mUser.getRoot().updateChildren(update);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                ActivityUtils.showDatabaseError(UserProfileActivity.this, databaseError);
+            }
+        });
     }
 
     private static final int RESULT_PROFILE_PIC = 1;

@@ -18,6 +18,10 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FileDownloadTask;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
@@ -32,6 +36,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Set;
 import java.util.WeakHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ProfilePictureManager {
     public static final int THUMBNAIL_SIZE = 200;
@@ -67,20 +72,18 @@ public class ProfilePictureManager {
         void onFailure(Exception e);
     }
 
-    private final String mProfilePicFilename;
     private StorageReference mStorageRef;
-    private Context mContext;
     // Listeners are kept with weak references, so that they're automatically deleted once they're
     // no longer used.
     private Set<Listener> mListeners = Collections.newSetFromMap(new WeakHashMap<Listener, Boolean>());
+    private AtomicBoolean mConnected = new AtomicBoolean(false);
 
 
     private ProfilePictureManager(Context ctx, String userId) {
-        mContext = ctx;
-        mProfilePicFilename = "profilepic-" + userId;
+        String mProfilePicFilename = "profilepic-" + userId;
         mStorageRef = FirebaseStorage.getInstance().getReference().child(mProfilePicFilename);
 
-        String cacheDir = mContext.getCacheDir().getAbsolutePath();
+        String cacheDir = ctx.getCacheDir().getAbsolutePath();
         mLocalFile = new File(cacheDir + "/" + mProfilePicFilename);
 
         if (mLocalFile.exists()) {
@@ -91,6 +94,20 @@ public class ProfilePictureManager {
             // No cache, load from Firebase
             reload();
         }
+
+        final WeakReference<ProfilePictureManager> weakSelf = new WeakReference<>(this);
+        FirebaseDatabase.getInstance().getReference("/.info/connected").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot valueSnap) {
+                if (weakSelf.get() == null)
+                    return;
+
+                weakSelf.get().mConnected.set(valueSnap.getValue(Boolean.class));
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) { }
+        });
 
         // Reload every RELOAD_PERIOD_MILLIS milliseconds
         mHandler.postDelayed(new Runnable() {
@@ -103,6 +120,9 @@ public class ProfilePictureManager {
     }
 
     void reload() {
+        if (! mConnected.get())
+            return;
+
         mStorageRef.getFile(mLocalFile)
                 .addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
                     @Override

@@ -2,7 +2,6 @@ package it.polito.mad.easysplit;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
-import android.util.Log;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -29,6 +28,7 @@ import java.util.concurrent.TimeUnit;
 import it.polito.mad.easysplit.models.Money;
 
 public class ConversionRateProvider {
+
     private static ConversionRateProvider sInstance = null;
     public static synchronized void setupInstance(Context ctx) {
         sInstance = new ConversionRateProvider(ctx);

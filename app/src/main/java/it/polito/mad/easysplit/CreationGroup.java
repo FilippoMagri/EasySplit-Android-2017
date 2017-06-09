@@ -17,11 +17,8 @@ import android.widget.Toast;
 import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 
 import java.util.Currency;
 import java.util.HashMap;
@@ -29,6 +26,7 @@ import java.util.concurrent.Callable;
 
 public class CreationGroup extends AppCompatActivity {
     private static final DatabaseReference mRoot = FirebaseDatabase.getInstance().getReference();
+
     private Handler mHandler;
 
     @Override
@@ -51,7 +49,7 @@ public class CreationGroup extends AppCompatActivity {
 
         final EditText groupNameEdit = (EditText) findViewById(R.id.nameGroup);
         final Spinner currencySpinner = (Spinner) findViewById(R.id.currencySpinner);
-        ImageView submit = (ImageView) findViewById(R.id.valid);
+        final ImageView submit = (ImageView) findViewById(R.id.valid);
 
         CurrencySpinnerAdapter mCurrenciesAdapter = new CurrencySpinnerAdapter(this);
         currencySpinner.setAdapter(mCurrenciesAdapter);
@@ -72,28 +70,18 @@ public class CreationGroup extends AppCompatActivity {
         submit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                final DatabaseReference root = FirebaseDatabase.getInstance().getReference();
-                root.child("users").addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(final DataSnapshot usersSnap) {
-                        final String groupName = groupNameEdit.getText().toString();
-                        final Currency currency = (Currency) currencySpinner.getSelectedItem();
+                final String groupName = groupNameEdit.getText().toString();
+                final Currency currency = (Currency) currencySpinner.getSelectedItem();
 
-                        Tasks.call(new Callable<Void>() {
-                            @Override
-                            public Void call() {
-                                try {
-                                    createGroup(groupName, currency.getCurrencyCode());
-                                } catch (ValidationException validationExc) {
-                                    mHandler.sendEmptyMessage(validationExc.getKind());
-                                }
-                                return null;
-                            }
-                        });
-                    }
-
+                Tasks.call(new Callable<Void>() {
                     @Override
-                    public void onCancelled(DatabaseError databaseError) {
+                    public Void call() throws Exception {
+                        try {
+                            createGroup(groupName, currency.getCurrencyCode());
+                        } catch (ValidationException validationExc) {
+                            mHandler.sendEmptyMessage(validationExc.getKind());
+                        }
+                        return null;
                     }
                 });
             }

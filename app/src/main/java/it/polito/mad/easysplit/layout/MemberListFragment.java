@@ -37,13 +37,12 @@ public class MemberListFragment extends Fragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_member_list, container, false);
 
-        if (view instanceof ListView) {
-            ListView listView = (ListView) view;
+        ListView listView = (ListView) view.findViewById(R.id.membersList);
 
-            GroupBalanceModel model = GroupBalanceModel.forGroup(mGroupUri);
-            mAdapter = new GroupBalanceAdapter(getContext(), model);
-            listView.setAdapter(mAdapter);
-        }
+        GroupBalanceModel model = GroupBalanceModel.forGroup(mGroupUri);
+        mAdapter = new GroupBalanceAdapter(getContext(), model);
+        listView.setAdapter(mAdapter);
+
         return view;
     }
 }

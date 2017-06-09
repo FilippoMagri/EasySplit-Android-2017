@@ -73,7 +73,7 @@ public class InvitePerson extends AppCompatActivity implements View.OnClickListe
 
                     @Override
                     public void onCancelled(DatabaseError databaseError) {
-
+                        ActivityUtils.showDatabaseError(InvitePerson.this, databaseError);
                     }
                 });
 
@@ -144,7 +144,7 @@ public class InvitePerson extends AppCompatActivity implements View.OnClickListe
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
-
+                ActivityUtils.showDatabaseError(InvitePerson.this, databaseError);
             }
         };
 
@@ -183,7 +183,7 @@ public class InvitePerson extends AppCompatActivity implements View.OnClickListe
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
-
+                ActivityUtils.showDatabaseError(InvitePerson.this, databaseError);
             }
         };
     }

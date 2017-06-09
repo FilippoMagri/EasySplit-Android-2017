@@ -262,11 +262,10 @@ public class Payment extends AppCompatActivity {
                             String message4Notification = getResources().getString(R.string.payment_received);
                             MessagingUtils.sendPushUpNotifications(mRoot, mGroupId, amountOriginal.getAmount().abs().toString(),memberIds,message4Notification);
                             Snackbar.make(mCoordinatorLayout, "Payment Effettuato", Snackbar.LENGTH_LONG).show();
-                            onBackPressed();
                         }
-                        finish();
                     }
                 });
+                finish();
             }
         }).start();
     }
